@@ -1,0 +1,283 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Types de demandes
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+    <style>
+        .type-demande-row.selected {
+            background-color: #e6f7ff !important;
+        }
+        .type-demande-row.table-secondary {
+            opacity: 0.7;
+        }
+        .type-demande-row:hover {
+            background-color: #f8f9fa !important;
+        }
+        .type-demande-row.table-secondary.selected {
+            background-color: #cce5ff !important;
+            opacity: 1 !important;
+        }
+        
+        /* Style pour les notifications */
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        
+        .notification {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s forwards;
+            border-left: 4px solid;
+        }
+        
+        .notification.success {
+            border-left-color: #28a745;
+        }
+        
+        .notification.error {
+            border-left-color: #dc3545;
+        }
+        
+        .notification.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .notification.info {
+            border-left-color: #17a2b8;
+        }
+        
+        .notification .icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        
+        .notification.success .icon {
+            color: #28a745;
+        }
+        
+        .notification.error .icon {
+            color: #dc3545;
+        }
+        
+        .notification.warning .icon {
+            color: #ffc107;
+        }
+        
+        .notification.info .icon {
+            color: #17a2b8;
+        }
+        
+        .notification .content {
+            flex: 1;
+        }
+        
+        .notification .close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .details-panel {
+            display: none;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .audit-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        .documents-table {
+            margin-top: 20px;
+        }
+        
+        /* Styles pour le tableau des documents */
+        .document-row {
+            transition: background-color 0.2s;
+        }
+        
+        .document-row:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .document-actions {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .document-row:hover .document-actions {
+            opacity: 1;
+        }
+        
+        /* Styles pour la combobox moderne */
+        .select2-container {
+            width: 100% !important;
+        }
+        
+        .add-document-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/attribution.png') }}" alt="Typedemande"> Types de demandes
+    </h2>
+    
+    <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+        <div class="btn-group p-1 rounded-5" role="group">
+            <button id="btnAddTypeDemande" class="btn btn-primary p-2 mt-2">
+                <i class="mdi mdi-plus-circle me-2"></i>Ajouter
+            </button>
+            <button id="btnEditTypeDemande" disabled class="btn btn-secondary p-2 mt-2">
+                <i class="mdi mdi-pencil me-2"></i>Modifier
+            </button>
+            <button id="btnEditDocuments" disabled class="btn btn-info p-2 mt-2">
+                <i class="mdi mdi-file-document-edit me-2"></i>Editer les documents
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-responsive-sm w-100 p-2 bg-white" id="typeDemandesTable">
+        <!-- Le contenu du tableau sera généré par DataTables -->
+    </table>
+
+    <!-- Modal pour le formulaire de type de demande -->
+    <div class="modal fade" id="typeDemandeModal" tabindex="-1" aria-labelledby="typeDemandeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="typeDemandeModalTitle">Gestion des types de demandes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="typeDemandeModalBody">
+                    <!-- Le contenu du formulaire sera chargé ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal pour l'édition des documents -->
+    <div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="documentsModalTitle">Gestion des documents</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="documentsModalBody">
+                    <!-- Le contenu de l'édition des documents sera chargé ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Conteneur pour les notifications -->
+    <div id="notification-container"></div>
+    
+    <!-- Templates préchargés pour les formulaires -->
+    <script type="text/template" id="template-form-new">
+        {{ preloaded_forms.new|raw }}
+    </script>
+    
+    <script type="text/template" id="template-form-edit">
+        {{ preloaded_forms.edit|raw }}
+    </script>
+    
+    <script type="text/template" id="template-form-read">
+        {{ preloaded_forms.read|raw }}
+    </script>
+
+    <!-- Template pour l'édition des documents -->
+    <script type="text/template" id="template-documents">
+        <div class="container-fluid">
+            <h4 class="mb-4 text-primary">Gestion des documents pour: <span id="typeDemandeName"></span></h4>
+            
+            <div class="add-document-form">
+                <select id="documentSelect" class="form-select" style="width: 100%">
+                    <option value="">Sélectionner un document</option>
+                    <!-- Les options seront chargées dynamiquement -->
+                </select>
+                <button id="btnAddDocument" class="btn btn-primary">
+                    <i class="mdi mdi-file-plus"></i>
+                </button>
+            </div>
+            
+            <table class="table table-hover documents-table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th width="100">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="documentsList">
+                    <!-- Les documents seront chargés dynamiquement -->
+                </tbody>
+            </table>
+            
+            <div class="d-flex justify-content-end mt-3">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </script>
+
+   
+   
+
+    <!-- Chargement des scripts dans le bon ordre -->
+    <script src="{{ asset('assets/js/typedemande/api-service.js') }}"></script>
+    <script src="{{ asset('assets/js/typedemande/notification.js') }}"></script>
+    <script src="{{ asset('assets/js/typedemande/documents-modal.js') }}"></script>
+    <script src="{{ asset('assets/js/typedemande/typedemande.js') }}"></script>
+    
+    <script>
+        // Initialisation de Select2
+        $(document).ready(function() {
+            // Cette initialisation sera reprise dans le modal d'édition des documents
+        });
+    </script>
+{% endblock %}

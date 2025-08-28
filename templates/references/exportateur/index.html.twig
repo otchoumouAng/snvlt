@@ -1,0 +1,87 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Exportateurs
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/exportateur.png') }}" alt="exportateur">  Exportateurs
+    </h2>
+    <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+        <div class="btn-group p-1 rounded-5 " role="group" aria-label="Basic example">
+            <a class="btn btn-danger p-2 mt-2" style="border: 0px; font-size: 16px;" href="{{ path('exportateur.edit') }}"> <i class="mdi mdi-plus-circle me-2" style="font-size: 20px;"></i>Ajouter un exportateur</a>
+        </div>
+    </div>
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+    <section class="section">
+        <div class="card">
+            
+            <div class="card-body">
+                <table class="table" id="exportateurs">
+                    <thead>
+                    <tr>
+                        <th>Raison sociale</th>
+                        <th>Sigle</th>
+                        <th>Code</th>
+                        <th>Téléphone</th>
+                        <th>Cantonnement</th>
+                        <th>Responsable</th>
+                        <th>Contact</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for exportateur in exportateurs %}
+                        <tr>
+                            <td class=" fw-bold badge bg-secondary m-1 p-2"><a class="link-dark editBtn text-white " href="{{ path('exportateur.edit', {'id_exportateur': exportateur.id })}}" id="{{ exportateur.id }}">{{ exportateur.raisonSocialeExportateur }}</a></td>
+                            <td>{{ exportateur.sigle }}</td>
+                            <td>{{ exportateur.codeExportateur }}</td>
+                            <td><input type="text" class="tel" style="border: 0px;" readonly value="{{ exportateur.telExportateur }}"></td>
+                            <td><span class="badge badge-sm alert-light-warning p-1 text-dark">{{ exportateur.codeCantonnement.nomCantonnement }}</span></td>
+                            <td>{{ exportateur.personneRessource}}</td>
+                            <td>{{ exportateur.mobilePersonneRessource}}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script>
+        // Simple Datatable
+        let table1 = document.querySelector('#exportateurs');
+        let dataTable = new simpleDatatables.DataTable(table1);
+        $(document).ready(function() {
+
+            const phoneInputField = document.querySelector(".tel");
+            const phoneInput = window.intlTelInput(phoneInputField, {
+                utilsScript:
+                    "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+            });
+        });
+    </script>
+    <script>
+
+    </script>
+    <script src="{{ asset('assets/webapp/assets/js/main.js') }}"></script>
+
+
+{% endblock %}
+

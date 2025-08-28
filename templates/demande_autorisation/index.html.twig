@@ -1,0 +1,398 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}PS Autorisations{% endtrans %}
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+<link
+  rel="stylesheet"
+  type="text/css"
+  href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2/src/duotone/style.css"
+/>
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+    <style>
+        .card-rounded { border-radius: 1rem; }
+        .table-hover tbody tr:hover { background-color: rgba(0,0,0,0.02); }
+        .small-muted { font-size: .875rem; color: #6c757d; }
+        .action-icon { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .no-data { text-align: center; padding: 3rem 1rem; color: #6c757d; }
+        @media (max-width: 768px) { .table-responsive { font-size: .95rem; } .header-controls { flex-direction: column; gap: .5rem; } }
+    </style>
+
+    <section class="section">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 fw-bold mb-0 text-secondary">Demandes d'autorisations</h1>
+                <p class="small-muted mb-0">Suivi, historique et actions sur vos demandes</p>
+            </div>
+
+            <div class="d-flex header-controls justify-content-around gap-3" style="width:48%">
+                <div class="input-group me-2" style="width:220px;">
+                    <span class="input-group-text" id="search-addon"><i class="ph ph-magnifying-glass"></i></span>
+                    <input type="search" class="form-control" placeholder="Rechercher titre, n° référence..." aria-label="Rechercher" aria-describedby="search-addon" id="searchDemandes">
+                </div>
+
+                <div class="d-flex align-items-center">
+                    <select id="filterStatus" class="form-select form-select-sm" aria-label="Filtrer par statut" style="width: 180px;">
+                        <option value="">Tous statuts</option>
+                        <option value="en attente">⏳ En attente</option>
+                        <option value="approuvée">✅ Approuvée</option>
+                        <option value="rejetée">❌ Rejetée</option>
+                        <option value="brouillon">📝 Brouillon</option>
+                    </select>
+                </div>
+
+              
+
+                <button type="button" class="btn btn-outline-primary rounded-pill"
+                        data-bs-toggle="modal" data-bs-target="#ultraModal">
+                    <i class="bi bi-gear-fill me-2"></i> Nouvelle demande
+                </button>
+                
+            </div>
+        </header>
+
+
+
+<div class="modal fade" id="ultraModal" tabindex="-1" aria-labelledby="ultraModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+    <div class="modal-content ultra-card" style="height:550px; overflow:hidden;">
+
+      <style>
+        .ultra-card{ border-radius:14px; box-shadow: 0 10px 30px rgba(10,20,40,0.18); border: 0; transform-origin: center; animation: ultra-entrance 360ms cubic-bezier(.2,.9,.2,1); }
+        @keyframes ultra-entrance{ from { transform: translateY(8px) scale(.995); opacity:0 } 60% { transform: translateY(-4px) scale(1.004); opacity:1 } to { transform: translateY(0) scale(1); } }
+        .ultra-header{ background: linear-gradient(90deg, rgba(8,102,255,0.12), rgba(78,0,255,0.06)); padding:14px 16px; display:flex; gap:12px; align-items:center; }
+        .ultra-icon{ width:44px; height:44px; display:inline-grid; place-items:center; border-radius:10px; background:linear-gradient(135deg,#0b63ff,#8a2be2); color:white; box-shadow: 0 6px 18px rgba(11,99,255,0.18); animation: pulse 1800ms infinite; }
+        @keyframes pulse{ 0% { box-shadow: 0 6px 18px rgba(11,99,255,0.18); } 50% { box-shadow: 0 12px 30px rgba(11,99,255,0.12); } 100% { box-shadow: 0 6px 18px rgba(11,99,255,0.18); } }
+        .ultra-body{ padding: 16px; display:flex; flex-direction:column; gap:8px; height:calc(100% - 130px); box-sizing:border-box; }
+        .ultra-footer{ display:flex; justify-content:flex-end; align-items:center; gap:8px; padding:12px 16px; border-top: 1px solid #f0f0f0; }
+        .ultra-create{ min-width:110px; display:inline-flex; gap:8px; align-items:center; justify-content:center; padding:.45rem .9rem; border-radius:999px; }
+      </style>
+
+      <div class="ultra-header">
+        <div class="ultra-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div id="ultraModalLabel" class="fw-bold" style="font-size:0.98rem;">Créer une nouvelle demande</div>
+          <div class="small text-muted">Saisissez les informations de base.</div>
+        </div>
+        <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Fermer" style="opacity:.9; border:none;"><i class="ph ph-x"></i></button>
+      </div>
+
+      <div class="ultra-body">
+        
+        <div class="mb-2">
+            <label for="nomDemande" class="form-label small fw-bold text-muted">Nom de la demande</label>
+            <input type="text" class="form-control" id="nomDemande" placeholder="Ex: Autorisation de coupe 2025">
+        </div>
+
+        <hr class="my-2">
+        
+        <div>
+            <h6 class="mb-2 small fw-bold text-muted">LISTE DES DOCUMENTS OBLIGATOIRES</h6>
+            
+            <div class="input-group mb-2">
+                <select class="form-select" id="documentSelect" aria-label="Sélectionner un document">
+                    <option selected disabled>Choisir un document...</option>
+                    <option value="ID_PROOF">Preuve d'identité</option>
+                    <option value="TAX_CERT">Attestation fiscale</option>
+                    <option value="SITE_PLAN">Plan de situation</option>
+                    <option value="SPEC_SHEET">Cahier des charges</option>
+                    <option value="LEGAL_STATUS">Statuts de l'entreprise</option>
+                </select>
+                <button class="btn btn-primary" type="button" id="addDocumentBtn" data-bs-toggle="tooltip" title="Ajouter à la liste">
+                    <i class="ph-fill ph-plus-circle"></i>
+                </button>
+            </div>
+            
+            <div class="table-responsive border rounded-2" style="height: 210px; overflow-y: auto;">
+                <table class="table table-sm table-hover align-middle mb-0" id="documentsTable">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th scope="col" class="px-3">Document Ajouté</th>
+                            <th scope="col" class="text-end px-3">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="no-docs-row">
+                            <td colspan="2" class="text-center text-muted fst-italic py-4">
+                                Aucun document requis pour le moment.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+
+      <div class="ultra-footer">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" id="ultraCreate" class="btn btn-sm btn-primary ultra-create">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.485 1.929a1 1 0 0 1 0 1.414l-7.78 7.78a1 1 0 0 1-1.414 0L2.515 9.337a1 1 0 1 1 1.414-1.414l1.182 1.182 7.073-7.073a1 1 0 0 1 1.414 0z"/></svg>
+          <span>Créer la demande</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const ultraModal = document.getElementById('ultraModal');
+    if (!ultraModal) return;
+
+    const addDocumentBtn = ultraModal.querySelector('#addDocumentBtn');
+    const documentSelect = ultraModal.querySelector('#documentSelect');
+    const documentsTableBody = ultraModal.querySelector('#documentsTable tbody');
+    const noDocsRow = ultraModal.querySelector('#no-docs-row');
+
+    const addDocument = () => {
+        const selectedOption = documentSelect.options[documentSelect.selectedIndex];
+        
+        // Ne rien faire si l'option est le placeholder ou si le document est déjà dans la liste
+        if (selectedOption.disabled || documentsTableBody.querySelector(`[data-value="${selectedOption.value}"]`)) {
+            // Optionnel: Animer le bouton pour indiquer une erreur/un doublon
+            addDocumentBtn.classList.add('btn-danger');
+            setTimeout(() => addDocumentBtn.classList.remove('btn-danger'), 500);
+            return;
+        }
+
+        // Cacher la ligne par défaut si elle est visible
+        if (noDocsRow) noDocsRow.style.display = 'none';
+
+        // Créer la nouvelle ligne du tableau
+        const newRow = document.createElement('tr');
+        newRow.setAttribute('data-value', selectedOption.value);
+        newRow.innerHTML = `
+            <td class="px-3">
+                <span class="fw-bold">${selectedOption.textContent}</span>
+                <br>
+                <small class="text-muted">ID: ${selectedOption.value}</small>
+            </td>
+            <td class="text-end px-3">
+                <button type="button" class="btn btn-sm btn-outline-danger delete-doc-btn" data-bs-toggle="tooltip" title="Retirer">
+                    <i class="ph-fill ph-trash"></i>
+                </button>
+            </td>
+        `;
+        documentsTableBody.appendChild(newRow);
+        
+        // Réinitialiser le select
+        documentSelect.selectedIndex = 0;
+
+        // Activer le nouveau tooltip
+        const newTooltip = new bootstrap.Tooltip(newRow.querySelector('[data-bs-toggle="tooltip"]'));
+    };
+
+    // Gérer la suppression via la délégation d'événements
+    documentsTableBody.addEventListener('click', (event) => {
+        const deleteButton = event.target.closest('.delete-doc-btn');
+        if (deleteButton) {
+            deleteButton.closest('tr').remove();
+            
+            // Si le tableau est vide, réafficher la ligne par défaut
+            if (documentsTableBody.children.length === 0) {
+                 if (noDocsRow) noDocsRow.style.display = 'table-row';
+            }
+        }
+    });
+
+    addDocumentBtn.addEventListener('click', addDocument);
+});
+</script>
+
+
+
+
+
+
+
+
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card card-rounded border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-semibold mb-0">Mes demandes</h5>
+                                <small class="text-muted">Historique des demandes soumises et leur statut</small>
+                            </div>
+                            <span style="background-color:#d8e8f2;" class="badge text-dark rounded-pill px-3 py-2" aria-live="polite">
+                                3 <span class="visually-hidden">nombre de demandes</span>
+                            </span>
+                        </div>
+
+                        <div class="table-responsive" role="region" aria-label="Tableau des demandes">
+                            <table class="table table-hover align-middle caption-top">
+                                <caption class="visually-hidden">Liste des demandes</caption>
+                                <thead class="table-light">
+                                    <tr class="text-uppercase small text-secondary">
+                                        <th scope="col">Titre forestier</th>
+                                        <th scope="col">Référence</th>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Statut</th>
+                                        <th scope="col" class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Ligne 1 : En attente -->
+                                    <tr class="border-bottom">
+                                        <td>
+                                            <div class="fw-medium">Intervention forêt de N'Zérékoré</div>
+                                            <div class="small-muted">Client : Société Silva</div>
+                                        </td>
+                                        <td>REF-2025-001</td>
+                                        <td>12/08/2025</td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-warning px-3 py-2 text-capitalize" aria-label="Statut: en attente">En attente</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group" role="group" aria-label="Actions">
+                                                <a href="#" class="btn btn-sm btn-outline-primary action-icon" title="Voir" aria-label="Voir"><i class="bi bi-eye-fill"></i></a>
+                                                <a href="#" class="btn btn-sm btn-outline-secondary action-icon" title="Modifier" aria-label="Modifier"><i class="bi bi-pencil-fill"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger action-icon" data-bs-toggle="modal" data-bs-target="#confirmCancel1" title="Annuler" aria-label="Annuler"><i class="bi bi-trash3-fill"></i></button>
+                                            </div>
+
+                                            <div class="modal fade" id="confirmCancel1" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <p class="mb-3">Annuler la demande <strong>Intervention forêt de N'Zérékoré</strong> ?</p>
+                                                            <div class="d-flex justify-content-end gap-2">
+                                                                <button class="btn btn-light" data-bs-dismiss="modal">Non</button>
+                                                                <form method="post" action="#" class="d-inline">
+                                                                    <button type="submit" class="btn btn-danger">Oui, annuler</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <!-- Ligne 2 : Approuvée -->
+                                    <tr class="border-bottom">
+                                        <td>
+                                            <div class="fw-medium">Abattage contrôlé - Secteur Est</div>
+                                            <div class="small-muted">Client : ExploForest SARL</div>
+                                        </td>
+                                        <td>REF-2025-002</td>
+                                        <td>05/08/2025</td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-success px-3 py-2 text-capitalize" aria-label="Statut: approuvée">Approuvée</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group" role="group" aria-label="Actions">
+                                                <a href="#" class="btn btn-sm btn-outline-primary action-icon" title="Voir" aria-label="Voir"><i style="font-size:17px;" class="ph ph-eye"></i></a>
+                                                <a href="#" class="btn btn-sm btn-outline-secondary action-icon" title="Modifier" aria-label="Modifier"><i style="font-size:17px;" class="ph ph-pencil-simple-line"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger action-icon" data-bs-toggle="modal" data-bs-target="#confirmCancel2" title="Annuler" aria-label="Annuler"><i style="font-size:17px;" class="ph ph-trash"></i></button>
+                                            </div>
+
+                                            <div class="modal fade" id="confirmCancel2" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <p class="mb-3">Annuler la demande <strong>Abattage contrôlé - Secteur Est</strong> ?</p>
+                                                            <div class="d-flex justify-content-end gap-2">
+                                                                <button class="btn btn-light" data-bs-dismiss="modal">Non</button>
+                                                                <form method="post" action="#" class="d-inline">
+                                                                    <button type="submit" class="btn btn-danger">Oui, annuler</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                    <!-- Ligne 3 : Rejetée -->
+                                    <tr class="border-bottom">
+                                        <td>
+                                            <div class="fw-medium">Transport bois - Zone Sud</div>
+                                            <div class="small-muted">Client : TransitBois</div>
+                                        </td>
+                                        <td>REF-2025-003</td>
+                                        <td>20/07/2025</td>
+                                        <td>
+                                            <span class="badge rounded-pill bg-danger px-3 py-2 text-capitalize" aria-label="Statut: rejetée">Rejetée</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="btn-group" role="group" aria-label="Actions">
+                                                <a href="#" class="btn btn-sm btn-outline-primary action-icon" title="Voir" aria-label="Voir"><i class="bi bi-eye-fill"></i></a>
+                                                <a href="#" class="btn btn-sm btn-outline-secondary action-icon" title="Modifier" aria-label="Modifier"><i class="bi bi-pencil-fill"></i></a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger action-icon" data-bs-toggle="modal" data-bs-target="#confirmCancel3" title="Annuler" aria-label="Annuler"><i class="bi bi-trash3-fill"></i></button>
+                                            </div>
+
+                                            <div class="modal fade" id="confirmCancel3" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-sm modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-body">
+                                                            <p class="mb-3">Annuler la demande <strong>Transport bois - Zone Sud</strong> ?</p>
+                                                            <div class="d-flex justify-content-end gap-2">
+                                                                <button class="btn btn-light" data-bs-dismiss="modal">Non</button>
+                                                                <form method="post" action="#" class="d-inline">
+                                                                    <button type="submit" class="btn btn-danger">Oui, annuler</button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    
+
+    <!-- Filtrage client simple -->
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <script>
+        (function(){
+            const search = document.getElementById('searchDemandes');
+            const filter = document.getElementById('filterStatus');
+
+            function normalizeText(s){ return s ? s.toString().toLowerCase() : ''; }
+
+            function applyFilters(){
+                const q = normalizeText(search.value);
+                const f = normalizeText(filter.value);
+                const rows = document.querySelectorAll('table tbody tr.border-bottom');
+
+                rows.forEach(row => {
+                    const text = normalizeText(row.innerText);
+                    const badge = row.querySelector('td span.badge');
+                    const status = badge ? normalizeText(badge.textContent) : '';
+                    const visible = (q === '' || text.includes(q)) && (f === '' || status.includes(f));
+                    row.style.display = visible ? '' : 'none';
+                });
+            }
+
+            if (search) search.addEventListener('input', applyFilters);
+            if (filter) filter.addEventListener('change', applyFilters);
+        })();
+    </script>
+{% endblock %}

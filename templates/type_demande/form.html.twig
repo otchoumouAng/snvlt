@@ -1,0 +1,80 @@
+{% set mode = mode|default('new') %}
+{% set type_demande = type_demande|default(null) %}
+
+<div class="container-fluid">
+    {% if mode == 'read' %}
+        <h4 class="mb-4 text-primary">Détails du Type de demande</h4>
+    {% elseif mode == 'edit' %}
+        <h4 class="mb-4 text-primary">Modifier le Type de demande</h4>
+    {% else %}
+        <h4 class="mb-4 text-primary">Nouveau Type de demande</h4>
+    {% endif %}
+    
+    <form id="typeDemandeForm" method="post">
+        {% if type_demande and type_demande.id %}
+            <input type="hidden" name="id" value="{{ type_demande.id }}">
+        {% endif %}
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="designation" class="form-label fw-bold">Désignation</label>
+                    <input type="text" class="form-control" id="designation" name="designation" 
+                           value="{{ type_demande.designation ?? '' }}" 
+                           {{ mode == 'read' ? 'readonly' : '' }} required>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="desactivate" class="form-label fw-bold">Statut</label>
+                    <select class="form-control" id="desactivate" name="desactivate" {{ mode == 'read' ? 'disabled' : '' }}>
+                        <option value="0" {{ type_demande and not type_demande.desactivate ? 'selected' : '' }}>Actif</option>
+                        <option value="1" {{ type_demande and type_demande.desactivate ? 'selected' : '' }}>Désactivé</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        {# Section des documents en mode lecture #}
+        {% if mode == 'read' and type_demande and type_demande.id %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <h5 class="mb-3 border-bottom pb-2">Documents associés</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Document</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="documentsReadOnlyList">
+                            {# Les documents seront chargés dynamiquement via JavaScript #}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if mode != 'read' %}
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ type_demande and type_demande.id ? 'Modifier' : 'Créer' }}
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        {% endif %}
+    </form>
+</div>

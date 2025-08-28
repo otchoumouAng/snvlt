@@ -1,0 +1,3 @@
+foret,numero,code_essence,zone_h,x,y,lng,dm,lac
+14230,658,KOD,30N,458921,698745,1145,54,O
+14230,659,KOD,30N,328451,645213,1722,79,

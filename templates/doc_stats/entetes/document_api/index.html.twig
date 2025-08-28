@@ -1,0 +1,219 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Loading logs{% endtrans %} - [ Api Call]
+{% endblock %}
+
+
+
+ {% block notifs %}
+     {% include 'base/notifs.html.twig' %}
+ {% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    
+
+
+
+    <link rel="stylesheet" href="{{asset('assets/assets/css/api_file_style.css') }}">
+
+    </style>
+    
+
+<div class="elegant-container">
+    <div class="upload-container">
+        <div id="upload-zone" class="upload-zone">
+            <svg class="upload-icon" viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            <h3>Glissez-déposez votre fichier CSV ici</h3>
+            <p class="subtext">
+                Taille maximale : 4 Mo
+            </p>
+            <div class="file-requirements">
+                <span>Formats acceptés : .csv</span>
+            </div>
+            <input type="file" id="file-input" accept=".csv" hidden>
+            <button id="browse-btn" class="browse-btn">Parcourir les fichiers</button>
+        </div>
+        <div id="progress-container" class="progress-container hidden">
+            <div id="progress-bar" class="progress-bar"></div>
+            <span id="progress-text" class="progress-text">0%</span>
+        </div>
+    </div>
+
+    <p id="EndLabel" style="display:none;">Traitement terminé.</p>
+
+
+    <div id="notification-bar" class="notification-fixed" role="alert" aria-live="polite">
+  <div class="notification-content">
+    <span class="notification-icon">✓</span>
+    <span>Traitement terminé.</span>
+  </div>
+  <button class="notification-close" aria-label="Fermer">&times;</button>
+</div>
+
+
+
+
+    <div class="cta-container">
+        <button class="cta">
+            <span >Charger maintenant</span>
+            <svg width="15px" height="10px" viewBox="0 0 13 10">
+                <path d="M1,5 L11,5"></path>
+                <polyline points="8 1 12 5 8 9"></polyline>
+            </svg>
+        </button>
+    </div>
+</div>
+
+
+
+   
+
+    
+
+
+
+    
+
+
+    <script src="{{ asset('assets/Js/api_file_script.js') }}"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+    const ctaButton = document.querySelector('.cta');
+    const fileInput = document.getElementById('file-input');
+
+    if (!ctaButton || !fileInput) {
+        console.error("Bouton ou input non trouvé dans le DOM");
+        return;
+    }
+
+    // Attache le bouton "Parcourir"
+    const browseBtn = document.getElementById('browse-btn');
+    if (browseBtn) {
+        browseBtn.addEventListener('click', () => fileInput.click());
+    }
+
+    
+    ctaButton.addEventListener('click', function () {
+    const file = fileInput.files?.[0];
+
+    if (!file) {
+        alert('Veuillez sélectionner un fichier CSV');
+        return;
+    }
+
+    this.disabled = true;
+    ctaButton.textContent = "Traitement en cours ...";
+    ctaButton.style.color = "blue";
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('{{ path('app_doc_stats_entetes_document_api_add_brh') }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.ok ? response.json() : response.json().then(err => { throw err; }))
+    .then(data => {
+        if (data.success) {
+            document.getElementById("EndLabel").style.maxWidth = "480px";
+            document.getElementById("EndLabel").style.display = "block";
+            document.getElementById("EndLabel").style.border = "1px #0aeb9e solid";
+            document.getElementById("EndLabel").style.textAlign = "center";
+            document.getElementById("EndLabel").style.backgroundColor = "#cffdec";
+            document.getElementById("EndLabel").style.color = "#000";
+            document.getElementById("EndLabel").style.padding = "5px";
+            document.getElementById("EndLabel").style.borderRadius = "4px";
+            document.getElementById("EndLabel").textContent = data.message;
+            this.style.display = "none";
+            document.getElementById('progress-container').classList.add('hidden');
+
+            // Afficher les données existantes si elles existent
+            if (data.existingData && data.existingData.length > 0) {
+                const container = document.querySelector('.elegant-container');
+                
+                // Créer un titre pour le tableau
+                const title = document.createElement('h3');
+                title.textContent = 'Données existantes';
+                title.style.marginTop = '20px';
+                container.appendChild(title);
+                
+                // Créer le tableau
+                const table = document.createElement('table');
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                table.style.marginTop = '10px';
+                
+                // Créer l'en-tête du tableau
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                
+                // Supposons que les données sont des objets avec les mêmes clés
+                // On crée les en-têtes de colonnes à partir des clés du premier élément
+                const keys = Object.keys(data.existingData[0]);
+                
+                keys.forEach(key => {
+                    const th = document.createElement('th');
+                    th.textContent = key;
+                    th.style.border = '1px solid #ddd';
+                    th.style.padding = '8px';
+                    th.style.textAlign = 'left';
+                    th.style.backgroundColor = '#f2f2f2';
+                    headerRow.appendChild(th);
+                });
+                
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+                
+                // Créer le corps du tableau
+                const tbody = document.createElement('tbody');
+                
+                data.existingData.forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    keys.forEach(key => {
+                        const td = document.createElement('td');
+                        td.textContent = item[key];
+                        td.style.border = '1px solid #ddd';
+                        td.style.padding = '8px';
+                        row.appendChild(td);
+                    });
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(tbody);
+                container.appendChild(table);
+            }
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erreur: ' + error.message);
+        this.disabled = false;
+    });
+});
+
+});
+</script>
+
+
+
+{% endblock %}
+
+
+
+

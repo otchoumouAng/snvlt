@@ -1,0 +1,238 @@
+
+<div class="col-md-12">
+    <div class="row  bg-white p-1">
+        <div class="col-md-3">
+            <a href="#" class="badge bg-warning text-white d-inline-flex m-2" style="width: 100%;">
+                <i class="mdi mdi-account" style="font-size: 64px"></i>
+                <div class="my-auto mx-auto">
+                    <span class="text-dark" style="font-size: 14px;">{{ 'Users' | trans}}</span><br>
+                    <span class="badge p-2 text-dark font-weight-bold bg-white mt-2" style="font-size: 14px;">{{ nb_users }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="badge bg-danger text-white d-inline-flex m-2" style="width: 100%;">
+                <i class="mdi mdi-settings" style="font-size: 64px"></i>
+                <div class="my-auto mx-auto">
+                    <span class="text-white" style="font-size: 14px;">{{ 'Authorizations' | trans}}</span><br>
+                    <span class="badge p-2 text-dark font-weight-bold bg-white mt-2" style="font-size: 14px;">{{ nb_autorisations }}</span>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="badge bg-success text-white d-inline-flex m-2" style="width: 100%;">
+                <i class="mdi mdi-filter" style="font-size: 64px"></i>
+                <div class="my-auto mx-auto">
+                    <span class="text-white" style="font-size: 14px;">{{ 'Volume Exploitation' | trans}}</span><br>
+                    <span class="badge p-2 text-dark font-weight-bold bg-white mt-2 vol_tot" style="font-size: 14px;">{{ total_volume_exploite |number_format(0, '.', ' ')}} m<sup>3</sup></span>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3">
+            <a href="#" class="badge bg-secondary text-white d-inline-flex m-2" style="width: 100%;">
+                <i class="mdi mdi-factory" style="font-size: 64px"></i>
+                <div class="my-auto mx-auto">
+                    <span class="text-white" style="font-size: 14px;">{{ 'Volume Transformation' | trans}}</span><br>
+                    <span class="badge p-2 text-dark font-weight-bold bg-white mt-2" style="font-size: 14px;">{{ total_transformation |number_format(0, '.', ' ')}} m<sup>3</sup></span>
+                </div>
+            </a>
+        </div>
+    </div>
+    <div class="row mt-3 p-2">
+        <div class="card col-md-7" style="border: 1px;">
+            <div class="card-title p-2 text-white font-weight-light mt-3" style="background-color: #f95d01">
+                {{ 'Opérateurs SNVLT' }}
+            </div>
+            <div class="card-body">
+                <div class="" id="chart_operateurs"></div>
+
+                <hr>
+				 <span class="alert-info p-2 h5">Essences exploitées</span>
+                 <div class="" id="chart_essences"></div>
+
+
+
+            </div>
+        </div>
+        <div class="card col-md-5" style="border: 1px;background-color: transparent">
+            <div class="bg-white">
+                <div class="card m-2" style="border: 1px;">
+                    <div class="card-title p-2 text-white font-weight-light mt-2" style="background-color: #025e27">
+                        {{ 'Agreements/Authorization' | trans}}
+                    </div>
+                    <div class="">
+                        <img class="img-fluid m-2" src="{{ asset('assets/images/autorisation.png') }}" alt="autorisation">  <span class="font-weight-bold mt-3" style="color: #6c6d6f"> {{ total_autorisation }} autorisation(s)</span><br>
+                        <img class="img-fluid m-2" src="{{ asset('assets/images/agreement.png') }}" alt="autorisation" >  <span class="font-weight-bold mt-3"> {{ total_agreement }} agréement(s)</span><br>
+
+                        <div class="" id="chartjauge"></div>
+                    </div>
+
+                </div>
+                <div class="card m-2" style="border: 1px;">
+                    <div class="card-title text-white font-weight-light p-2" style="background-color: #02195e">{{ 'Documents statistiques' | trans}}</div>
+                    <div class="" style="height: 250px;overflow-y: scroll;">
+                        <table class="table">
+                            <thead>
+                            <tr class="alert-success">
+                                <th>{{ 'Doc' | trans}}</th>
+                                <th>{{ 'delivered' | trans}}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for doc in documents %}
+                                <tr>
+                                    <td class="font-weight-bold">{{ doc.abv }}</td>
+
+                                    {% if(doc.id == 1) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentcps.count }}</td>
+                                    {% elseif(doc.id == 2) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentbrhs.count }}</td>
+                                    {% elseif(doc.id == 3) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentbcbps.count }}</td>
+                                    {% elseif(doc.id == 4) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentetatbs.count }}</td>
+                                    {% elseif(doc.id == 5) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentljes.count }}</td>
+                                    {% elseif(doc.id == 6) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentbtgus.count }}</td>
+                                    {% elseif(doc.id == 7) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentfps.count }}</td>
+                                    {% elseif(doc.id == 9) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentetate2s.count }}</td>
+                                    {% elseif(doc.id == 10) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentetatgs.count }}</td>
+                                    {% elseif(doc.id == 11) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentetaths.count }}</td>
+                                    {% elseif(doc.id == 12) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentdmps.count }}</td>
+                                    {% elseif(doc.id == 13) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentdmvs.count }}</td>
+                                    {% elseif(doc.id == 14) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentbths.count }}</td>
+                                    {% elseif(doc.id == 15) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentpdtdrvs.count }}</td>
+                                    {% elseif(doc.id == 18) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentbcburbs.count }}</td>
+                                    {% elseif(doc.id == 19) %}
+                                    <td class="font-weight-bold text-danger"> {{ doc.documentbrepfs.count }}</td>
+                                    {% elseif(doc.id == 20) %}
+                                    <td class="font-weight-bold text-danger">{{ doc.documentrsdpfs.count }}</td>
+                                    {#{% elseif(doc.id == 21) %}
+                                        <td class="font-weight-bold text-danger">{{ doc.documentbcbgfhs.count }}</td>#}
+                                    {% else %}
+                                        <td class="font-weight-bold text-danger">0</td>
+                                        {% endif %}
+
+                                </tr>
+
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card m-2" style="border: 1px;">
+                    <div class="card-title p-1 text-white font-weight-light mt-3" style="background-color: #494847">
+                        {{ 'Logs loading in proccess' | trans}}
+                    </div>
+                    <div class="">
+                        <table class="table table-responsive">
+                            <thead>
+                            <tr class="alert-success">
+                                <th>{{ 'Date' | trans}}</th>
+                                <th>{{ 'No' | trans}}</th>
+                                <th>{{ 'Vehicle registration' | trans}}</th>
+                                <th>{{ 'Volume' | trans}}</th>
+                                <th>{{ 'Sender' | trans}}</th>
+                                <th>{{ 'Destination' | trans}}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {% for chargement in chargements_en_cours %}
+                                    <tr class="alert-info">
+                                        <td class="font-weight-bold">{{ chargement.date_chargement }}</td>
+                                        <td class="font-weight-bold text-danger">{{ chargement.numero_bille }}</td>
+                                        <td class="font-weight-bold text-danger">{{ chargement.immatriculation }}</td>
+                                        <td class="font-weight-bold text-danger">{{ chargement.volume }}</td>
+                                        <td class="font-weight-bold text-danger">{{ chargement.expediteur }}</td>
+                                        <td class="font-weight-bold text-danger">{{ chargement.destinataire }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+{#<div class="col-md-3">#}
+{#    <h3 class="text-white  bg-dark p-2"> <i class="mdi mdi-login"></i> {{ 'Journal SNVLT'  | trans}}</h3>#}
+{#    <div class="" style="height: 1000px ;overflow-y: scroll;overflow-x: scroll">#}
+{#        <table class="table table-responsive bg-dark mt-1">#}
+{#            <thead>#}
+{#            <tr style="border: transparent; color: white;background-color: #080808; font-size: 10px;">#}
+{#                <th>Action</th>#}
+{#                <th>User</th>#}
+{#                <th>Date</th>#}
+{#            </tr>#}
+{#            </thead>#}
+{#            <tbody>#}
+{#            {% for log in log_snvlt %}#}
+{#                <tr style="border: transparent; color: black; background-color: white; font-size: 10px;">#}
+{#                    <td style="border: transparent; color: black; font-size: 10px;">{{ log.action }}</td>#}
+{#                    <td style="border: transparent; color: black; font-size: 10px;">{{ log.createdBy }}</td>#}
+{#                    <td style="border: transparent; color: black; font-size: 10px;">{{ log.createdAt | date('d/m/Y h:i:s') }}</td>#}
+{#                </tr>#}
+{#            {% endfor %}#}
+{#            </tbody>#}
+{#        </table>#}
+{#    </div>#}
+{#</div>#}
+{#<div class="w-100" id="chart_saisies"></div>#}
+	<link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.css" />
+    <link rel="stylesheet" href="{{ asset('assets/assets_other/vendor/fonts/boxicons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/assets/css/modal.css') }}" />
+    
+	<link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.3/css/dataTables.dateTime.min.css" />
+	
+	
+	<script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+	<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.print.min.js"></script>
+    
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js"></script>
+    <script src="https://cdn.datatables.net/datetime/1.5.3/js/dataTables.dateTime.min.js"></script>
+    
+
+	
+	<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+
+    setInterval(function() {
+
+        $.ajax({
+            url : '{{path('brh_cubagetotal')}}',
+            type: 'POST',
+            success: function(response){
+                let cubage = JSON.parse(response)
+                if (cubage.length > 0){
+				let cubage_total = cubage[0].cubage
+                    $('.vol_tot').text(cubage_total.toLocaleString() + " m3");
+                }
+            }
+        })
+    }, 5000);
+</script>

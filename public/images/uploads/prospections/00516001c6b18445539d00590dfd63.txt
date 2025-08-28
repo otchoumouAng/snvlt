@@ -1,0 +1,5 @@
+size,email,domain,isBlocked,accountName,description,
+5000000000,direction@lesptitsbabi.com,lesptitsbabi.com,false,direction,ADMINISTRATEUR,
+5000000000,info@lesptitsbabi.com,lesptitsbabi.com,false,info,informations,
+5000000000,malak.ghoussain@lesptitsbabi.com,lesptitsbabi.com,false,malak.ghoussain,ADMINISTRATEUR,
+5000000000,commande@lesptitsbabi.com,lesptitsbabi.com,false,commande,commande,

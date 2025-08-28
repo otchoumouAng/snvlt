@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="{{ app.locale }}">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% trans %}SNVLT{% endtrans%} - {% trans %}Connexion{% endtrans %}</title>
+    <!-- plugins:css -->
+    <link rel="stylesheet" href="{{ asset('assets/assets/vendors/mdi/css/materialdesignicons.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/assets/vendors/flag-icon-css/css/flag-icon.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/assets/vendors/css/vendor.bundle.base.css') }}/">
+    <!-- endinject -->
+    <!-- Plugin css for this page -->
+    <!-- End plugin css for this page -->
+    <!-- inject:css -->
+    <!-- endinject -->
+    <!-- Layout styles -->
+    <link rel="stylesheet" href="{{ asset('assets/assets/css/style.css') }}">
+    <!-- End layout styles -->
+    <link rel="shortcut icon" href="{{ asset('assets/icons/drapeauci.ico') }}" />
+</head>
+<body>
+<div class="container-scroller bg-success">
+    <div class="p-3 text-center top-sticky" style="background: linear-gradient(#f4fef6, white);">
+        <span class="text-white font-weight-bold p-1 mt-2 " style="font-size: 48px;background: orangered;width:60px;border-radius: 15px 0 0 0;font-family: Geneva">SNV</span>
+        <span class=" p-1 font-weight-bold mt-2 ms-2" style="font-size: 48px;width:40px;color: #0b511b;text-decoration: underline; font-family: 'Agency FB'">LT</span>
+    </div>
+    <div class="container-fluid page-body-wrapper full-page-wrapper">
+
+        <div class="content-wrapper d-flex align-items-center auth" style="background-image: url('{{ asset('assets/images/lanscape_snvlt.jpg') }}'); background-size: cover; background-repeat: no-repeat;">
+            <div class="row flex-grow">
+                <div class="col-lg-4 mx-auto">
+                    <div class="text-left" style="background-color: rgba(251,255,250,0.9);">
+                        <div class="p-1 mb-2" style="background: #3e824e 1px;width: 100%; box-shadow: 2px 2px 0 0px;"></div>
+{#                        <div class="brand-logo row">#}
+{#                            <img class="text-center" src="{{ asset('assets/images/logo_snvlt.png') }}" height="25%" style="width: 25%;" alt="snvlt">#}
+{#                            <h3 class="text-dark col-9 justify-content-md-start my-auto">{% trans %}National System for Verification of wood Tracking and Legacy {% endtrans %}</h3>#}
+{#                        </div>#}
+                        <div class="p-3">
+
+                        <form class="pt-3" method="post">
+                            {% for message in app.session.flashBag.get('error') %}
+                                <div class="alert bg-danger text-white">Vos accès ont été restreints par votre administrateur</div>
+                            {% endfor %}
+                            {% if error %}
+                                <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                            {% endif %}
+                            <div class="row">
+                                <div class="col-md-4 ">
+                                    <img class="img-responsive img-fluid mt-5" src="{{ asset('assets/images/logo_snvlt.png') }}" alt="logo_SNVLT" height="64">
+                                </div>
+                                <div class="col-md-8">
+                                    <span class="text-dark font-weight-bold">{% trans %}Sign in to continue.{% endtrans %}</span>
+                                    <div class="form-group">
+                                        <input type="email" value="{{ last_username }}" class="form-control form-control-sm bg-white" name="email" id="inputEmail" placeholder="{% trans %}Your email address{% endtrans %}">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="password" class="form-control form-control-sm bg-white" name="password" id="inputPassword" placeholder="{% trans %}Your password{% endtrans %}" autocomplete="current-password" required>
+                                    </div>
+                                    <input type="hidden" name="_csrf_token"
+                                           value="{{ csrf_token('authenticate') }}"
+                                    >
+                                    <div class="mt-3">
+                                        <button type="submit" class="btn btn-block btn-primary btn-lg font-weight-medium auth-form-btn">{% trans %}SIGN IN{% endtrans %}</button>
+                                    </div>
+
+                                    <div class="my-2 d-flex justify-content-between align-items-center">
+                                        <div class="form-check">
+                                            <label class="form-check-label text-black" style="cursor:pointer;">
+                                                <input type="checkbox" name="_remember_me" class="form-check-input">{% trans %}Keep me signed in{% endtrans %} </label>
+                                        </div>
+                                        <a href="{{ path('app_forgot_password_request') }}" class="auth-link text-black">{% trans %}Forgot password?{% endtrans %}</a>
+                                    </div>
+                                    <div class="">
+                                        <div class="col-9"><a href="{{ path('register_new') }}" class="" style="color: #ff1180">J'envoie ma demande d'accès</a></div>
+                                        {#                                <img class="text-center col-3" style="text-align: right" src="{{ asset('assets/images/armoirieci.png') }}"   alt="armoirie">#}
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- content-wrapper ends -->
+    </div>
+    <!-- page-body-wrapper ends -->
+</div>
+<!-- container-scroller -->
+<!-- plugins:js -->
+<script src="{{ asset('assets/assets/vendors/js/vendor.bundle.base.js') }}"></script>
+<!-- endinject -->
+<!-- Plugin js for this page -->
+<!-- End plugin js for this page -->
+<!-- inject:js -->
+<script src="{{ asset('assets/assets/js/off-canvas.js') }}"></script>
+<script src="{{ asset('assets/assets/js/hoverable-collapse.js') }}"></script>
+<script src="{{ asset('assets/assets/js/misc.js') }}"></script>
+
+<!-- endinject -->
+
+    <script>
+        $(document).ready(function () {
+            $("#flash").delay(4000).fadeOut("slow");
+        });
+    </script>
+
+</body>
+</html>

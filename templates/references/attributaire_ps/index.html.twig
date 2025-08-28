@@ -1,0 +1,593 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}PS Owners{% endtrans %}
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/responsable.png') }}" alt="{% trans %}owner{% endtrans %}">  {% trans %}PS Owners{% endtrans %}
+    </h2>
+    <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+        <div class="btn-group p-1 rounded-5 " role="group" aria-label="Basic example">
+            <a
+                    class="btn"
+                    style="border: 0px; font-size: 16px;"
+                    href="#"
+                    id="btn-add"
+                    title="{% trans %}Add a PS Owner{% endtrans %}"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createPsOwner"
+            > <i class="mdi mdi-plus-circle me-2" style="font-size: 32px;color: red"></i></a>
+        </div>
+    </div>
+{% endblock %}
+
+
+ {% block notifs %}
+     {% include 'base/notifs.html.twig' %}
+ {% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/assets_other/vendor/fonts/boxicons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/assets/css/modal.css') }}" />
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .zone_text {
+            background-color: lightyellow;
+            color: orangered;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 16px;
+            border: 0px solid;
+        }
+        .zone_email {
+            background-color: lightyellow;
+            color: orangered;
+            font-weight: bold;
+            font-size: 16px;
+            border: 0px solid;
+        }
+    </style>
+    <section class="section">
+        {#<i class="mdi mdi-arrange-send-to-back" style="font-size: 48px"></i>#}
+        <div class="card">
+            <div class="card-body table_attributaires">
+                    <h1 class="text-danger font-weight-bold">{% trans %}Loading{% endtrans %}...</h1>
+            </div>
+        </div>
+
+
+
+        <div class="col-lg-4 col-md-3">
+            <div class="mt-3">
+
+                <!-- Modal -->
+                <div class="modal fade" id="createPsOwner" data-bs-backdrop="static" tabindex="-1">
+                    <div class="modal-dialog modal-lg" style="background-color: #f0f5ff">
+                        <form class="modal-content" style="background-color: #f0f5ff">
+                            <div class="modal-header  bg-light">
+                                <h5 class="modal-title" style="color: #0f5132" id="backDropModalTitle"> <img style="margin-right: 5px;height: 32px;" src="{{ asset('assets/images/webapp/responsable.png') }}" alt="{% trans %}owner{% endtrans %}"> {% trans %}Create a PS Owner{% endtrans %}</h5>
+                                <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                ></button>
+                            </div>
+                            <div class="modal-body" style="background-color: #f0f5ff">
+                                <select class="type_atributaire bg-white" required style="margin-right: 10px;" name="type_atributaire" id="type_atributaire">
+                                    <option value="1">{% trans %}Simple Owner{% endtrans %}</option>
+                                    <option value="3">{% trans %}Private company{% endtrans %}</option>
+                                    <option value="2">{% trans %}Logger{% endtrans %}</option>
+                                </select>
+                                <select class="operateur  bg-white" name="operateur" id="operateur">
+                                </select>
+
+                                <div class="m-2 p-2"  style="background-color: #f3f5f8">
+                                    <div class="row">
+                                        <input class="form-control zone_text" required style="margin-left: 20px; width: 90%" type="hidden" id="id_attributaire" value="">
+                                        <div class="col-md-6 mt-2 p-2">
+                                            {# -----#}
+                                            <div class="text-dark font-weight-bold form-group">
+                                                <label for="raison_sociale"><span class="text-danger" style="margin-right: 5px;">*</span>{{ 'Name'|trans }}</label>
+                                                <input class="form-control zone_text" required style="margin-left: 20px; width: 90%" type="text" id="raison_sociale" value="">
+                                            </div>
+                                            {# -----#}
+
+                                                <div class="text-dark font-weight-bold form-group">
+                                                    <label for="adresse">{{ 'Address'|trans }}</label>
+                                                    <input class="form-control mt-2 zone_text" style="margin-left: 20px; width: 90%" type="text" id="adresse" value="">
+                                                </div>
+                                               {# -----#}
+                                                <div class="text-dark font-weight-bold form-group">
+                                                    <label for="contact"><span class="text-danger" style="margin-right: 5px;">*</span>{{ 'Phone No'|trans }}</label>
+                                                    <input class="form-control mt-2 zone_text" style="margin-left: 20px; width: 90%" type="text" id="contact" value="">
+                                                </div>
+
+                                            {# -----#}
+                                        <div class="row">
+                                            <div class="text-dark font-weight-bold form-group  mt-3 col-4" id="div_gender">
+                                                <label for="gender">{{ 'Gender' | trans}}</label>
+                                                    <select class="gender zone_text"  name="gender" id="gender">
+                                                        <option value="1">{{ 'Male' | trans}}</option>
+                                                        <option value="2">{{ 'Female' | trans}}</option>
+                                                    </select>
+                                            </div>
+                                            {# -----#}
+                                            <br>
+                                            <div class="text-dark font-weight-bold form-group  mt-3 col-5" id="div_nationality">
+                                            <label for="nationality">{{ 'Nationality' | trans}}</label>
+                                                <select class="nationality  zone_text" name="nationality" id="nationality">
+                                                </select>
+                                            </div>
+                                        </div>
+                                        </div>
+                                        <div class="col-md-6  p-2">
+
+                                            {# -----#}
+                                            <div class="text-dark font-weight-bold form-group">
+                                                <label for="cc">{{ 'CC' | trans}}</label>
+                                                <input class="form-control mt-2  zone_text" type="text" id="cc" value="">
+                                            </div>
+
+                                            {# -----#}
+                                            <div class="text-dark font-weight-bold form-group">
+                                                <label for="personne_ressource zone_text"><span class="text-danger" style="margin-right: 5px;">*</span>{{ 'Manager' | trans}}</label>
+                                                <input class="form-control mt-2  zone_text" required type="text" id="personne_ressource" value="">
+                                            </div>
+
+                                            {# -----#}
+                                            <div class="text-dark font-weight-bold form-group">
+                                                <label for="email_personne_ressource"><span class="text-danger" style="margin-right: 5px;">*</span>{{ 'Manager email' | trans}}</label>
+                                                <input class="form-control mt-2  zone_email" required type="email" id="email_personne_ressource" value="">
+                                            </div>
+
+                                            {# -----#}
+                                            <div class="text-dark font-weight-bold form-group">
+                                                <label for="mobile_personne_ressource"><span class="text-danger" style="margin-right: 5px;">*</span>{{ 'Manager Phone' | trans}}</label>
+                                                <input class="form-control mt-2 zone_text" required type="text" id="mobile_personne_ressource" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                            <div class="modal-footer">
+                                {#<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                    {% trans %}Close{% endtrans %}
+                                </button>#}
+                                <button type="button" class="btn btn-primary font-weight-light saveOwner">{% trans %}Save Owner{% endtrans %}</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="{{ asset('assets/webapp/table/assets/jquery-3.3.1.min.js') }}"></script>
+    <script src="{{ asset('assets/webapp/table/assets/popper.min.js') }}"></script>
+    <script src="{{ asset('assets/webapp/table/assets/bootstrap.min.js') }}"></script>
+    <script src="{{ asset('assets/webapp/table/dist/extensions/toolbar/bootstrap-table-toolbar.min.js') }}"></script>
+    <script src="{{ asset('assets/webapp/table/dist/extensions/filter-control/bootstrap-table-filter-control.min.js') }}"></script>
+
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+    <script src="{{ asset('assets/assets_other/js/ui-modals.js') }}"></script>
+    <script src="{{ asset('assets/assets/js/jquery.min-3.5.1.js') }}"></script>
+
+
+
+    <script>
+        /*var table = new DataTable('#attributaires', {
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json',
+            },
+            theme:'bootstrap'
+        });*/
+/*******************************/
+/*  Déclaration des variables*/
+/*******************************/
+            var operateur = document.querySelector('#operateur');
+            var nationaliteS =  document.querySelector('#nationality');
+            var type_atributaire = document.querySelector('#type_atributaire');
+            var gender = document.querySelector('#div_gender');
+            var raison_sociale = document.querySelector('#raison_sociale');
+            var adresse = document.querySelector('#adresse');
+            var contact = document.querySelector('#contact');
+            var cc = document.querySelector('#cc');
+            var personne_ressource = document.querySelector('#personne_ressource');
+            var email_personne_ressource = document.querySelector('#email_personne_ressource');
+            var mobile_personne_ressource = document.querySelector('#mobile_personne_ressource');
+
+/*******************************/
+/*  Initialisation*/
+/*******************************/
+            $('.operateur').val(null).trigger('change');
+            $('.type_atributaire').val(null).trigger('change');
+
+            gender.style = 'display:none';
+            nationality.style = 'display:none';
+            operateur.style = 'display:none';
+
+            //Charge la liste des attributaires
+            charger_liste_attributaires_ps()
+            // Réinitialise tous les champs au chargement du modal
+            reinitialise();
+
+/*******************************/
+/*  Routine sur changement du combo Type Attributaire*/
+/*******************************/
+            $('.type_atributaire').on('change', function (){
+                operator_change();
+            })
+
+
+/*******************************/
+/*  Chargement des listes Exploitants et Nationalités*/
+/*******************************/
+            $.ajax({
+                url: '{{ path('json_exploitants') }}',
+                type: 'POST',
+                success: function (response) {
+                    console.log(response);
+                    let liste_operateur = JSON.parse(response);
+                    var contenu = "";
+                    for (var i = 0; i < liste_operateur.length; i++) {
+
+                        if (liste_operateur[i].sigle) {
+                            contenu = contenu + '<option value="' + liste_operateur[i].id + '" >' + liste_operateur[i].sigle + '</option>';
+                        } else {
+                            contenu = contenu + '<option value="' + liste_operateur[i].id + '" >' + liste_operateur[i].rs + '</option>';
+                        }
+                    }
+                    operateur.innerHTML = contenu;
+                }
+            });
+
+            $.ajax({
+                url: '{{ path('json_nationalites') }}',
+                type: 'POST',
+                success: function (response) {
+                    console.log(response);
+                    let liste_nationalites = JSON.parse(response);
+                    var contenu = "";
+                    for (var i = 0; i < liste_nationalites.length; i++) {
+
+
+                            contenu = contenu + '<option value="' + liste_nationalites[i].id + '" >' + liste_nationalites[i].nationalite + '</option>';
+
+                    }
+                    nationaliteS.innerHTML = contenu;
+                }
+            });
+
+/*******************************/
+/*  Affichage pour modification des données d'un attributaire*/
+/*******************************/
+                $('body').on('click', '.editBtn', function(){
+                $.ajax({
+                    url: '{{path('app_portail')}}snvlt/references/attributaire/ps/show/' + this.id ,
+                    type: 'POST',
+                    data : {id_attributaire: this.id},
+                    success: function (response) {
+
+                        console.log(response);
+                        reinitialise();
+                        let attributaire_ps = JSON.parse(response);
+                        $('#id_attributaire').val(attributaire_ps[0].id)
+                        $("#raison_sociale").val(attributaire_ps[0].raison_sociale);
+                        $("#adresse").val(attributaire_ps[0].adresse);
+                        $("#contact").val(attributaire_ps[0].contact);
+                        $("#cc").val(attributaire_ps[0].cc);
+                        $("#personne_ressource").val(attributaire_ps[0].personne_ressource);
+                        $("#email_personne_ressource").val(attributaire_ps[0].email_personne_ressource);
+                        $("#mobile_personne_ressource").val(attributaire_ps[0].mobile_personne_ressource);
+                        $("#nationality").val(attributaire_ps[0].nationalite);
+                        $("#type_atributaire").val(attributaire_ps[0].type_atributaire);
+                        $("#gender").val(attributaire_ps[0].sexe);
+                        $("#type_atributaire").attr('disabled','true')
+                    }
+                });
+            })
+
+
+/*******************************/
+/*  Stooper ou réactiver un attributaire*/
+/*******************************/
+$('body').on('click', '.stop_attributaire', function(){
+    let value = "0";
+    $.ajax({
+        url: '{{path('app_portail')}}snvlt/references/attributaire/ps/stopactivity/' + this.id + "/" + value ,
+        type: 'POST',
+        data : {id_attributaire: this.id, value: value},
+        success: function (response) {
+
+            console.log(response);
+           charger_liste_attributaires_ps();
+        }
+    });
+})
+
+$('body').on('click', '.enable_attributaire', function(){
+    let value = "1";
+    $.ajax({
+        url: '{{path('app_portail')}}snvlt/references/attributaire/ps/stopactivity/' + this.id + "/" + value,
+        type: 'POST',
+        data : {id_attributaire: this.id, value: value},
+        success: function (response) {
+
+            console.log(response);
+            charger_liste_attributaires_ps();
+        }
+    });
+})
+/*******************************/
+/*  Enregistrement de l'attributaire en base*/
+/*******************************/
+            $(".saveOwner").on('click', function ( ){
+                let value = $('.type_atributaire').val();
+                var data = '{"raison_sociale":"'+  $("#raison_sociale").val() +
+                    '","adresse":"'+ $("#adresse").val() +
+                    '","nationalite":'+ $("#nationality").val() +
+                    ',"type_attributaire":'+ $("#type_atributaire").val() +
+                    ',"sexe":'+ $("#gender").val() +
+                    ',"contact":"'+ $("#contact").val() +
+                    '","cc":"'+ $("#cc").val() +
+                    '","personne_ressource":"'+  $("#personne_ressource").val() +
+                    '","email_personne_ressource":"'+ $("#email_personne_ressource").val() +
+                    '","mobile_personne_ressource":"'+$("#mobile_personne_ressource").val() +
+                    '"}';
+
+                if (value === "1"){
+                    if(gender.value === null || gender.value === ""){
+                        alert("{{ 'Please register Gender' | trans }}")
+                    } else if (nationaliteS.value === null || nationaliteS.value === "" ){
+                        alert("{{ 'Please register Nationality' | trans }}")
+                    } else {
+                        save_attributaire(data);
+                    }
+                } else if (value === "2"){
+                    if(operateur.value === null || operateur.value === ""){
+                        alert("{{ 'Please Select Operator' | trans }}")
+                    } else {
+                        save_attributaire(data);
+                    }
+                } else {
+                    save_attributaire(data);
+                }
+
+
+            })
+/*******************************/
+/*  Chargement des données Exploitant dans les champs Attributaires*/
+/*******************************/
+            // Charge les données de l'exploitant forestier dans less champs
+            $('#operateur').on('change', function (){
+                $.ajax({
+                    url: '{{path('app_portail')}}snvlt/ref/exploitants/search/' + this.value + '/data_json',
+                    type: 'POST',
+                    data : {id_exploitant: this.value},
+                    success: function (response) {
+                        enable_read_only();
+                        console.log(response);
+                        let exploitant = JSON.parse(response);
+
+                        $("#raison_sociale").val(exploitant[0].rs);
+                        $("#adresse").val(exploitant[0].adresse);
+                        $("#contact").val(exploitant[0].mobile);
+                        $("#cc").val(exploitant[0].cc);
+                        $("#personne_ressource").val(exploitant[0].personne_ressource);
+                        $("#email_personne_ressource").val(exploitant[0].email_personne_ressource);
+                        $("#mobile_personne_ressource").val(exploitant[0].mobile_personne_ressource);
+
+                    }
+                });
+            })
+
+            $('#btn-add').on('click', function (){
+                reinitialise();
+            })
+/*******************************/
+/*  Fonctions*/
+/*******************************/
+            // Fonction d'enregistrement de l'attributaire PS en base
+            function save_attributaire(data){
+                if ( raison_sociale.value === "" ||
+                    personne_ressource.value === "" ||
+                    email_personne_ressource.value === "" ||
+                    mobile_personne_ressource.value === ""
+                ){
+                    alert("{{ 'Please register all required fields before continue' | trans }}")
+                } else {
+                    let id_attributaire = $('#id_attributaire').val();
+                    if (id_attributaire === null){
+                        id_attributaire === 0;
+                    }
+                    $.ajax({
+                        url: '{{path('app_portail')}}snvlt/references/attributaire/ps/add/' + data + "/" + id_attributaire,
+                        type: 'POST',
+                        data : {data : data, id_attributaire: id_attributaire},
+                        success: function (response) {
+                            console.log(response);
+                            reinitialise();
+                            $("#raison_sociale").focus();
+                            charger_liste_attributaires_ps();
+                        }
+                    })
+                }
+            }
+
+
+
+
+            // Réinitialiser tous les champs
+            function reinitialise(){
+                $("#raison_sociale").val(null);
+                $("#adresse").val(null);
+                $("#contact").val(null);
+                $("#cc").val(null);
+                $("#personne_ressource").val(null);
+                $("#email_personne_ressource").val(null);
+                $("#mobile_personne_ressource").val(null);
+                $("#raison_sociale").focus();
+            }
+
+
+            function charger_liste_attributaires_ps(){
+                //+ Initialisation du tableau
+                var contenu = '<table class="table table-responsive attributaires" data-toggle="table" data-pagination="true" data-search="true"  data-row-height = "200" data-id-table = "attributaires" id="attributaires">' +
+                                '<thead>'+
+                                '<tr style="background: #c3f082;color: #233423">' +
+                               '<th>{% trans %}Owner{% endtrans %}</th>' +
+                                '<th>{% trans %}Owner Type{% endtrans %}</th>' +
+                                '<th>{% trans %}Gender{% endtrans %}</th>' +
+                                '<th>{% trans %}Nationality{% endtrans %}</th>' +
+                                '<th>{% trans %}Manager{% endtrans %}</th>' +
+                                '<th>{% trans %}Manager email{% endtrans %}</th>' +
+                                '<th>{% trans %}Manager Phone{% endtrans %}</th>' +
+                                '<th>{% trans %}Status{% endtrans %}</th>' +
+                                '<th>{% trans %}Actions{% endtrans %}</th>' +
+                                '</tr>' +
+                                '</thead>' +
+                                '<tbody class="table_body_attributaires_ps">' ;
+                $.ajax({
+                    url: '{{ path('attributaire_ps.liste') }}',
+                    type: 'POST',
+                    success: function (response) {
+                        console.log(response);
+                        let liste_attributaires_ps = JSON.parse(response);
+
+                        for (var i = 0; i < liste_attributaires_ps.length; i++) {
+
+                               if(liste_attributaires_ps[i].statut ===false)    {
+                                   contenu = contenu +  '<tr class="alert-danger">';
+                               } else {
+                                   contenu = contenu +  '<tr style="background-color: #e6f8e7">';
+                               }
+                              contenu = contenu +'<td class="text-dark fw-bold"><a class="link-dark" style="font-weight: bold;color: #370905" href="#" id="' + liste_attributaires_ps[i].id +'">' + liste_attributaires_ps[i].raison_sociale + '</a></td>';
+                                                 if(liste_attributaires_ps[i].type_atributaire === "1"){
+                                                     contenu = contenu + '<td>{% trans %}Simple Owner{% endtrans %}</td>';
+                                                 } else if(liste_attributaires_ps[i].type_atributaire === "2"){
+                                                     contenu = contenu + '<td>{% trans %}Private company{% endtrans %}</td>';
+                                                 } else if(liste_attributaires_ps[i].type_atributaire === "3"){
+                                                     contenu = contenu + '<td>{% trans %}Logger{% endtrans %}</td>';
+                                                 }
+                                                    if(liste_attributaires_ps[i].sexe === "1"){
+                                                        contenu = contenu +  '<td>{{ 'Male' | trans}}</td>';
+                                                    } else {
+                                                        contenu = contenu + '<td>{{ 'Female' | trans }}</td>';
+                                                    }
+
+                                contenu = contenu + '<td>' + liste_attributaires_ps[i].nationalite + '</td>'+
+                                                '<td><span class="badge alert-light text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;;background-color: rgba(36,35,35,0.89)">' + liste_attributaires_ps[i].personne_ressource + '</span></td>'+
+                                                '<td><span class="badge alert-light text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;;background-color: rgba(36,35,35,0.89)">' + liste_attributaires_ps[i].email_personne_ressource + '</span></td>'+
+                                                '<td><span class="badge alert-light text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;;background-color: rgba(36,35,35,0.89)">' + liste_attributaires_ps[i].mobile_personne_ressource + '</span></td>';
+                                                    if(liste_attributaires_ps[i].statut === true){
+                                                        contenu = contenu + '<td class="badge bg-primary p-1 text-white mt-4">{% trans %}ACTIVE{% endtrans %}</td>' +
+                                                                            '<td><a href="#" class="editBtn" data-bs-toggle="modal" data-bs-target="#createPsOwner" id="'+ liste_attributaires_ps[i].id +'"><i class="mdi mdi-pencil" style="font-size:32px" title="{{ 'edit' | trans }}"></i></a><a href="#" class="stop_attributaire text-danger" style="margin-left:10px;"  id="'+ liste_attributaires_ps[i].id +'"><i class="mdi mdi-stop" style="font-size:32px"title="{{ 'edit' | trans }}"></i></a></td>';
+                                                    } else {
+                                                        contenu = contenu + '<td class="badge bg-danger p-1 text-white mt-4">{% trans %}INACTIVE{% endtrans %}</td>'+
+                                                                            '<td><a href="#" class="editBtn" data-bs-toggle="modal" data-bs-target="#createPsOwner" id="'+ liste_attributaires_ps[i].id +'"><i class="mdi mdi-pencil" style="font-size:32px" title="{{ 'edit' | trans }}"></i></a><a href="#" class="enable_attributaire text-success" style="margin-left:5px;"  id="'+ liste_attributaires_ps[i].id +'"><i class="mdi mdi-undo" style="font-size:32px"title="{{ 'edit' | trans }}"></i></a></td>';
+                                                    }
+
+                                                contenu = contenu + '</tr>';
+
+
+                        }
+                        contenu = contenu +  '</tbody></table>';
+                        let attributaires_ps = document.querySelector('.table_attributaires');
+                        attributaires_ps.innerHTML = contenu;
+                    }
+                });
+            }
+
+            function enable_read_only(){
+                let raison_sociale = document.querySelector('#raison_sociale');
+                $('#raison_sociale').attr('readonly', 'true');
+                $('#cc').attr('readonly', 'true');
+                $('#adresse').attr('readonly', 'true');
+                $('#contact').attr('readonly', 'true');
+            }
+
+            function disable_read_only(){
+                let raison_sociale = document.querySelector('#raison_sociale');
+                $('#raison_sociale').attr('readonly', false);
+                $('#cc').attr('readonly', false);
+                $('#adresse').attr('readonly', false);
+                $('#contact').attr('readonly', false);
+            }
+
+            //Sur changement du type Attributaire
+            function operator_change(){
+                let value = $('.type_atributaire').val();
+                $('.operateur').val(null).trigger('change');
+                $('.gender').val(null).trigger('change');
+                $('.nationality').val(null).trigger('change');
+
+                disable_read_only();
+                reinitialise();
+
+                if (value === "1"){
+                    operateur.style = 'display:none';
+                    gender.style = 'display:inline';
+                    nationality.style = 'display:inline';
+
+                }else if(value === "2") {
+                    operateur.style = 'display:inline';
+                    gender.style = 'display:none';
+                    nationality.style = 'display:none';
+                } else{
+                    operateur.style = 'display:none';
+                    gender.style = 'display:none';
+                    nationality.style = 'display:none';
+                }
+            }
+/*******************************/
+/*  Déclaration des bibliothèques datatable et select2*/
+/*******************************/
+            // Simple Datatable
+
+
+            //Déclaration des selects
+
+            $('.type_atributaire').select2({
+                placeholder: "{% trans %}Select Owner Type{% endtrans %}",
+                theme: "classic",
+                width: '50%'
+            });
+            $('.operateur').select2({
+                placeholder: "{% trans %}Select Forest Logger{% endtrans %}",
+                theme: "classic",
+                width: '50%'
+            });
+            $('.nationality').select2({
+                placeholder: "{% trans %}Select a country{% endtrans %}",
+                theme: "classic",
+                width: '50%'
+            });
+            $('.gender').select2({
+                placeholder: "{% trans %}Select gender{% endtrans %}",
+                theme: "classic",
+                'margin-left': "20px",
+                width: '50%'
+            });
+
+/*******************************/
+/*  Fin des scripts*/
+/*******************************/
+    </script>
+{% endblock %}
+

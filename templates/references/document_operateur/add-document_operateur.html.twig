@@ -1,0 +1,98 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Ajouter un Document Opérateur
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/document_operateur.png') }}" alt="documents">  {% trans %}My legacy documents{% endtrans %}
+    </h2>
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+
+    <link href="{{ asset('assets/register/vendor/select2/select2.min.css') }}" rel="stylesheet" />
+
+    <section class="section alert-light">
+        <div class="card  alert-light" style="background-color: #f8f4f4">
+            <div class="card-header mx-auto alert-primary w-100 text-center">
+                <span class="fw-bold fs-4" style="color: #fc4513">{{ titre }}</span>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {novalidate: 'novalidate'}}) }}
+                <div class="row p-3 bg-white m-1">
+                    <div class="col-md-4">
+                        <div class="">{{ form_row(form.code_document_grille) }}</div>
+                        <div class="">{{ form_row(form.date_etablissement ) }}</div>
+                        <div class="">{{ form_row(form.date_expiration) }}</div>
+                        <div class="">
+
+                            {{ form_row(form.imageFile) }}
+
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <a href="{{ path('ref_document_operateur') }}" class="alert-danger p-2"><i class="bi bi-back me-2"></i>Retourner à la liste</a>
+                <button type="submit"  class="btn btn-sm bg-success text-white p-2">
+
+                    {% if (titre is same as "Ajouter un document opérateur") %}
+                        <i class="bi bi-asterisk  me-2"></i>Ajouter
+                    {% else %}
+                        <i class="bi bi-pencil  me-2"></i>Modifier
+                    {% endif %}
+                </button>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+
+        <!--Modification de l'dr -->
+
+    </section>
+
+    <script src="{{ asset('assets/assets/js/file-upload.js') }}"></script>
+    <script src="{{ asset('assets/assets/js/typeahead.js') }}"></script>
+    <script src="{{ asset('assets/assets/js/select2.js') }}"></script>
+
+    <script src="{{ asset('assets/table/jquery-3.6.0.min.js') }}"></script>
+    <script src="{{ asset('assets/register/vendor/select2/select2.min.js') }}"></script>
+
+
+
+    <script>
+
+        $(document).ready(function() {
+            $('.code_ddef').select2({
+                placeholder: "--Sélectionnez la direction départementale...",
+                theme: "bootstrap-5",
+                clear: true
+            });
+
+            $('.code_dr').select2({
+                placeholder: "-- Sélectionnez la direction régionale --",
+                theme: "bootstrap-5",
+                width: '100%',
+                clear: true
+            });
+
+            $('.operateur').select2({
+                placeholder: "-- Sélectionnez le document modèle --",
+                theme: "bootstrap-5",
+                width: '100%',
+                clear: true
+            });
+        });
+
+    </script>
+    <script src="{{ asset('assets/webapp/assets/js/main.js') }}"></script>
+
+
+{% endblock %}
+

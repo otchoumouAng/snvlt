@@ -1,0 +1,304 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} -
+    {% if (app.user.codeexploitant) %}
+        Mes Carnets de Chantiers
+    {% else %}
+        Carnets de Chantiers
+    {% endif %}
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/stock_wood.png') }}" alt="{% trans %}stock{% endtrans %}">
+
+         {% trans %}Forest Site Stock{% endtrans %}
+    </h2>
+{% endblock %}
+
+
+ {% block notifs %}
+     {% include 'base/notifs.html.twig' %}
+ {% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+    <section class="section">
+        <div class="alert-primary" style="height: 40px;">
+            <select name="exploitants" id="exploitants" style="margin: 5px;background-color: #cbd8e3; ">
+
+            </select>
+            <select name="forets" id="forets" style="margin: 5px;background-color: #cbd8e3; ">
+
+            </select>
+            <label id="lbl_infos"></label>
+        </div>
+        <div class="card">
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="text-dark font-weight-bold p-2 m-2">{{ 'Legend' | trans }}</span> :
+                    <span class="alert-success p-2 mb-2">{{ 'This log has been already used' | trans }}</span>
+                    <span class="alert-warning p-2 mb-2">{{ 'This log is on site' | trans }}</span>
+                    <span class="alert-danger p-2 mb-2">{{ 'This log is abandoned' | trans }}</span>
+                </div>
+                <table class="table table-responsive mt-2" id="data_cp" style="max-height: 800px; border: 2px solid black;">
+                    <thead>
+                    <tr class="alert-light sticky-top" style="border: 2px solid black;">
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Tree No' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'species' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Zone' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'X' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Y' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Day' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Tree Length' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Tree Diameter' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;border-right: 2px solid black;">{{ 'Tree Volume' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Lng Bille A' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Diameter Bille A' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;border-right: 2px solid black;">{{ 'Volume Bille A' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Lng Bille B' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Diameter Bille B' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;border-right: 2px solid black;">{{ 'Volume Bille B' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Lng Bille C' |trans}}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;">{{ 'Diameter Bille C' |trans }}</th>
+                        <th class="text-center font-weight-bold" style="font-size: 14px;font-weight:bold;border-right: 2px solid black;">{{ 'Volume Bille C' |trans }}</th>
+                    </tr>
+                    </thead>
+                    <tbody id="body_contenu" class="bg-white">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script>
+
+
+        //Chargement de la liste des CC pour l'opérateur
+        //mes_cp();
+        /*liste_attributions();*/
+
+        $('#forets').on('change', function (){
+            document.querySelector('#lbl_infos').innerHTML ="";
+                liste_arbres(this.value)
+        })
+
+        $('#exploitants').on('change', function (){
+            // document.querySelector('#lbl_infos').innerHTML ="";
+            liste_attributions(this.value)
+        })
+        liste_exploitants();
+
+        function mes_cp(){
+
+            $.ajax({
+                url: '{{ path('app_docs_cp_json') }}',
+                type: 'POST',
+                success: function(response) {
+
+                    let doccp_liste = JSON.parse(response);
+                    let contenu = ""
+                    contenu = contenu + '<table class="table table-responsive" id="my_cps" style="width: 100%;border: solid 1px lightgrey">' +
+                        '<thead>' +
+                        '<tr style="background: lightgreen;color: #3f3e3e; font-weight: bold;">' +
+                        '<th>CC N°</th>' +
+                        '<th class="text-center">{% trans %}Forest{% endtrans %}</th>' +
+                        '<th>{% trans %}Cantonment{% endtrans %}</th>' +
+                        '<th>{% trans %}Regional Direction{% endtrans %}</th>' +
+                        '<th>{% trans %}Delivery date{% endtrans %}</th>' +
+                            {% if not app.user.codeexploitant %}
+                        '<th>{% trans %}Logger{% endtrans %}</th>' +
+                        '<th>{% trans %}Code Logger{% endtrans %}</th>' +
+                            {% endif %}
+                        '<th>{% trans %}Volume{% endtrans %}</th>' +
+                        '<th>{% trans %}Number of trees{% endtrans %}</th>' +
+                        '</tr>' +
+                        '</thead>' +
+                        '<tbody>';
+
+
+                    for(var i = 0; i < doccp_liste.length ; i++){
+                        if(doccp_liste[i].etat === false){
+                            contenu = contenu +'<tr class="alert-danger">';
+                        } else if(doccp_liste[i].volume_arbre > 0) {
+                            contenu = contenu +'<tr class="text-dark" style="background: #fcfcda">';
+                        }else  {
+                            contenu = contenu +'<tr>';
+                        }
+
+                        contenu = contenu + '<td><a class="text-dark font-weight-bold" style="font-size: 18px;" href="{{path('app_portail')}}snvlt/doccp/op/pages/' + doccp_liste[i].id_document_cp + '" id="' + doccp_liste[i].id_document_cp + '">' + doccp_liste[i].numero_doccp + '</a></td>' +
+                            '<td><span class="badge p-1 bg-warning font-weight-bold text-center" style="font-size: 16px;"> ' + doccp_liste[i].foret  + '</span></td>'+
+                            '<td><span>' + doccp_liste[i].cantonnement  + '</span></td>'+
+                            '<td><span>' + doccp_liste[i].dr  + '</span></td>'+
+                            '<td><span>' + doccp_liste[i].date_delivrance  + '</span></td>';
+                        {% if not app.user.codeexploitant %}
+                        contenu = contenu +'<td><span>' + doccp_liste[i].exploitant  + '</span></td>'+
+                            '<td><span>' + doccp_liste[i].code_exploitant  + '</span></td>';
+                        {% endif %}
+                        contenu = contenu +'<td>'+ doccp_liste[i].volume_arbre + '</td>';
+                        contenu = contenu +'<td class="font-weight-bold text-danger">'+ doccp_liste[i].nb_arbres + '</td></tr>';
+                    }
+                    contenu = contenu +'</tbody></table>';
+
+                    document.querySelector('#body_contenu').innerHTML = contenu;
+
+                    // Simple Datatable
+                    let table1 = document.querySelector('#my_cps');
+                    let dataTable = new simpleDatatables.DataTable(table1);
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+        }
+
+
+
+        function liste_attributions(id_exploitant){
+            let contenu = '<option>{{ 'Select Forest' | trans}}</option>';
+            $.ajax({
+                url :'{{ path('app_portail') }}snvlt/liste_forets/lst/' + id_exploitant,
+                type : 'POST',
+                success : function (response){
+                    let lignes = JSON.parse(response);
+                    for(var i = 0; i < lignes.length ; i++){
+                        contenu = contenu + '<option value="' + lignes[i].id_foret + '">' + lignes[i].numero_foret + '</option>'
+                    }
+                    document.querySelector('#forets').innerHTML = contenu;
+                }
+            })
+        }
+        function liste_exploitants(){
+            let contenu = '<option>-- Exploitant Forestier --</option>';
+            $.ajax({
+                url :'{{ path('json_exploitants') }}',
+                type : 'POST',
+                success : function (response){
+                    let lignes = JSON.parse(response);
+                    for(var i = 0; i < lignes.length ; i++){
+                        contenu = contenu + '<option value="' + lignes[i].id + '">' + lignes[i].rs + '</option>'
+                    }
+                    document.querySelector('#exploitants').innerHTML = contenu;
+                }
+            })
+        }
+        function liste_arbres(id_foret){
+            $.ajax({
+                url: '{{path('app_portail')}}snvlt/stock/chantier/f/' +id_foret,
+                type: 'POST',
+                success: function(response) {
+
+                    let lignes = JSON.parse(response);
+                    var contenu = '';
+
+                    if(lignes.length === 0){
+                        document.querySelector('#body_contenu').innerHTML = '<tr class="bg-white"><td class="text-danger font-weight-bold text-center" style="font-size: 28px;">{{ 'No Data Available'|trans }}</td></tr>';
+                    } else{
+                        document.querySelector('#body_contenu').innerHTML = '<tr class="bg-white"><td class="text-danger font-weight-bold text-center" style="font-size: 28px;">{{ 'Loading data'|trans }}</td></tr>';
+                        for(var i = 0; i < lignes.length ; i++){
+                            if(lignes[i].fut_abandon === true){
+                                contenu = contenu +'<tr class="alert-danger">';
+                            }else if(lignes[i].a_utilise === true && lignes[i].b_utilise === true && lignes[i].c_utilise === true){
+                                contenu = contenu +'<tr class="alert-success">';
+                            }  else {
+                                contenu = contenu +'<tr class="bg-white">';
+                            }
+
+                            contenu = contenu + '<td><a class="text-dark font-weight-light" style="font-size: 18px;" href="#" id="' + lignes[i].id_ligne + '">' + lignes[i].numero_ligne + '</a></td>' +
+                                '<td><span class="badge alert-light font-weight-light text-dark p-1"style="font-size: 16px;">' + lignes[i].essence  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].x_arbre  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].y_arbre  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].zh_arbre  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].jour  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].lng_arbre  + '</span></td>'+
+                                '<td><span class="font-weight-light">' + lignes[i].dm_arbre  + '</span></td>'+
+                                '<td style="border-right: 2px solid black"><span>' + lignes[i].cubage_arbre  + '</span></td>';
+
+                                if (lignes[i].a_utilise){
+                                 contenu = contenu + '<td class="alert-success font-weight-light"><span>' + lignes[i].lng_billea  + '</span></td>'+
+                                '<td class="alert-success font-weight-light"><span>' + lignes[i].dm_billea  + '</span></td>'+
+                                '<td class="alert-success font-weight-light"  style="border-right: 2px solid black"><span>' + lignes[i].cubage_billea  + '</span></td>';
+
+                                } else if (lignes[i].a_abandon){
+                                contenu = contenu + '<td class="alert-danger"><span>' + lignes[i].lng_billea  + '</span></td>'+
+                                    '<td class="alert-danger"><span>' + lignes[i].dm_billea  + '</span></td>'+
+                                    '<td class="alert-danger"  style="border-right: 2px solid black"><span>' + lignes[i].cubage_billea  + '</span></td>';
+
+                                } else {
+                                    contenu = contenu + '<td class="alert-warning"><span>' + lignes[i].lng_billea  + '</span></td>'+
+                                    '<td class="alert-warning"><span>' + lignes[i].dm_billea  + '</span></td>'+
+                                    '<td class="alert-warning"  style="border-right: 2px solid black"><span>' + lignes[i].cubage_billea  + '</span></td>';
+                                }
+
+                                //Conditions sur la bille B
+                                    if (lignes[i].b_utilise && lignes[i].lng_billeb){
+                                        contenu = contenu + '<td class="alert-success"><span>' + lignes[i].lng_billeb  + '</span></td>'+
+                                            '<td class="alert-success"><span>' + lignes[i].dm_billeb  + '</span></td>'+
+                                            '<td class="alert-success"  style="border-right: 2px solid black"><span>' + lignes[i].cubage_billeb  + '</span></td>';
+
+                                    }else if (lignes[i].lng_billeb  === 0){
+                                    contenu = contenu + '<td class=""><span>' + lignes[i].lng_billeb  + '</span></td>'+
+                                    '<td class=""><span>' + lignes[i].dm_billeb  + '</span></td>'+
+                                    '<td class=""  style="border-right: 2px solid black"><span>' + lignes[i].cubage_billeb  + '</span></td>';
+
+                                    } else if (lignes[i].b_abandon){
+                                        contenu = contenu + '<td class="alert-danger"><span>' + lignes[i].lng_billeb  + '</span></td>'+
+                                            '<td class="alert-danger"><span>' + lignes[i].dm_billeb  + '</span></td>'+
+                                            '<td class="alert-danger" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billeb  + '</span></td>';
+
+                                    } else {
+                                        contenu = contenu + '<td class="alert-warning"><span>' + lignes[i].lng_billeb  + '</span></td>'+
+                                            '<td class="alert-warning"><span>' + lignes[i].dm_billeb  + '</span></td>'+
+                                            '<td class="alert-warning" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billeb  + '</span></td>';
+                                    }
+
+
+                            //Conditions sur la bille C
+                            if (lignes[i].c_utilise){
+                                contenu = contenu + '<td class="alert-success"><span>' + lignes[i].lng_billec  + '</span></td>'+
+                                    '<td class="alert-success"><span>' + lignes[i].dm_billec  + '</span></td>'+
+                                    '<td class="alert-success" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billec  + '</span></td>';
+
+                            } else if (lignes[i].lng_billec === 0) {
+                            contenu = contenu + '<td class=""><span>' + lignes[i].lng_billec + '</span></td>' +
+                                '<td class=""><span>' + lignes[i].dm_billec + '</span></td>' +
+                                '<td class="" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billec + '</span></td>';
+                            }else if (lignes[i].c_abandon){
+                                contenu = contenu + '<td class="alert-danger"><span>' + lignes[i].lng_billec  + '</span></td>'+
+                                    '<td class="alert-danger"><span>' + lignes[i].dm_billec  + '</span></td>'+
+                                    '<td class="alert-danger" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billec  + '</span></td>';
+
+                            } else {
+                                contenu = contenu + '<td class="alert-warning"><span>' + lignes[i].lng_billec  + '</span></td>'+
+                                    '<td class="alert-warning"><span>' + lignes[i].dm_billec  + '</span></td>'+
+                                    '<td class="alert-warning" style="border-right: 2px solid black"><span>' + lignes[i].cubage_billec  + '</span></td>';
+                            }
+
+                                contenu = contenu +'</tr>';
+                            {% if (app.user.codeOperateur.id is not same as 2) %}
+                            document.querySelector('#lbl_infos').innerHTML = '<h3>' + lignes[i].exploitant + " | " + lignes[i].cantonnement + " - " + lignes[i].dr + '</h3>'
+                            {% endif %}
+                        }
+                        contenu = contenu + '</div>'
+                        document.querySelector('#body_contenu').innerHTML = contenu;
+                    }
+
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            })
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{# Dans form.html.twig #}
+<div class="modal fade" id="demandeModal" tabindex="-1" aria-labelledby="demandeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border-radius: 12px; border: none;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title pro-card-title" id="demandeModalLabel">
+                    <i class="ph-fill ph-file-plus" id="modal-icon"></i>
+                    <span id="modal-title">Nouvelle Demande</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="demandeForm">
+                    <input type="hidden" id="demandeId" name="id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="titre" class="form-label">Titre de la demande *</label>
+                            <input type="text" class="form-control" id="titre" name="titre" required 
+                                {% if mode == 'read' %}disabled{% endif %}>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="typeDocument" class="form-label">Type de document *</label>
+                            <select class="form-select" id="typeDocument" name="typeDocumentId" required 
+                                {% if mode == 'read' %}disabled{% endif %}>
+                                <option value="" selected disabled>Sélectionner un type...</option>
+                                {% for type in typesDocument %}
+                                    <option value="{{ type.id }}">{{ type.designation }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                            {% if mode == 'read' %}disabled{% endif %}></textarea>
+                    </div>
+                    
+                    <div id="documents-section" class="mb-3" 
+                         style="display: {% if mode == 'new' %}none{% else %}block{% endif %};">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
+                            {% if mode != 'read' %}
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addDocumentBtn">
+                                <i class="ph-fill ph-plus me-1"></i> Ajouter
+                            </button>
+                            <input type="file" id="pdf-upload" accept=".pdf" style="display: none;" multiple />
+                            {% endif %}
+                        </div>
+                        <ul class="list-group list-group-flush document-list" id="documents-list">
+                            <!-- Documents will be populated here -->
+                        </ul>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                {% if mode == 'edit' %}
+                <button type="button" class="btn btn-danger" id="deleteBtn">
+                    <i class="ph-fill ph-trash me-1"></i> Supprimer
+                </button>
+                {% endif %}
+                {% if mode != 'read' %}
+                <button type="submit" form="demandeForm" class="btn btn-primary" id="saveBtn">
+                    <i class="ph-fill ph-paper-plane-tilt me-1"></i> 
+                    {{ mode == 'new' ? 'Créer' : 'Modifier' }}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

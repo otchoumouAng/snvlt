@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="fr" target-language="es" datatype="plaintext" original="file.ext">
+    <header>
+      <tool tool-id="symfony" tool-name="Symfony"/>
+    </header>
+    <body>
+      <trans-unit id="lFn6SSr" resname="verify.captcha">
+        <source>verify.captcha</source>
+        <target>__verify.captcha</target>
+      </trans-unit>
+      <trans-unit id="GaDBWzg" resname="timeout.captcha">
+        <source>timeout.captcha</source>
+        <target>__timeout.captcha</target>
+      </trans-unit>
+      <trans-unit id="3D8fnp0" resname="missinginput.captcha">
+        <source>missinginput.captcha</source>
+        <target>__missinginput.captcha</target>
+      </trans-unit>
+      <trans-unit id="r.5AyzT" resname="hostname.captcha">
+        <source>hostname.captcha</source>
+        <target>__hostname.captcha</target>
+      </trans-unit>
+      <trans-unit id="jNPteYc" resname="invalidinput.captcha">
+        <source>invalidinput.captcha</source>
+        <target>__invalidinput.captcha</target>
+      </trans-unit>
+      <trans-unit id="HgKXFxT" resname="badrequest.captcha">
+        <source>badrequest.captcha</source>
+        <target>__badrequest.captcha</target>
+      </trans-unit>
+      <trans-unit id="0gv5VGE" resname="invalid.captcha">
+        <source>invalid.captcha</source>
+        <target>__invalid.captcha</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

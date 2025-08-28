@@ -1,0 +1,106 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Wood Factories{% endtrans %}
+{% endblock %}
+
+{% block titre_page %}
+<h2 class="text-dark font-weight-bold mb-2">
+    <img src="{{ asset('assets/images/webapp/usine.png') }}" alt="factory">  {% trans %}Wood Factories{% endtrans %}
+</h2>
+<div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+    <div class="btn-group p-1 rounded-5 " role="group" aria-label="">
+        <a class="btn btn-primary text-white p-2 mt-2" style="border: 0px; font-size: 16px;margin-right: 20px;" href="{{ path('ref_usines_agreements') }}"> Cochez les transformateurs agréés</a>
+        <a class="btn btn-danger p-2 mt-2 ms-2" style="border: 0px; font-size: 16px;" href="{{ path('usine.edit') }}"> <i class="mdi mdi-plus-circle me-2" style="font-size: 20px;"></i>{% trans %}Add{% endtrans %}</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block notifs %}
+    {% include 'base/notifs.html.twig' %}
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+
+    <section class="section">
+        <div class="card">
+
+            <div class="card-body">
+                <table class="table" id="usines">
+                    <thead>
+                    <tr style="background: #e2ffed">
+                        <th>{% trans %}Code{% endtrans %}</th>
+                        <th>{% trans %}Name{% endtrans %}</th>
+                        <th>Sigle</th>
+                        <th>{% trans %}Cantonment{% endtrans %}</th>
+                        <th>{% trans %}Transformation Type{% endtrans %}</th>
+                        <th>{% trans %}Logger{% endtrans %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for usine in liste_usines %}
+
+                        <tr>
+                            <td>{{ usine.numeroUsine }}</td>
+                            <td><a class="new-link font-weight-bold editBtn text-white p-1" style="background: #0c5460;border-radius: 10px;" href="{{ path('usine.edit', {'id_usine': usine.id })}}" id="{{ usine.id }}">{{ usine.raisonSocialeUsine }}</a></td>
+                            <td><a class="new-link font-weight-bold editBtn" href="{{ path('usine.edit', {'id_usine': usine.id })}}" id="{{ usine.id }}">{{ usine.sigle }}</a></td>
+                            {% if (usine.codeCantonnement) %}
+                                <td>{{ usine.codeCantonnement.nomCantonnement}}</td>
+                            {% else %}
+                                <td>-</td>
+                            {% endif %}
+                            <td>
+                                {% for transfo in usine.typeTransformation %}
+                                    {% if (transfo.libelle is same as 'TRANCHAGE') %}
+                                        <span class="badge alert-success text-dark p-2">
+
+                                    {% elseif ((transfo.libelle is same as 'DEROULAGE') ) %}
+                                        <span class="badge alert-primary text-dark p-2">
+
+                                        {% else %}
+                                            <span class="badge alert-warning text-dark p-2">
+                                            {% endif %}
+                                                {{ transfo.libelle }}
+                                        </span>
+                                {% endfor %}
+                            </td>
+                            {% if(usine.codeExploitant) %}
+                                <td class="alert-warning font-weight-bold font-medium">
+                                    {{ usine.codeExploitant.raisonSocialeExploitant }}
+                            {% else %}
+                                <td>
+                                    -
+                            {% endif %}
+                                </td>
+                            </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script>
+
+
+
+        // Simple Datatable
+        let table1 = document.querySelector('#usines');
+        let dataTable = new simpleDatatables.DataTable(table1);
+
+
+    </script>
+    <script src="{{ asset('assets/webapp/assets/js/main.js') }}"></script>
+
+
+{% endblock %}
+

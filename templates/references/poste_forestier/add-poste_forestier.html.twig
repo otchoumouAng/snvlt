@@ -1,0 +1,87 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Ajouter un Cantonnement
+{% endblock %}
+
+{% block titre_page %}
+    <img src="{{ asset('assets/images/webapp/poste_forestier.png') }}" height="64" alt="dr"> <a href="{{ path('ref_ddefs') }}"> Postes Forestiers </a>
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <section class="section bg-light">
+        <div class="card  bg-light">
+            <div class="card-header  bg-light">
+                <span class="fw-bold fs-4 p-2 mb-5" style="color: #fc4513">{{ titre }}</span>
+            </div>
+            <div class="card-body">
+                {{ form_start(form, {'attr': {novalidate: 'novalidate'}}) }}
+                <div class="row p-3 bg-white m-1">
+                    <div class="col-md-4">
+                        <div class="">{{ form_row(form.denomination) }}</div>
+                        <div class="">{{ form_row(form.email_responsable) }}</div>
+                        <div class="">{{ form_row(form.code_cantonnement) }}</div>
+                        <div class="">{{ form_row(form.situation_geographique) }}</div>
+                    </div>
+                </div>
+
+                <br>
+                <a href="{{ path('ref_cantonnements') }}" class="alert-danger p-2"><i class="bi bi-back me-2"></i>Retourner à la liste</a>
+                <button type="submit"  class="btn btn-sm bg-success text-light p-2">
+
+                    {% if (titre is same as "Ajouter une DD") %}
+                        <i class="bi bi-asterisk  me-2"></i>Ajouter
+                    {% else %}
+                        <i class="bi bi-pencil  me-2"></i>Modifier
+                    {% endif %}
+                </button>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+
+        <!--Modification de l'dr -->
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+
+    <script>
+        // Simple Datatable
+        let table1 = document.querySelector('#drs');
+        let dataTable = new simpleDatatables.DataTable(table1);
+    </script>
+    <script>
+
+        $(document).ready(function() {
+            $('.code_ddef').select2({
+                placeholder: "--Sélectionnez la direction départementale...",
+                theme: "bootstrap-5"
+            });
+
+            $('.code_dr').select2({
+                placeholder: "-- Sélectionnez la direction régionale --",
+                theme: "bootstrap-5",
+                width: '100%'
+            });
+        });
+
+    </script>
+
+
+    <script src="{{ asset('assets/webapp/assets/js/main.js') }}"></script>
+
+
+{% endblock %}
+

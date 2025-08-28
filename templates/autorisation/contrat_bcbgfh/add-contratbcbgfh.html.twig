@@ -1,0 +1,59 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Ajouter un contrat BCBGFH
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/contract2.png') }}" alt="">  Contrats BCBGFH - {% trans %}[ADD]{% endtrans %}
+    </h2>
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+    <section class="section" style="border: 1px green solid;">
+        <div class="card">
+
+            <div class="card-body">
+                {{ form_start(form, {'attr': {novalidate: 'novalidate'}}) }}
+                <div class="row p-3 bg-white m-1">
+                    <div class="col-md-6">
+                        <div class="">{{ form_row(form.numero_contrat) }}</div>
+                        <div class="">{{ form_row(form.date_contrat )}}</div>
+                        <div class="">{{ form_row(form.date_signature )}}</div>
+                        <div class="">{{ form_row(form.duree) }}</div>
+                        <div class="">{{ form_row(form.nb_tiges) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="">{{ form_row(form.code_foret) }}</div>
+                        <div class="">{{ form_row(form.code_exploitant) }}</div>
+                    </div>
+
+                </div>
+                <button type="submit" class="btn btn-primary">
+
+                    {% if (titre == "Ajouter un contrat") %}
+                        <i class="bi bi-asterisk"></i>
+                        <span class="d-none d-sm-block">Ajouter un contrat</span>
+                    {% else %}
+                        <i class="bi bi-pencil"></i>
+                        <span class="d-none d-sm-block">Modifier le contrat</span>
+                    {% endif %}
+                </button>
+                {{ form_end(form) }}
+            </div>
+        </div>
+
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+
+{% endblock %}
+

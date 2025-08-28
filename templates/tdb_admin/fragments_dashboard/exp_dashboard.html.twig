@@ -1,0 +1,185 @@
+<div class="col-md-9 bg-white">
+    {#<img src="{{ asset('assets/images/boislegal_front.png') }}" width="100%" style="background: transparent" alt="bois_legal">#}
+    <div class="card m-2">
+        <div class="card-title bg-danger text-white p-2">
+            Essences les plus exploitées (<span style="text-transform: lowercase;">m<sup>3</sup></span>)
+        </div>
+        <div class="alert-secondary mb-2" id="donnees_essences" ></div>
+    </div>
+    <div class="card m-2">
+        <div class="card-title p-2" style="background: lightblue; color: black">
+            {{ 'Logs loading in proccess' | trans}}
+        </div>
+        <div class="card" style="border: 1px;">
+            <div class="">
+                <table class="table">
+                    <thead>
+                    <tr class="alert-success">
+                        <th>{{ 'Date' | trans}}</th>
+                        <th>{{ 'No' | trans}}</th>
+                        <th>{{ 'Species' | trans}}</th>
+                        <th>{{ 'Volume' | trans}}</th>
+                        <th>{{ 'Sender' | trans}}</th>
+                        <th>{{ 'Destination' | trans}}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="card col-md-3" style="border: 1px;background-color: transparent">
+    <div class="bg-white">
+        <div class="card" style="border: 1px;">
+            <div class="card-title p-2 text-white font-weight-light mt-2" style="background-color: #025e27">
+                chiffres clés
+            </div>
+            <div class="">
+                <img class="img-fluid m-2" src="{{ asset('assets/images/autorisation.png') }}" alt="autorisation">  <span class="font-weight-bold mt-3" style="color: #6c6d6f"> {{ nb_reprises }} reprise(s)</span><br>
+                <img class="img-fluid m-2" src="{{ asset('assets/images/webapp/document_operateur.png') }}" alt="autorisation" style="height: 24px;" >  <span class="font-weight-bold mt-3"> {{ nb_doc_brh_op}} BRH</span><br>
+                <img class="img-fluid m-2" src="{{ asset('assets/images/webapp/document_operateur.png') }}" alt="autorisation" style="height: 24px;" >  <span class="font-weight-bold mt-3"> {{ nb_doc_cp_op }} CP</span><br>
+
+            </div>
+
+        </div>
+        <div class="card" style="border: 1px;">
+            <div class="card-title text-white font-weight-light p-2" style="background-color: #02195e">Quotas d'exploitation</div>
+            <div class="" style="height: 250px;overflow-y: scroll;">
+                <table class="table">
+                    <thead>
+                    <tr class="alert-success">
+                        <th>Forêt</th>
+                        <th>Quota</th>
+                        <th>Volume exploité</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for quota in quotas %}
+                        <tr>
+                            <td class="font-weight-bold"><span class="badge p-1 bg-dark text-white">{{ quota.foret }}</span></td>
+                            <td class="font-weight-bold text-danger">{{ quota.quota_val }}</td>
+                            <td class="font-weight-bold">{{ quota.cubage }} m<sup>3</sup></td>
+                        </tr>
+
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card" style="border: 1px;">
+            <div class="card-title p-1 text-white font-weight-light mt-3" style="background-color: #ff7b02">
+                Situation Parc
+            </div>
+            <div class="">
+                <table class="table table-responsive">
+                    <thead>
+                    <tr class="alert-success">
+                        <th>{{ 'Species' | trans}}</th>
+                        <th>{{ 'Dm minima' | trans}}</th>
+                        <th>{{ 'Value' | trans}}</th>
+                        <th>XY</th>
+                        <th>Operator</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="alert-danger">
+                        <td class="font-weight-bold text-danger">Fromager</td>
+                        <td class="font-weight-bold text-danger">76</td>
+                        <td class="font-weight-bold text-danger">74</td>
+                        <td class="font-weight-bold text-danger">452123 654623</td>
+                        <td class="font-weight-bold text-danger">Atelier K.</td>
+                    </tr>
+                    <tr class="alert-danger">
+                        <td class="font-weight-bold text-danger">Fromager</td>
+                        <td class="font-weight-bold text-danger">76</td>
+                        <td class="font-weight-bold text-danger">71</td>
+                        <td class="font-weight-bold text-danger">452123 654623</td>
+                        <td class="font-weight-bold text-danger">Atelier K.</td>
+                    </tr>
+                    <tr class="alert-danger">
+                        <td class="font-weight-bold text-danger">Ako</td>
+                        <td class="font-weight-bold text-danger">65</td>
+                        <td class="font-weight-bold text-danger">63</td>
+                        <td class="font-weight-bold text-danger">452123 654623</td>
+                        <td class="font-weight-bold text-danger">Atelier K.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+{#
+<div class="col-md-4 bg-white">
+
+    <div class="card">
+        <div class="card-title bg-primary text-white p-2">
+            Documents en cours
+        </div>
+        <table class="table w-100">
+            <div class="bg-success text-white p-2 font-weight-bold">Documents BRH</div>
+            <thead>
+            <tr class="alert-success">
+                <th>N°</th>
+                <th>volume</th>
+            </tr>
+
+            </thead>
+            <tbody>
+            {% for doc in doc_brh_op %}
+                <tr>
+                    <td>{{ doc.numero_brh }}</td>
+                    <td>{{ doc.volume }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <table class="table w-100">
+            <div class="bg-warning text-dark p-2 font-weight-bold">Documents CP</div>
+            <thead>
+            <tr class="alert-warning text-dark">
+                <th>N°</th>
+                <th>volume</th>
+            </tr>
+
+            </thead>
+            <tbody>
+            {% for doc in doc_brh_op %}
+                <tr>
+                    <td>{{ doc.numero_brh }}</td>
+                    <td>{{ doc.volume }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        <table class="table w-100">
+            <div class="bg-danger text-white p-2 font-weight-bold">Quotas d'exploitation</div>
+            <thead>
+            <tr class="alert-danger text-dark">
+                <th>Titre</th>
+                <th>Quota</th>
+                <th>Quota exploité</th>
+            </tr>
+
+            </thead>
+            <tbody>
+            {% for doc in doc_brh_op %}
+                <tr>
+                    <td>{{ doc.numero_brh }}</td>
+                    <td>{{ doc.volume }}</td>
+                    <td>{{ doc.volume }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>#}

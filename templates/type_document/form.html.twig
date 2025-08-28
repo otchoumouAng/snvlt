@@ -1,0 +1,60 @@
+{# templates/type_document/form.html.twig #}
+
+{% set mode = mode|default('new') %}
+{% set type_document = type_document|default(null) %}
+
+<div class="container-fluid">
+    {% if mode == 'read' %}
+        <h4 class="mb-4 text-primary">Détails du Type de Document</h4>
+    {% elseif mode == 'edit' %}
+        <h4 class="mb-4 text-primary">Modifier le Type de Document</h4>
+    {% else %}
+        <h4 class="mb-4 text-primary">Nouveau Type de Document</h4>
+    {% endif %}
+    
+    <form id="typeDocumentForm" method="post">
+        {% if type_document and type_document.id %}
+            <input type="hidden" name="id" value="{{ type_document.id }}">
+        {% endif %}
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="designation" class="form-label fw-bold">Désignation</label>
+                    <input type="text" class="form-control" id="designation" name="designation" 
+                           value="{{ type_document.designation ?? '' }}" 
+                           {{ mode == 'read' ? 'readonly' : '' }} required>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="desactivate" class="form-label fw-bold">Statut</label>
+                    <select class="form-control" id="desactivate" name="desactivate" {{ mode == 'read' ? 'disabled' : '' }}>
+                        <option value="0" {{ type_document and not type_document.desactivate ? 'selected' : '' }}>Actif</option>
+                        <option value="1" {{ type_document and type_document.desactivate ? 'selected' : '' }}>Désactivé</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        {% if mode != 'read' %}
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ type_document and type_document.id ? 'Modifier' : 'Créer' }}
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <div class="row mt-4">
+                <div class="col-12 text-end">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        {% endif %}
+    </form>
+</div>

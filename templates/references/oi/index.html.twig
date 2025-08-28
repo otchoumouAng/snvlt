@@ -1,0 +1,103 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Observation Indépendante{% endtrans %}
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/observation.png') }}" alt="{% trans %}Oi{% endtrans %}">  {% trans %}Observation Indépendante{% endtrans %}
+    </h2>
+    <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+        <div class="btn-group p-1 rounded-5 " role="group" aria-label="Basic example">
+            <a class="btn btn-inverse-danger p-2 mt-2" style="border: 0px; font-size: 16px;" href="{{ path('oi.edit') }}"> <i class="mdi mdi-plus-circle me-2" style="font-size: 20px;"></i>{% trans %}Add{% endtrans %}</a>
+        </div>
+    </div>
+{% endblock %}
+
+
+ {% block notifs %}
+     {% include 'base/notifs.html.twig' %}
+ {% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="{{ asset('assets/webapp/assets/vendors/simple-datatables/style.css') }}">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.1/css/buttons.dataTables.css">
+
+    <section class="section">
+        <div class="card">
+            <div class="card-body">
+                <table  id="oi">
+                    <thead>
+                    <tr style="background: #a0dbf2;color: #1b1a1a">
+                        <th>{% trans %}Raison sociale{% endtrans %}</th>
+                        <th>{% trans %}Adresse{% endtrans %}</th>
+                        <th>{% trans %}Email{% endtrans %}</th>
+                        <th>{% trans %}Manager{% endtrans %}</th>
+                        <th>{% trans %}Manager email{% endtrans %}</th>
+                        <th>{% trans %}Manager Phone{% endtrans %}</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for oi in ois %}
+
+                        <tr style="background-color: #e6f8e7">
+                            <td class="text-dark fw-bold"><a class="link-dark editBtn" style="font-weight: bold;color: #370905" href="{{ path('oi.edit', {'id_oi': oi.id })}}" id="{{ oi.id }}">{{ oi.sigle }}</a></td>
+                            <td>{{ oi.adresse }}</td>
+                            <td>{{ oi.email }}</td>
+                            <td><span class="badge text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;background-color: rgba(36,35,35,0.89)">{{ oi.personneRessource }}</span></td>
+                            <td><span class="badge alert-light text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;;background-color: rgba(36,35,35,0.89)">{{ oi.emailPersonneRessource }}</span></td>
+                            <td><span class="badge alert-light text-white p-2" style="font-weight: lighter;font-size: 14px;border-radius: 10px;;background-color: rgba(36,35,35,0.89)">{{ oi.mobilePersonneRessource }}</span></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </section>
+
+    <script src="{{ asset('assets/webapp/assets/vendors/simple-datatables/simple-datatables.js') }}"></script>
+    <script src="{{ asset('assets/webapp/assets/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.0.3/js/dataTables.js"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src=" https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.0.1/js/buttons.print.min.js"></script>
+
+    <script>
+
+        {% set url_lng = "" %}
+
+        {% if (app.locale == "fr") %}
+        {% set url_lng = '//cdn.datatables.net/plug-ins/2.0.3/i18n/fr-FR.json' %}
+        {% else %}
+        {% set url_lng = '//cdn.datatables.net/plug-ins/2.0.3/i18n/en-EN.json' %}
+        {% endif %}
+
+        new DataTable('#oi', {
+            layout: {
+                topStart: {
+                    buttons: [/*'copy', 'csv', */'excel', 'pdf', 'print']
+                }
+            },
+            language: {
+                url: '{{ url_lng }}',
+            }
+        });
+
+    </script>
+{% endblock %}
