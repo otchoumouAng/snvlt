@@ -37,30 +37,11 @@
                             {% if mode == 'read' %}disabled{% endif %}></textarea>
                     </div>
                     
-                    <div id="documents-section" class="mb-3" 
-                         style="display: {% if mode == 'new' %}none{% else %}block{% endif %};">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
-                            {% if mode != 'read' %}
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="addDocumentBtn">
-                                <i class="ph-fill ph-plus me-1"></i> Ajouter
-                            </button>
-                            <input type="file" id="pdf-upload" accept=".pdf" style="display: none;" multiple />
-                            {% endif %}
-                        </div>
-                        <ul class="list-group list-group-flush document-list" id="documents-list">
-                            <!-- Documents will be populated here -->
-                        </ul>
-                    </div>
+                    
                 </form>
             </div>
             <div class="modal-footer border-0 pt-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                {% if mode == 'edit' %}
-                <button type="button" class="btn btn-danger" id="deleteBtn">
-                    <i class="ph-fill ph-trash me-1"></i> Supprimer
-                </button>
-                {% endif %}
                 {% if mode != 'read' %}
                 <button type="submit" form="demandeForm" class="btn btn-primary" id="saveBtn">
                     <i class="ph-fill ph-paper-plane-tilt me-1"></i> 
