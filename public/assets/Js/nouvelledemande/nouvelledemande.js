@@ -279,7 +279,6 @@ setupModalWithData(mode, data) {
     const saveBtn = modal.find('#saveBtn');
     const deleteBtn = modal.find('#deleteBtn');
     const form = modal.find('#demandeForm');
-    const documentsSection = modal.find('#documents-section');
     
     // Remplir le formulaire avec les données
     form.find('#demandeId').val(data.id);
@@ -294,7 +293,6 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-file-plus');
             saveBtn.show().text('Créer');
             deleteBtn.hide();
-            documentsSection.hide();
             form.find('input, select, textarea').prop('disabled', false);
             break;
             
@@ -303,11 +301,7 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-pencil-simple');
             saveBtn.show().text('Modifier');
             deleteBtn.show();
-            documentsSection.show();
             form.find('input, select, textarea').prop('disabled', false);
-            
-            // Charger les documents depuis l'API
-            this.loadDocuments(data.id);
             break;
             
         case 'read':
@@ -315,42 +309,8 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-eye');
             saveBtn.hide();
             deleteBtn.hide();
-            documentsSection.show();
             form.find('input, select, textarea').prop('disabled', true);
-            
-            // Charger les documents depuis l'API
-            this.loadDocuments(data.id);
             break;
-    }
-}
-
-async loadDocuments(demandeId) {
-    try {
-        const details = await this.apiService.getDemandeDetails(demandeId);
-        let documentsHtml = '';
-        
-        if (details.documents && details.documents.length > 0) {
-            details.documents.forEach((doc) => {
-                documentsHtml += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
-                        <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
-                        <div class="d-flex align-items-center gap-2">
-                            ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                            ${this.currentMode !== 'read' ? 
-                                `<button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
-                                    <i class="ph-fill ph-x"></i>
-                                </button>` : ''
-                            }
-                        </div>
-                    </li>`;
-            });
-        } else {
-            documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document ajouté</li>';
-        }
-        
-        $('#documents-list').html(documentsHtml);
-    } catch (error) {
-        console.error('Erreur lors du chargement des documents:', error);
     }
 }
 
