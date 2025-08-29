@@ -102,15 +102,15 @@
             </div>
         </div>
 
-        <!-- Right Column: Details Panel -->
-        <div class="col-lg-5">
-            <div class="card pro-card h-100">
+        <!-- Right Column: Details Panels -->
+        <div class="col-lg-5 d-flex flex-column g-4">
+            <!-- Panel 1: Details de la Demande -->
+            <div class="card pro-card">
                 <div class="pro-card-header">
-                     <div class="pro-card-title">
+                    <div class="pro-card-title">
                         <i class="ph-fill ph-folder-open"></i>
                         <span id="details-title-text">Détails de la Demande</span>
                     </div>
-                    
                 </div>
                 <div class="card-body" id="details-panel">
                     <div id="details-placeholder" class="details-placeholder">
@@ -118,7 +118,26 @@
                         <p class="mt-3">Sélectionnez une demande pour voir ses détails.</p>
                     </div>
                     <div id="details-content" class="details-content">
-                        <!-- Details will be populated by JavaScript -->
+                        <!-- Main details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Gestion des Documents -->
+            <div class="card pro-card mt-4">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">
+                        <i class="ph-fill ph-files"></i>
+                        <span>Gestion des Documents</span>
+                    </div>
+                </div>
+                <div class="card-body" id="documents-panel">
+                     <div id="documents-placeholder" class="details-placeholder">
+                        <i class="ph-light ph-file-search"></i>
+                        <p class="mt-3">Sélectionnez une demande pour gérer les documents.</p>
+                    </div>
+                    <div id="documents-content" class="details-content">
+                        <!-- Document management will be populated here -->
                     </div>
                 </div>
             </div>

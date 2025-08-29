@@ -155,14 +155,27 @@ class NouvelleDemandeApp {
 
     displayDetails(details) {
         const detailsContent = $('#details-content');
-        const placeholder = $('#details-placeholder');
-        
-        placeholder.hide();
+        const detailsPlaceholder = $('#details-placeholder');
+        const documentsContent = $('#documents-content');
+        const documentsPlaceholder = $('#documents-placeholder');
+
+        // Hide placeholders and content
+        detailsPlaceholder.hide();
+        documentsPlaceholder.hide();
         detailsContent.removeClass('visible');
-        
-        // Vérifier si les documents sont disponibles dans les données
+        documentsContent.removeClass('visible');
+
+        // Populate main details
+        const detailsHtml = `
+            <h5 class="fw-bold">${details.titre}</h5>
+            <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
+            ${NouvelleDemandeApp.getStatusBadge(details.statut)}
+            <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
+        `;
+        detailsContent.html(detailsHtml);
+
+        // Populate documents
         const hasDocuments = details.documents && details.documents.length > 0;
-        
         let documentsHtml = '';
         if (hasDocuments) {
             details.documents.forEach((doc) => {
@@ -181,54 +194,44 @@ class NouvelleDemandeApp {
             documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document ajouté</li>';
         }
 
-        const contentHtml = `
-            <div class="mb-4">
-                <h5 class="fw-bold">${details.titre}</h5>
-                <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
-                ${NouvelleDemandeApp.getStatusBadge(details.statut)}
-                <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
-            </div>
+        const documentsPanelHtml = `
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
-                ${hasDocuments ? `
-                <button type="button" class="btn btn-sm btn-outline-primary" id="addDocumentBtnPanel">
+                 <button type="button" class="btn btn-sm btn-outline-primary" id="addDocumentBtnPanel">
                     <i class="ph-fill ph-plus me-1"></i> Ajouter
                 </button>
-                ` : ''}
                 <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
             </div>
             <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
-            <div class="mt-3 d-flex gap-2">
-                <button type="button" class="btn btn-secondary" id="cancelBtnPanel">Annuler</button>
-                <button type="button" class="btn btn-primary" id="saveBtnPanel">Modifier</button>
-            </div>
         `;
+        documentsContent.html(documentsPanelHtml);
 
-        detailsContent.html(contentHtml);
-        setTimeout(() => detailsContent.addClass('visible'), 10);
-        
+        // Show content with transition
+        setTimeout(() => {
+            detailsContent.addClass('visible');
+            documentsContent.addClass('visible');
+        }, 10);
+
         // Bind panel events
-        if (hasDocuments) {
-            $('#addDocumentBtnPanel').on('click', () => {
-                $('#pdf-upload-panel').click();
-            });
-        }
-        
+        $('#addDocumentBtnPanel').on('click', () => {
+            $('#pdf-upload-panel').click();
+        });
+
         $('#pdf-upload-panel').on('change', (e) => {
             this.handleFileUpload(e.target.files);
-        });
-        
-        $('#saveBtnPanel').on('click', () => {
-            this.openModal(this.selectedDemandeId, 'edit');
         });
     }
 
     showDetailsPlaceholder() {
         const detailsContent = $('#details-content');
-        const placeholder = $('#details-placeholder');
+        const detailsPlaceholder = $('#details-placeholder');
+        const documentsContent = $('#documents-content');
+        const documentsPlaceholder = $('#documents-placeholder');
         
         detailsContent.removeClass('visible').html('');
-        placeholder.show();
+        documentsContent.removeClass('visible').html('');
+        detailsPlaceholder.show();
+        documentsPlaceholder.show();
     }
 
     async openModal(id, mode) {
