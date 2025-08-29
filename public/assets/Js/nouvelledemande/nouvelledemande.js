@@ -60,7 +60,6 @@ class NouvelleDemandeApp {
             const data = row.data();
             if (data) {
                 // Mettre en surbrillance la ligne sélectionnée
-                this.dataTable.rows().deselect();
                 row.select();
                 
                 // Utiliser les données existantes au lieu de faire un nouvel appel API
