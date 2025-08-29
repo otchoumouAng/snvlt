@@ -2,7 +2,10 @@
 
 namespace App\Entity;
 
+use App\Entity\Validation\ValidationNouvelleDemande;
 use App\Repository\NouvelleDemandeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NouvelleDemandeRepository::class)]
@@ -195,6 +198,44 @@ class NouvelleDemande
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    #[ORM\OneToMany(mappedBy: 'nouvelleDemande', targetEntity: ValidationNouvelleDemande::class, orphanRemoval: true)]
+    private Collection $validationNouvellesDemandes;
+
+    public function __construct()
+    {
+        $this->validationNouvellesDemandes = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, ValidationNouvelleDemande>
+     */
+    public function getValidationNouvellesDemandes(): Collection
+    {
+        return $this->validationNouvellesDemandes;
+    }
+
+    public function addValidationNouvellesDemande(ValidationNouvelleDemande $validationNouvellesDemande): static
+    {
+        if (!$this->validationNouvellesDemandes->contains($validationNouvellesDemande)) {
+            $this->validationNouvellesDemandes->add($validationNouvellesDemande);
+            $validationNouvellesDemande->setNouvelleDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValidationNouvellesDemande(ValidationNouvelleDemande $validationNouvellesDemande): static
+    {
+        if ($this->validationNouvellesDemandes->removeElement($validationNouvellesDemande)) {
+            // set the owning side to null (unless already changed)
+            if ($validationNouvellesDemande->getNouvelleDemande() === $this) {
+                $validationNouvellesDemande->setNouvelleDemande(null);
+            }
+        }
 
         return $this;
     }

@@ -1,0 +1,116 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Validation des Demandes{% endtrans %}
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+<style>
+    /* Basic styling for the stepper */
+    .stepper {
+        display: flex;
+        justify-content: space-between;
+        list-style: none;
+        padding: 0;
+        margin: 2rem 0;
+        position: relative;
+    }
+    .stepper::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e9ecef;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        z-index: 2;
+        background-color: #fff;
+        padding: 0 0.5rem;
+    }
+    .step-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #adb5bd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        border: 3px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+    .step-label {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Step statuses */
+    .step.validated .step-icon {
+        background-color: #28a745;
+        color: #fff;
+        border-color: #28a745;
+    }
+    .step.validated .step-label {
+        color: #212529;
+        font-weight: 500;
+    }
+    .step.in-progress .step-icon {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+    }
+    .step.in-progress .step-label {
+        color: #007bff;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Validation des Nouvelles Demandes</h5>
+        </div>
+        <div class="card-body">
+            <p>Sélectionnez une demande pour voir son circuit de validation.</p>
+
+            <!-- For now, we will just use a simple select. This would be a DataTable in a real scenario. -->
+            <select id="demande-selector" class="form-select mb-4">
+                <option selected disabled>Choisir une demande...</option>
+                {# In a real app, this would be populated from the controller #}
+                <option value="1">Demande de Permis de Coupe</option>
+                <option value="2">Demande d'Agrément Exportateur</option>
+            </select>
+
+            <div id="validation-details" class="d-none">
+                <h6 id="demande-titre" class="mb-3"></h6>
+                <div id="stepper-container">
+                    <!-- Stepper will be injected here by JavaScript -->
+                </div>
+                <div class="text-center mt-4">
+                    <button id="valider-etape-btn" class="btn btn-success">Valider l'étape en cours</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS files to be created -->
+<script src="{{ asset('assets/js/validationnouvelledemande/api-service.js') }}"></script>
+<script src="{{ asset('assets/js/validationnouvelledemande/notification.js') }}"></script>
+<script src="{{ asset('assets/js/validationnouvelledemande/validationnouvelledemande.js') }}"></script>
+{% endblock %}
