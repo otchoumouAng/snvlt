@@ -115,7 +115,6 @@ class NouvelleDemandeController extends AbstractController
             }
         }
 
-        dd($documents);
 
         $data = [
             'id' => $demande->getId(),
