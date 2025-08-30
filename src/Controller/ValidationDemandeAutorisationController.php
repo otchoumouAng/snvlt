@@ -62,7 +62,10 @@ class ValidationDemandeAutorisationController extends AbstractController
      */
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'Soumis']);
+
+
+        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'En cours']);
+
 
         $data = [];
         foreach ($demandes as $demande) {
@@ -73,6 +76,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                 'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : '',
+
                 'societe' => $demande->getRaisonSocial()
             ];
         }
