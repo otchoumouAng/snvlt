@@ -1,0 +1,64 @@
+<div class="step-details-content">
+    <h4 class="details-title">Détails de l'étape : {{ etape.nom }}</h4>
+
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">Statut :</span>
+                <span class="badge bg-success">{{ etape.statut|capitalize }}</span>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="detail-item">
+                <span class="detail-label">Date de Traitement :</span>
+                <span class="detail-value">{{ etape.dateTraitement ? etape.dateTraitement|date('d/m/Y à H:i') : 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <h5 class="details-subtitle">Informations Complémentaires</h5>
+        <p class="details-text">
+            {{ etape.details|default('Aucun détail fourni pour cette étape.')|nl2br }}
+        </p>
+    </div>
+</div>
+
+<style>
+    .step-details-content {
+        padding: 1rem;
+    }
+    .details-title {
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #0d6efd;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .details-subtitle {
+        font-weight: 500;
+        color: #555;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    .detail-item {
+        margin-bottom: 1rem;
+    }
+    .detail-label {
+        font-weight: 500;
+        color: #6c757d;
+        margin-right: 0.5rem;
+    }
+    .detail-value {
+        font-weight: 500;
+        color: #212529;
+    }
+    .details-text {
+        background-color: #f8f9fa;
+        border-left: 4px solid #dee2e6;
+        padding: 1rem;
+        border-radius: 4px;
+        color: #495057;
+        line-height: 1.6;
+    }
+</style>

@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\EtapeValidation;
 use App\Entity\NouvelleDemande;
 use App\Entity\TypeDocument;
+use App\Repository\EtapeValidationRepository;
 use App\Repository\NouvelleDemandeRepository;
 use App\Repository\TypeDocumentRepository;
 use App\Repository\Administration\NotificationRepository;
@@ -24,10 +26,12 @@ use Symfony\Component\Routing\Annotation\Route;
 class NouvelleDemandeController extends AbstractController
 {
     private $entityManager;
+    private $etapeValidationRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, EtapeValidationRepository $etapeValidationRepository)
     {
         $this->entityManager = $entityManager;
+        $this->etapeValidationRepository = $etapeValidationRepository;
     }
 
     /**
@@ -221,35 +225,31 @@ class NouvelleDemandeController extends AbstractController
         return new JsonResponse(['success' => true]);
     }
 
-     // Vous aurez aussi besoin d'une route pour les détails d'une étape
-    #[Route('/admin/nouvelle_demande/suivi/{demandeId}/etape/{etapeId}', name: 'admin_nouvelle_demande_suivi_etape', methods: ['GET'])]
-    public function detailEtape(int $demandeId, int $etapeId): Response
-    {
-        // Logique pour récupérer les détails d'une étape spécifique
-        $details = "Détails pour l'étape $etapeId de la demande $demandeId...";
-        
-        // Vous rendrez un autre petit template Twig ici
-        return new Response("<div>$details</div>");
-    }
-
-    #[Route('/admin/nouvelle_demande/suivi/{id}', name: 'admin_nouvelle_demande_suivi', methods: ['GET'])]
+    #[Route('/suivi/{id}', name: 'admin_nouvelle_demande_suivi', methods: ['GET'])]
     public function suivi(NouvelleDemande $demande): Response
     {
         // 1. Logique pour récupérer les étapes de validation de la demande
-        // C'est un exemple, vous devrez l'adapter à votre modèle de données.
-        $etapes = $this->getDoctrine()->getRepository(EtapeValidation::class)->findBy(
+        $etapes = $this->etapeValidationRepository->findBy(
             ['demande' => $demande],
             ['ordre' => 'ASC']
         );
 
         // 2. Préparer les données pour Twig (y compris le statut de chaque étape)
         $etapesPourTwig = [];
+        $demandeStatut = $demande->getStatut(); // Statut global de la demande
+        $etapeActiveTrouvee = false;
+
         foreach ($etapes as $etape) {
+            list($status, $isActive) = $this->determineEtapeStatus($etape, $demandeStatut, $etapeActiveTrouvee);
+            if ($isActive) {
+                $etapeActiveTrouvee = true;
+            }
+
             $etapesPourTwig[] = [
                 'id' => $etape->getId(),
                 'nom' => $etape->getNom(),
                 'date' => $etape->getDateTraitement(),
-                'status' => $this->determineEtapeStatus($etape), // une fonction privée pour calculer 'completed', 'active', etc.
+                'status' => $status,
             ];
         }
 
@@ -258,6 +258,51 @@ class NouvelleDemandeController extends AbstractController
             'demande' => $demande,
             'etapes' => $etapesPourTwig,
         ]);
+    }
+
+    #[Route('/suivi/{demandeId}/etape/{etapeId}', name: 'admin_nouvelle_demande_suivi_etape', methods: ['GET'])]
+    public function detailEtape(int $demandeId, int $etapeId): Response
+    {
+        $etape = $this->etapeValidationRepository->find($etapeId);
+
+        if (!$etape || $etape->getDemande()->getId() !== $demandeId) {
+            return new Response("<div>Détails non trouvés.</div>", 404);
+        }
+
+        return $this->render('nouvelle_demande/_detail_etape.html.twig', [
+            'etape' => $etape,
+        ]);
+    }
+
+    /**
+     * Détermine le statut d'une étape pour l'affichage du stepper.
+     *
+     * @param EtapeValidation $etape L'étape à évaluer.
+     * @param string $demandeStatut Le statut global de la demande ('en_attente', 'approuvee', 'rejetee').
+     * @param bool $etapeActiveTrouvee Indique si l'étape active a déjà été identifiée dans la boucle.
+     * @return array [string status, bool isActive]
+     */
+    private function determineEtapeStatus(EtapeValidation $etape, string $demandeStatut, bool &$etapeActiveTrouvee): array
+    {
+        // Si l'étape a une date de traitement, elle est complétée.
+        if ($etape->getDateTraitement() !== null) {
+            return ['completed', false];
+        }
+
+        // Si une étape active a déjà été trouvée, les suivantes sont en attente.
+        if ($etapeActiveTrouvee) {
+            return ['', false]; // Statut neutre (grisé)
+        }
+
+        // La première étape sans date de traitement est l'étape "active".
+        // Sauf si la demande est déjà terminée (approuvée/rejetée).
+        if ($demandeStatut === 'approuvee' || $demandeStatut === 'rejetee') {
+             return ['', false];
+        }
+
+        // C'est la première étape non complétée, elle est donc active.
+        $etapeActiveTrouvee = true;
+        return ['active', true];
     }
 
 
