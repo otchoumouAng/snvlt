@@ -22,6 +22,9 @@ class NouvelleDemande
     #[ORM\Column]
     private ?int $type_demande_id = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $type_demande = null;
+
     #[ORM\Column]
     private ?int $operateur_id = null;
 
@@ -65,6 +68,18 @@ class NouvelleDemande
     public function setRaisonSocial(string $raison_social): static
     {
         $this->raison_social = $raison_social;
+
+        return $this;
+    }
+
+    public function getTypeDemande(): ?string
+    {
+        return $this->type_demande;
+    }
+
+    public function setTypeDemande(?string $type_demande): static
+    {
+        $this->type_demande = $type_demande;
 
         return $this;
     }
