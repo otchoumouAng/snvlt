@@ -7,6 +7,7 @@ use App\Entity\NouvelleDemande;
 use App\Entity\TypeDocument;
 use App\Repository\EtapeValidationRepository;
 use App\Repository\NouvelleDemandeRepository;
+use App\Repository\TypeDemandeDetailRepository;
 use App\Repository\TypeDocumentRepository;
 use App\Repository\Administration\NotificationRepository;
 use App\Repository\Autorisation\ContratBcbgfhRepository;
@@ -89,7 +90,7 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/details/{id}", name="app_nouvelle_demande_details")
      */
-    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDocumentRepository $typeDocumentRepository): JsonResponse
+    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, \App\Repository\TypeDemandeDetailRepository $typeDemandeDetailRepository): JsonResponse
     {
         $demande = $nouvelleDemandeRepository->find($id);
         
@@ -97,36 +98,30 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
-        // The original code was flawed. The documents are not directly linked to the NouvelleDemande.
-        // They are linked via the TypeDemande. We need to fetch the list of required document types.
-        // This is a temporary fix to prevent a crash. The full document management logic needs a review.
-
-        $typeDemandeId = $demande->getTypeDemandeId();
-
-        // This is a simplified way to get the documents.
-        // A proper implementation would involve a custom query in TypeDemandeDetailRepository.
-        $allTypeDocuments = $typeDocumentRepository->findAll(); // This is inefficient but will work for now.
+        // Fetch the required document types using the join table TypeDemandeDetail
+        $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['type_demande' => $demande->getTypeDemandeId()]);
 
         $documents = [];
-        // This logic is just for demonstration as the relationship is indirect.
-        // A real implementation needs to query the `type_demande_detail` table.
-        foreach($allTypeDocuments as $doc) {
-            $documents[] = [
-                'id' => $doc->getId(),
-                'nom' => $doc->getDesignation(),
-                'statut' => 'requis', // This is a placeholder status
-                'dateAjout' => date('d/m/Y H:i')
-            ];
+        foreach ($requiredDocumentDetails as $detail) {
+            $document = $detail->getTypeDocument();
+            if ($document) {
+                $documents[] = [
+                    'id' => $document->getId(),
+                    'nom' => $document->getDesignation(),
+                    'statut' => 'requis', // This status indicates it's a required document.
+                                         // The frontend will need to handle logic for 'uploaded', 'missing', etc.
+                    'dateAjout' => null // Not applicable for required docs, only for uploaded ones.
+                ];
+            }
         }
-
 
         $data = [
             'id' => $demande->getId(),
             'titre' => $demande->getTitre(),
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
-            'documents' => $documents, // Returns a list of all possible docs for now
-            'typeDocument' => $demande->getTypeDemande() // Assuming getTypeDemande() exists and returns the name
+            'documents' => $documents,
+            'typeDocument' => $demande->getTypeDemande()
         ];
 
         return new JsonResponse($data);
