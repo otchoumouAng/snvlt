@@ -130,7 +130,18 @@ class ApiService {
         this.cache.clear();
         return this.post(`/admin/nouvelle_demande/${demandeId}/remove_document`, { document_id: documentId });
     }
-}
+
+    // Dans la classe ApiService
+    getTrackingView(demandeId) {
+        // Cette route doit être créée côté backend. Elle retourne du HTML.
+        return this.get(`/admin/nouvelle_demande/suivi/${demandeId}`);
+    }
+
+    getStepDetails(demandeId, stepId) {
+        // Cette route retourne le HTML des détails pour une étape spécifique
+        return this.get(`/admin/nouvelle_demande/suivi/${demandeId}/etape/${stepId}`);
+    }
+    }
 
 // Export singleton instance
 window.apiService = new ApiService();

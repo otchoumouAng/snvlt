@@ -1,0 +1,37 @@
+<div id="tracking-portal">
+    <div class="tracking-header">
+        <a href="#" id="back-to-list" class="back-button" title="Retour à la liste">
+            <i class="ph-fill ph-arrow-left"></i>
+        </a>
+        <div class="tracking-title">
+            <h1>Suivi de la Demande</h1>
+            {# On utilise les données de la demande passées par le contrôleur #}
+            <p>Demande #<span id="tracking-demande-id">{{ demande.id }}</span> - {{ demande.titre }}</p>
+        </div>
+    </div>
+
+    <div class="stepper-container">
+        <ol class="stepper">
+            {# On boucle sur les étapes passées par le contrôleur #}
+            {% for etape in etapes %}
+                <li 
+                    class="stepper-item {{ etape.status }}" 
+                    data-step-id="{{ etape.id }}"
+                >
+                    <h3 class="stepper-title">{{ etape.nom }}</h3>
+                    {% if etape.date %}
+                        <p class="stepper-date">{{ etape.date|date("d/m/Y") }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <div id="step-details-container">
+        <div id="step-details-placeholder">
+            <i class="ph-light ph-info"></i>
+            <p>Cliquez sur une étape complétée pour voir les détails du traitement.</p>
+        </div>
+        <div id="step-details-content"></div>
+    </div>
+</div>

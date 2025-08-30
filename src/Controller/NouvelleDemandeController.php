@@ -220,4 +220,47 @@ class NouvelleDemandeController extends AbstractController
         
         return new JsonResponse(['success' => true]);
     }
+
+     // Vous aurez aussi besoin d'une route pour les détails d'une étape
+    #[Route('/admin/nouvelle_demande/suivi/{demandeId}/etape/{etapeId}', name: 'admin_nouvelle_demande_suivi_etape', methods: ['GET'])]
+    public function detailEtape(int $demandeId, int $etapeId): Response
+    {
+        // Logique pour récupérer les détails d'une étape spécifique
+        $details = "Détails pour l'étape $etapeId de la demande $demandeId...";
+        
+        // Vous rendrez un autre petit template Twig ici
+        return new Response("<div>$details</div>");
+    }
+
+    #[Route('/admin/nouvelle_demande/suivi/{id}', name: 'admin_nouvelle_demande_suivi', methods: ['GET'])]
+    public function suivi(NouvelleDemande $demande): Response
+    {
+        // 1. Logique pour récupérer les étapes de validation de la demande
+        // C'est un exemple, vous devrez l'adapter à votre modèle de données.
+        $etapes = $this->getDoctrine()->getRepository(EtapeValidation::class)->findBy(
+            ['demande' => $demande],
+            ['ordre' => 'ASC']
+        );
+
+        // 2. Préparer les données pour Twig (y compris le statut de chaque étape)
+        $etapesPourTwig = [];
+        foreach ($etapes as $etape) {
+            $etapesPourTwig[] = [
+                'id' => $etape->getId(),
+                'nom' => $etape->getNom(),
+                'date' => $etape->getDateTraitement(),
+                'status' => $this->determineEtapeStatus($etape), // une fonction privée pour calculer 'completed', 'active', etc.
+            ];
+        }
+
+        // 3. Rendre le template Twig et le retourner comme une réponse HTML
+        return $this->render('nouvelle_demande/suivi.html.twig', [
+            'demande' => $demande,
+            'etapes' => $etapesPourTwig,
+        ]);
+    }
+
+
+
+
 }

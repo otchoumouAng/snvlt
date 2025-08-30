@@ -64,6 +64,7 @@ class NouvelleDemandeApp {
             if (data) {
                 this.selectedDemandeId = data.id;
                 $('#editBtn').prop('disabled', false);
+                $('#trackBtn').prop('disabled', false);
                 // On charge les documents dans le panneau de droite
                 this.displayDocumentPanel(data); 
             }
@@ -75,6 +76,7 @@ class NouvelleDemandeApp {
         if (type === 'row') {
             this.selectedDemandeId = null;
             $('#editBtn').prop('disabled', true);
+            $('#trackBtn').prop('disabled', true);
             this.showDetailsPlaceholder(); // Retour à l'état initial
         }
     });
@@ -103,6 +105,12 @@ class NouvelleDemandeApp {
             }
         });
 
+        $('#trackBtn').on('click', () => {
+            if (this.selectedDemandeId) {
+                this.showTrackingPortal(this.selectedDemandeId);
+            }
+        });
+
         // La soumission du formulaire dans le modal ne change pas
         $(document).on('submit', '#demandeForm', (e) => {
             e.preventDefault();
@@ -123,7 +131,66 @@ class NouvelleDemandeApp {
             const documentId = $(e.currentTarget).closest('.list-group-item').data('doc-id');
             this.removeDocument(documentId);
         });
+
+        // Utiliser la délégation d'événements pour les éléments chargés en AJAX
+        $(document).on('click', '#back-to-list', (e) => {
+            e.preventDefault();
+            this.showMainView();
+        });
+
+        $(document).on('click', '.stepper-item.completed', (e) => {
+            const stepId = $(e.currentTarget).data('step-id');
+            this.loadStepDetails(this.selectedDemandeId, stepId);
+        });
+
     }
+
+        // Nouvelle fonction pour afficher le portail de suivi
+    async showTrackingPortal(demandeId) {
+        // Supposons une nouvelle méthode API qui retourne le HTML du portail
+        try {
+            // Idéalement, votre API retourne le HTML pré-rempli
+            const trackingHtml = await this.apiService.getTrackingView(demandeId);
+            
+            // Remplacer le contenu de la page
+            // Assurez-vous d'avoir un conteneur global, ex: <div id="page-wrapper">
+            $('#page_content').fadeOut(200, function() {
+                $(this).html(trackingHtml).fadeIn(200);
+            });
+
+        } catch (error) {
+            this.notification.error("Impossible de charger la vue de suivi.");
+            console.error(error);
+        }
+    }
+
+    // Nouvelle fonction pour revenir à la vue principale
+    showMainView() {
+        // Vous devez avoir une fonction qui peut recharger la vue initiale.
+        // La solution la plus simple est de recharger la page, mais pour une vraie SPA,
+        // vous devriez avoir le template initial et le re-injecter.
+        location.reload(); // Solution simple et efficace pour le moment
+    }
+
+    // Nouvelle fonction pour charger les détails d'une étape
+    async loadStepDetails(demandeId, stepId) {
+        // Supposons une nouvelle méthode API qui retourne le HTML des détails
+        try {
+            const detailsHtml = await this.apiService.getStepDetails(demandeId, stepId);
+            $('#step-details-placeholder').hide();
+            $('#step-details-content').html(detailsHtml);
+
+            // Ajoute un indicateur visuel sur l'étape cliquée
+            $('.stepper-item').removeClass('selected');
+            $(`.stepper-item[data-step-id="${stepId}"]`).addClass('selected');
+
+        } catch (error) {
+            this.notification.error("Impossible de charger les détails de l'étape.");
+            console.error(error);
+        }
+    }
+
+
 
     async loadDemandes() {
         try {

@@ -360,6 +360,172 @@
         opacity: 1; /* On gère le style nous-mêmes */
     }
 
+    /* --- PORTAIL DE SUIVI --- */
+    #tracking-portal {
+        background-color: #f4f7fa; /* Un fond légèrement différent pour la distinction */
+        padding: 2rem;
+        border-radius: var(--border-radius);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tracking-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .back-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background-color: var(--color-surface);
+        border-radius: 50%;
+        color: var(--color-text-primary);
+        font-size: 1.2rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+    }
+    .back-button:hover {
+        background-color: var(--color-primary);
+        color: white;
+        box-shadow: var(--shadow-md);
+    }
+
+    .tracking-title h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin: 0;
+    }
+    .tracking-title p {
+        margin: 0;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+    }
+
+    /* --- STEPPER --- */
+    .stepper-container {
+        padding: 0 1rem;
+    }
+
+    .stepper {
+        display: flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    /* La ligne de progression grise (fond) */
+    .stepper::before {
+        content: '';
+        position: absolute;
+        top: 16px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background-color: var(--color-border);
+        z-index: 1;
+    }
+
+    /* La ligne de progression bleue (avancement) */
+    .stepper-progress {
+        position: absolute;
+        top: 16px;
+        left: 0;
+        height: 4px;
+        background-color: var(--color-primary);
+        z-index: 2;
+        transition: width 0.5s ease;
+    }
+
+
+    .stepper-item {
+        position: relative;
+        z-index: 3;
+        text-align: center;
+        flex-basis: 0;
+        flex-grow: 1;
+    }
+
+    /* Le cercle de l'étape */
+    .stepper-item::before {
+        content: '';
+        display: block;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--color-surface);
+        border: 4px solid var(--color-border);
+        margin: 0 auto 1rem auto;
+        transition: all 0.3s ease;
+    }
+
+    .stepper-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    .stepper-date {
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+        margin-top: 0.25rem;
+    }
+
+    /* Styles des états de l'étape */
+    .stepper-item.completed { cursor: pointer; }
+    .stepper-item.completed::before {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary);
+        /* Optionnel : ajouter une icône check */
+        content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='white'%3e%3cpath d='M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022Z'/%3e%3c/svg%3e");
+        padding: 4px; /* Ajustement pour l'icône */
+    }
+    .stepper-item.completed:hover::before {
+        transform: scale(1.1);
+    }
+
+    .stepper-item.active::before {
+        border-color: var(--color-primary);
+        background-color: var(--color-surface);
+    }
+    .stepper-item.active .stepper-title { color: var(--color-primary); }
+
+    /* --- CONTENEUR DE DÉTAILS --- */
+    #step-details-container {
+        margin-top: 3rem;
+        background: var(--color-surface);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        box-shadow: var(--shadow-md);
+        min-height: 150px;
+    }
+    #step-details-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: var(--color-text-secondary);
+    }
+    #step-details-placeholder i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--color-border);
+    }
+
+    #step-details-content {
+        animation: fadeIn 0.4s ease;
+    }
+
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -373,6 +539,10 @@
                         <span>Demandes d'Autorisations</span>
                     </div>
                     <div class="ms-auto d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2" id="trackBtn" disabled>
+                            <i class="ph-fill ph-chart-line"></i>
+                            <span>Suivre l'état</span>
+                        </button>
                         <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2" id="editBtn" disabled>
                             <i class="ph-fill ph-pencil-simple"></i>
                             <span>Modifier</span>
