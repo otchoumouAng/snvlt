@@ -31,8 +31,8 @@ class NouvelleDemande
     #[ORM\Column(length: 20)]
     private ?string $code_suivie = null;
 
-    #[ORM\Column]
-    private ?int $statut = null;
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $statut = null;
 
     #[ORM\Column]
     private ?int $desactivate = null;
@@ -120,12 +120,12 @@ class NouvelleDemande
         return $this;
     }
 
-    public function getStatut(): ?int
+    public function getStatut(): ?string
     {
         return $this->statut;
     }
 
-    public function setStatut(int $statut): static
+    public function setStatut(?string $statut): static
     {
         $this->statut = $statut;
 
