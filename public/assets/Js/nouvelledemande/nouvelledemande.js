@@ -54,23 +54,28 @@ class NouvelleDemandeApp {
             lengthMenu: [5, 10, 25, 50]
         });
 
-        // Événement de sélection
-        this.dataTable.on('click', 'tbody tr', (e) => {
-            const row = this.dataTable.row(e.currentTarget);
-            const data = row.data();
-            if (data) {
-                // Mettre en surbrillance la ligne sélectionnée
-                this.dataTable.rows().deselect();
-                row.select();
-                
-                // Utiliser les données existantes au lieu de faire un nouvel appel API
-                this.selectedDemandeId = data.id;
-                $('#editBtn').prop('disabled', false);
-                this.displayDetails(data);
+        
+        this.dataTable.on('select', (e, dt, type, indexes) => {
+            if (type === 'row') {
+                const data = this.dataTable.row(indexes).data();
+                if (data) {
+                    this.selectedDemandeId = data.id;
+                    $('#editBtn').prop('disabled', false);
+                    this.displayDetails(data);
+                }
             }
         });
 
-        // Événement de double-clic
+        // Event for when a row is DESELECTED
+        this.dataTable.on('deselect', (e, dt, type, indexes) => {
+            if (type === 'row') {
+                this.selectedDemandeId = null;
+                $('#editBtn').prop('disabled', true);
+                this.showDetailsPlaceholder(); // Show the placeholder again
+            }
+        });
+
+        // Event for double-click remains the same
         this.dataTable.on('dblclick', 'tbody tr', (e) => {
             const row = this.dataTable.row(e.currentTarget);
             const data = row.data();
@@ -78,6 +83,7 @@ class NouvelleDemandeApp {
                 this.openModal(data.id, 'read');
             }
         });
+
     }
 
     bindEvents() {
@@ -154,74 +160,63 @@ class NouvelleDemandeApp {
     }
 
     displayDetails(details) {
-        const detailsContent = $('#details-content');
-        const placeholder = $('#details-placeholder');
-        
-        placeholder.hide();
-        detailsContent.removeClass('visible');
-        
-        // Vérifier si les documents sont disponibles dans les données
-        const hasDocuments = details.documents && details.documents.length > 0;
-        
-        let documentsHtml = '';
-        if (hasDocuments) {
-            details.documents.forEach((doc) => {
-                documentsHtml += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
-                        <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
-                        <div class="d-flex align-items-center gap-2">
-                            ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                            <button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
-                                <i class="ph-fill ph-x"></i>
-                            </button>
-                        </div>
-                    </li>`;
-            });
-        } else {
-            documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document ajouté</li>';
-        }
-
-        const contentHtml = `
-            <div class="mb-4">
-                <h5 class="fw-bold">${details.titre}</h5>
-                <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
-                ${NouvelleDemandeApp.getStatusBadge(details.statut)}
-                <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
-            </div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
-                ${hasDocuments ? `
-                <button type="button" class="btn btn-sm btn-outline-primary" id="addDocumentBtnPanel">
-                    <i class="ph-fill ph-plus me-1"></i> Ajouter
-                </button>
-                ` : ''}
-                <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
-            </div>
-            <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
-            <div class="mt-3 d-flex gap-2">
-                <button type="button" class="btn btn-secondary" id="cancelBtnPanel">Annuler</button>
-                <button type="button" class="btn btn-primary" id="saveBtnPanel">Modifier</button>
-            </div>
-        `;
-
-        detailsContent.html(contentHtml);
-        setTimeout(() => detailsContent.addClass('visible'), 10);
-        
-        // Bind panel events
-        if (hasDocuments) {
-            $('#addDocumentBtnPanel').on('click', () => {
-                $('#pdf-upload-panel').click();
-            });
-        }
-        
-        $('#pdf-upload-panel').on('change', (e) => {
-            this.handleFileUpload(e.target.files);
+    const detailsContent = $('#details-content');
+    const placeholder = $('#details-placeholder');
+    
+    placeholder.hide();
+    detailsContent.removeClass('visible');
+    
+    // On construit la liste des documents, chacun avec son bouton de suppression
+    let documentsHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        details.documents.forEach((doc) => {
+            documentsHtml += `
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
+                    <a href="${doc.url || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 70%;">${doc.nom}</a>
+                    <div class="d-flex align-items-center gap-2">
+                        ${NouvelDemandeApp.getDocumentStatusBadge(doc.statut)}
+                        <button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
+                            <i class="ph-fill ph-x"></i>
+                        </button>
+                    </div>
+                </li>`;
         });
-        
-        $('#saveBtnPanel').on('click', () => {
-            this.openModal(this.selectedDemandeId, 'edit');
-        });
+    } else {
+        documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
     }
+
+    // On construit le HTML complet du panneau
+    const contentHtml = `
+        <div class="mb-3">
+            <h5 class="fw-bold mb-1">${details.titre}</h5>
+            <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
+            ${NouvelleDemandeApp.getStatusBadge(details.statut)}
+            <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        
+        <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
+    `;
+
+    detailsContent.html(contentHtml);
+    setTimeout(() => detailsContent.addClass('visible'), 10);
+    
+    // On attache les événements aux nouveaux boutons
+    $('#addDocumentBtnPanel').on('click', () => {
+        $('#pdf-upload-panel').click();
+    });
+    
+    $('#pdf-upload-panel').on('change', (e) => {
+        this.handleFileUpload(e.target.files);
+    });
+}
 
     showDetailsPlaceholder() {
         const detailsContent = $('#details-content');
@@ -277,6 +272,7 @@ setupModalWithData(mode, data) {
     const saveBtn = modal.find('#saveBtn');
     const deleteBtn = modal.find('#deleteBtn');
     const form = modal.find('#demandeForm');
+    // On cible la section des documents
     const documentsSection = modal.find('#documents-section');
     
     // Remplir le formulaire avec les données
@@ -292,7 +288,7 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-file-plus');
             saveBtn.show().text('Créer');
             deleteBtn.hide();
-            documentsSection.hide();
+            documentsSection.hide(); // La section est déjà cachée pour 'new'
             form.find('input, select, textarea').prop('disabled', false);
             break;
             
@@ -301,11 +297,11 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-pencil-simple');
             saveBtn.show().text('Modifier');
             deleteBtn.show();
-            documentsSection.show();
+            documentsSection.hide(); // CHANGEMENT : On cache la section
             form.find('input, select, textarea').prop('disabled', false);
             
-            // Charger les documents depuis l'API
-            this.loadDocuments(data.id);
+            // SUPPRIMÉ : On ne charge plus les documents dans la modale
+            // this.loadDocuments(data.id);
             break;
             
         case 'read':
@@ -313,44 +309,16 @@ setupModalWithData(mode, data) {
             icon.attr('class', 'ph-fill ph-eye');
             saveBtn.hide();
             deleteBtn.hide();
-            documentsSection.show();
+            documentsSection.hide(); // CHANGEMENT : On cache la section
             form.find('input, select, textarea').prop('disabled', true);
             
-            // Charger les documents depuis l'API
-            this.loadDocuments(data.id);
+            // SUPPRIMÉ : On ne charge plus les documents dans la modale
+            // this.loadDocuments(data.id);
             break;
     }
 }
 
-async loadDocuments(demandeId) {
-    try {
-        const details = await this.apiService.getDemandeDetails(demandeId);
-        let documentsHtml = '';
-        
-        if (details.documents && details.documents.length > 0) {
-            details.documents.forEach((doc) => {
-                documentsHtml += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
-                        <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
-                        <div class="d-flex align-items-center gap-2">
-                            ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                            ${this.currentMode !== 'read' ? 
-                                `<button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
-                                    <i class="ph-fill ph-x"></i>
-                                </button>` : ''
-                            }
-                        </div>
-                    </li>`;
-            });
-        } else {
-            documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document ajouté</li>';
-        }
-        
-        $('#documents-list').html(documentsHtml);
-    } catch (error) {
-        console.error('Erreur lors du chargement des documents:', error);
-    }
-}
+
 
     
 

@@ -130,6 +130,21 @@ class ApiService {
         this.cache.clear();
         return this.post(`/admin/nouvelle_demande/${demandeId}/remove_document`, { document_id: documentId });
     }
+
+    // Méthodes spécifiques pour Validation Demande
+    getDemandesForValidation() {
+        return this.get('/admin/validation_demande_autorisation/liste');
+    }
+
+    getDemandeDetailsForValidation(id) {
+        return this.get(`/admin/validation_demande_autorisation/details/${id}`);
+    }
+
+    applyValidation(demandeId, data) {
+        this.cache.clear();
+        // This should be a new endpoint
+        return this.post(`/admin/validation_demande_autorisation/${demandeId}/validate`, data);
+    }
 }
 
 // Export singleton instance
