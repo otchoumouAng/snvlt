@@ -90,7 +90,7 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/details/{id}", name="app_nouvelle_demande_details")
      */
-    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, \App\Repository\TypeDemandeDetailRepository $typeDemandeDetailRepository): JsonResponse
+    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDemandeDetailRepository $typeDemandeDetailRepository, TypeDocumentRepository $typeDocumentRepository): JsonResponse
     {
         $demande = $nouvelleDemandeRepository->find($id);
         
@@ -98,19 +98,19 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
-        // Fetch the required document types using the join table TypeDemandeDetail
-        $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['type_demande' => $demande->getTypeDemandeId()]);
+        // Fetch the required document details using the join table TypeDemandeDetail
+        $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['type_demande_id' => $demande->getTypeDemandeId()]);
 
         $documents = [];
         foreach ($requiredDocumentDetails as $detail) {
-            $document = $detail->getTypeDocument();
+            // The TypeDemandeDetail entity is missing the relationship mapping, so we must fetch the TypeDocument manually.
+            $document = $typeDocumentRepository->find($detail->getTypeDocumentId());
             if ($document) {
                 $documents[] = [
                     'id' => $document->getId(),
                     'nom' => $document->getDesignation(),
                     'statut' => 'requis', // This status indicates it's a required document.
-                                         // The frontend will need to handle logic for 'uploaded', 'missing', etc.
-                    'dateAjout' => null // Not applicable for required docs, only for uploaded ones.
+                    'dateAjout' => null
                 ];
             }
         }
