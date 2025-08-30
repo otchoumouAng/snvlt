@@ -21,6 +21,17 @@ class NouvelleDemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, NouvelleDemande::class);
     }
 
+    public function findWithDocuments(int $id): ?NouvelleDemande
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.documents', 'docs')
+            ->addSelect('docs')
+            ->andWhere('d.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return NouvelleDemande[] Returns an array of NouvelleDemande objects
 //     */

@@ -1,7 +1,7 @@
 {% extends 'template_base.html.twig' %}
 
 {% block Title %}
-    {% trans %}SNVLT{% endtrans %} - {% trans %}Nouvelles Demandes{% endtrans %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Validation des Demandes{% endtrans %}
 {% endblock %}
 
 {% block menu %}
@@ -42,7 +42,7 @@
     .document-list .badge { font-size: 0.8rem; }
     .remove-doc-btn { opacity: 0; transition: opacity .2s ease; }
     .list-group-item:hover .remove-doc-btn { opacity: 1; }
-    
+
     /* DataTable Styles */
     .dataTables_wrapper { padding: 0 1.5rem; }
     .dataTables_length, .dataTables_filter { margin-bottom: 1rem; }
@@ -57,7 +57,7 @@
     table.dataTable tbody tr.selected {
         background-color: #e7f1ff !important;
     }
-    
+
     table.dataTable tbody tr.selected td {
         background-color: #e7f1ff !important;
     }
@@ -71,17 +71,7 @@
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
-                        <span>Demandes d'Autorisations</span>
-                    </div>
-                    <div class="ms-auto d-flex gap-2">
-                        <button type="button" class="btn btn-outline-primary d-flex align-items-center gap-2" id="editBtn" disabled>
-                            <i class="ph-fill ph-pencil-simple"></i>
-                            <span>Modifier</span>
-                        </button>
-                        <button type="button" class="btn btn-primary d-flex align-items-center gap-2" id="addBtn">
-                            <i class="ph-fill ph-plus-circle"></i>
-                            <span>Nouvelle Demande</span>
-                        </button>
+                        <span>Demandes d'Autorisations à Valider</span>
                     </div>
                 </div>
                 <div class="card-body p-0 d-flex flex-column">
@@ -110,7 +100,6 @@
                         <i class="ph-fill ph-folder-open"></i>
                         <span id="details-title-text">Détails de la Demande</span>
                     </div>
-                    
                 </div>
                 <div class="card-body" id="details-panel">
                     <div id="details-placeholder" class="details-placeholder">
@@ -126,37 +115,18 @@
     </div>
 </div>
 
-<!-- Preloaded Modal Templates -->
-<script type="text/template" id="template-form-new">
-    {{ include('nouvelle_demande/form.html.twig', {mode: 'new', typesDocument: typesDocument}) }}
-</script>
-
-<script type="text/template" id="template-form-edit">
-    {{ include('nouvelle_demande/form.html.twig', {mode: 'edit', typesDocument: typesDocument}) }}
-</script>
-
-<script type="text/template" id="template-form-read">
-    {{ include('nouvelle_demande/form.html.twig', {mode: 'read', typesDocument: typesDocument}) }}
-</script>
-
-<!-- Modal Container -->
-<div id="modalContainer"></div>
-
 <script src="{{ asset('assets/node_modules/jquery/dist/jquery.min.js') }}"></script>
-
-<!-- Custom Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/lemonadejs/dist/lemonade.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@lemonadejs/signature/dist/index.min.js"></script>
 <script src="{{ asset('assets/Js/shared/api-service.js') }}"></script>
-<script src="{{ asset('assets/js/nouvelledemande/notification.js') }}"></script>
-<script src="{{ asset('assets/js/nouvelledemande/nouvelledemande.js') }}"></script>
+<script src="{{ asset('assets/Js/nouvelledemande/notification.js') }}"></script>
+<script src="{{ asset('assets/Js/validationdemande/validationdemande.js') }}"></script>
 
 <script>
 $(document).ready(function() {
     // Initialize the module
-    const nouvelleDemandeApp = new NouvelleDemandeApp();
-    nouvelleDemandeApp.init();
-    
-    // Preload modal templates
-    nouvelleDemandeApp.preloadModalTemplates();
+    const validationDemandeApp = new ValidationDemandeApp();
+    validationDemandeApp.init();
 });
 </script>
 
