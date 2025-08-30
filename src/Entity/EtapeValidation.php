@@ -6,6 +6,7 @@ use App\Repository\EtapeValidationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EtapeValidationRepository::class)]
+#[ORM\Table(name: "etape_validation", schema: "metier")]
 class EtapeValidation
 {
     #[ORM\Id]
