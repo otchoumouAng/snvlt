@@ -44,6 +44,9 @@ class NouvelleDemandeApp {
                     }
                 }
             ],
+    
+            dom: "<'dataTables_top'l f> t <'dataTables_bottom' i p>",
+            
             select: {
                 style: 'single',
                 info: false
@@ -56,76 +59,69 @@ class NouvelleDemandeApp {
 
         
         this.dataTable.on('select', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                const data = this.dataTable.row(indexes).data();
-                if (data) {
-                    this.selectedDemandeId = data.id;
-                    $('#editBtn').prop('disabled', false);
-                    this.displayDetails(data);
-                }
+        if (type === 'row') {
+            const data = this.dataTable.row(indexes).data();
+            if (data) {
+                this.selectedDemandeId = data.id;
+                $('#editBtn').prop('disabled', false);
+                // On charge les documents dans le panneau de droite
+                this.displayDocumentPanel(data); 
             }
-        });
+        }
+    });
 
-        // Event for when a row is DESELECTED
-        this.dataTable.on('deselect', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                this.selectedDemandeId = null;
-                $('#editBtn').prop('disabled', true);
-                this.showDetailsPlaceholder(); // Show the placeholder again
-            }
-        });
+    // ÉVÉNEMENT : Désélection
+    this.dataTable.on('deselect', (e, dt, type, indexes) => {
+        if (type === 'row') {
+            this.selectedDemandeId = null;
+            $('#editBtn').prop('disabled', true);
+            this.showDetailsPlaceholder(); // Retour à l'état initial
+        }
+    });
+
+    // SUPPRESSION du double-clic pour le modal 'read'
+    this.dataTable.off('dblclick', 'tbody tr');
+
 
         // Event for double-click remains the same
-        this.dataTable.on('dblclick', 'tbody tr', (e) => {
+        /*this.dataTable.on('dblclick', 'tbody tr', (e) => {
             const row = this.dataTable.row(e.currentTarget);
             const data = row.data();
             if (data) {
                 this.openModal(data.id, 'read');
             }
-        });
+        });*/
 
     }
 
     bindEvents() {
-        // Add button
-       $('#addBtn').on('click', () => {
-            this.openModal(null, 'new');
-        });
-
-        // Edit button
+        // Les boutons d'ouverture de modal ne changent pas
+        $('#addBtn').on('click', () => this.openModal(null, 'new'));
         $('#editBtn').on('click', () => {
             if (this.selectedDemandeId) {
                 this.openModal(this.selectedDemandeId, 'edit');
             }
         });
 
-
-        // Modal events (delegated)
-        $(document).on('click', '#addDocumentBtn', (e) => {
-            $('#pdf-upload').click();
+        // La soumission du formulaire dans le modal ne change pas
+        $(document).on('submit', '#demandeForm', (e) => {
+            e.preventDefault();
+            this.saveDemande(); // La fonction saveDemande est déjà correcte
         });
 
-        $(document).on('change', '#pdf-upload', (e) => {
+        // Événements pour le panneau de documents
+        // Notez le sélecteur d'événement délégué pour les éléments créés dynamiquement
+        $('#details-panel').on('click', '#addDocumentBtnPanel', () => {
+            $('#pdf-upload-panel').click();
+        });
+        
+        $('#details-panel').on('change', '#pdf-upload-panel', (e) => {
             this.handleFileUpload(e.target.files);
         });
 
-        $(document).on('click', '.remove-doc-btn', (e) => {
+        $('#details-panel').on('click', '.remove-doc-btn', (e) => {
             const documentId = $(e.currentTarget).closest('.list-group-item').data('doc-id');
             this.removeDocument(documentId);
-        });
-
-        $(document).on('submit', '#demandeForm', (e) => {
-            e.preventDefault();
-            this.saveDemande();
-        });
-
-        $(document).on('click', '#deleteBtn', (e) => {
-            this.deleteDemande();
-        });
-
-        // Fermer le modal quand il est caché
-        $(document).on('hidden.bs.modal', '#demandeModal', () => {
-            this.cleanupModal();
         });
     }
 
@@ -316,6 +312,84 @@ setupModalWithData(mode, data) {
             // this.loadDocuments(data.id);
             break;
     }
+}
+
+// NOUVELLE FONCTION CENTRALE pour le panneau
+async displayDocumentPanel(demandeData) {
+    this.showLoader(); // Affiche le spinner
+    $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
+    
+    try {
+        const details = await this.apiService.getDemandeDetails(demandeData.id);
+        const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
+
+        $('#details-loader').hide();
+        $('#details-content').html(contentHtml).fadeIn(300);
+
+    } catch (error) {
+        this.notification.error("Erreur lors du chargement des documents.");
+        this.showDetailsPlaceholder(); // En cas d'erreur, on revient au placeholder
+    }
+}
+
+// NOUVELLE FONCTION pour construire le HTML du panneau
+// Fichier : nouvelledemande.js
+
+buildDocumentsHtml(details) {
+    let documentsListHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        documentsListHtml = details.documents.map(doc => `
+            <li class="document-item" data-doc-id="${doc.id}">
+                <i class="ph-fill ph-file-pdf icon"></i>
+                <div class="info">
+                    <div class="name">${doc.nom}</div>
+                    <div class="meta">PDF Document</div>
+                </div>
+                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
+                <div class="actions ms-3">
+                    <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                        <i class="ph-fill ph-download-simple"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer">
+                        <i class="ph-fill ph-trash-simple"></i>
+                    </button>
+                </div>
+            </li>
+        `).join('');
+    } else {
+        return `
+            <div class="text-center p-5 mt-3">
+                <i class="ph-light ph-file-magnifying-glass" style="font-size: 3rem; color: #ced4da;"></i>
+                <h6 class="mt-3">Aucun Document</h6>
+                <p class="text-muted small">Cette demande n'a pas encore de document attaché.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Fichiers Attachés</h6>
+            <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus-circle"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        <ul class="document-list">${documentsListHtml}</ul>
+    `;
+}
+
+// Fonctions de gestion des états du panneau
+showLoader() {
+    $('#details-placeholder').hide();
+    $('#details-content').hide();
+    $('#details-loader').show();
+}
+
+showDetailsPlaceholder() {
+    $('#details-loader').hide();
+    $('#details-content').hide();
+    $('#details-placeholder').show();
+    $('#details-title-text').text('Documents');
 }
 
 
