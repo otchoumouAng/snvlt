@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\NouvelleDemandeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NouvelleDemandeRepository::class)]
@@ -195,6 +197,44 @@ class NouvelleDemande
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    #[ORM\OneToMany(mappedBy: 'demande', targetEntity: EtapeValidation::class, cascade: ['persist', 'remove'])]
+    private Collection $etapesValidation;
+
+    public function __construct()
+    {
+        $this->etapesValidation = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, EtapeValidation>
+     */
+    public function getEtapesValidation(): Collection
+    {
+        return $this->etapesValidation;
+    }
+
+    public function addEtapeValidation(EtapeValidation $etapeValidation): self
+    {
+        if (!$this->etapesValidation->contains($etapeValidation)) {
+            $this->etapesValidation[] = $etapeValidation;
+            $etapeValidation->setDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtapeValidation(EtapeValidation $etapeValidation): self
+    {
+        if ($this->etapesValidation->removeElement($etapeValidation)) {
+            // set the owning side to null (unless already changed)
+            if ($etapeValidation->getDemande() === $this) {
+                $etapeValidation->setDemande(null);
+            }
+        }
 
         return $this;
     }
