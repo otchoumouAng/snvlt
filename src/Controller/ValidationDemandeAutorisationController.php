@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\NouvelleDemande;
+use App\Entity\TypeDemandeDetail;
+use App\Entity\ValidationAction;
 use App\Repository\NouvelleDemandeRepository;
+use App\Repository\TypeDemandeDetailRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
@@ -58,8 +62,7 @@ class ValidationDemandeAutorisationController extends AbstractController
      */
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-        // For now, we'll fetch all demandes. We can filter them later.
-        $demandes = $nouvelleDemandeRepository->findAll();
+        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'en_attente_validation']);
 
         $data = [];
         foreach ($demandes as $demande) {
@@ -69,7 +72,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'description' => $demande->getDescription(),
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                'typeDocument' => 'test',//$demande->getTypeDocument()->getNom(),
+                'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getNom() : '',
                 'societe' => $demande->getRaisonSocial()
             ];
         }
@@ -80,7 +83,7 @@ class ValidationDemandeAutorisationController extends AbstractController
     /**
      * @Route("/details/{id}", name="app_validation_demande_autorisation_details")
      */
-    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDemandeDetailRepository $typeDemandeDetailRepository): JsonResponse
     {
         $demande = $nouvelleDemandeRepository->findWithDocuments($id);
 
@@ -88,14 +91,25 @@ class ValidationDemandeAutorisationController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
+        $requiredDocuments = $typeDemandeDetailRepository->findBy(['type_demande_id' => $demande->getTypeDemande()->getId()]);
+        $providedDocuments = $demande->getDocuments();
+
         $documents = [];
-        foreach ($demande->getDocuments() as $document) {
+        foreach ($requiredDocuments as $requiredDoc) {
+            $providedDoc = null;
+            foreach ($providedDocuments as $pDoc) {
+                if ($pDoc->getTypeDocumentId() === $requiredDoc->getTypeDocument()->getId()) {
+                    $providedDoc = $pDoc;
+                    break;
+                }
+            }
+
             $documents[] = [
-                'id' => $document->getId(),
-                'nom' => $document->getNom(),
-                'statut' => $document->getStatut(),
-                'url' => $this->generateUrl('app_document_download', ['id' => $document->getId()]), // Assuming you have a route for downloading documents
-                'dateAjout' => $document->getDateAjout()->format('d/m/Y H:i')
+                'id' => $requiredDoc->getTypeDocument()->getId(),
+                'nom' => $requiredDoc->getTypeDocument()->getDesignation(),
+                'statut' => $providedDoc ? 'Fourni' : 'Manquant',
+                'url' => $providedDoc ? $this->generateUrl('app_document_download', ['id' => $providedDoc->getId()]) : null,
+                'dateAjout' => $providedDoc ? $providedDoc->getDateAjout()->format('d/m/Y H:i') : null
             ];
         }
 
@@ -105,7 +119,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
             'documents' => $documents,
-            'typeDocument' => $demande->getTypeDocument()->getNom()
+            'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getNom() : ''
         ];
 
         return new JsonResponse($data);
@@ -123,14 +137,59 @@ class ValidationDemandeAutorisationController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+        $statut = $data['statut'];
+        $note = $data['note'];
+        $signatureData = $data['signature'];
 
-        $demande->setStatut($data['statut']);
-        // Here you would handle the note and signature
-        // For example, you could create a new ValidationNote entity
-        // and save the signature as a file.
+        // 1. Update demand status
+        $demande->setStatut($statut);
 
+        // 2. Save signature
+        $signaturePath = null;
+        if ($signatureData) {
+            $signaturePath = $this->saveSignature($signatureData, $demande->getId());
+        }
+
+        // 3. Create validation action
+        $validationAction = new ValidationAction();
+        $validationAction->setDemande($demande);
+        $validationAction->setValidator($this->getUser());
+        $validationAction->setStatut($statut);
+        $validationAction->setNote($note);
+        $validationAction->setSignaturePath($signaturePath);
+
+        $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
 
         return new JsonResponse(['success' => true]);
+    }
+
+    private function saveSignature(string $dataUrl, int $demandeId): ?string
+    {
+        if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
+            $data = substr($dataUrl, strpos($dataUrl, ',') + 1);
+            $type = strtolower($type[1]); // png, jpg, gif
+
+            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
+                throw new \Exception('invalid image type');
+            }
+            $data = base64_decode($data);
+            if ($data === false) {
+                throw new \Exception('base64_decode failed');
+            }
+        } else {
+            throw new \Exception('did not match data URI with image data');
+        }
+
+        $directory = $this->getParameter('signatures_directory');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $filename = sprintf('signature-%d-%s.%s', $demandeId, uniqid(), $type);
+        $path = $directory . '/' . $filename;
+        file_put_contents($path, $data);
+
+        return $filename;
     }
 }
