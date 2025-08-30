@@ -157,8 +157,8 @@ class ValidationDemandeApp {
             // Ensure the container is empty before initializing
             signaturePadContainer.innerHTML = '';
 
-            // Pass the container element to LemonadeJS
-            this.signaturePad = Signature(signaturePadContainer, {
+            // Correctly instantiate the LemonadeJS component
+            this.signaturePad = lemonade.render(Signature, signaturePadContainer, {
                 width: signaturePadContainer.offsetWidth,
                 height: 150,
                 instructions: 'Signez ici',

@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\NouvelleDemandeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: NouvelleDemandeRepository::class)]
@@ -26,11 +28,11 @@ class NouvelleDemande
     #[ORM\Column(length: 20)]
     private ?string $code_suivie = null;
 
-    #[ORM\Column]
-    private ?int $statut = null;
+    #[ORM\Column(length: 255)]
+    private ?string $statut = null;
 
     #[ORM\Column]
-    private ?int $desactivate = null;
+    private ?bool $desactivate = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
@@ -49,6 +51,18 @@ class NouvelleDemande
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
+
+    #[ORM\ManyToOne(targetEntity: TypeDemande::class)]
+    #[ORM\JoinColumn(name: "type_demande_id", referencedColumnName: "id")]
+    private ?TypeDemande $typeDemande = null;
+
+    #[ORM\OneToMany(mappedBy: 'demande', targetEntity: Document::class, cascade: ['persist', 'remove'])]
+    private Collection $documents;
+
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -103,24 +117,24 @@ class NouvelleDemande
         return $this;
     }
 
-    public function getStatut(): ?int
+    public function getStatut(): ?string
     {
         return $this->statut;
     }
 
-    public function setStatut(int $statut): static
+    public function setStatut(string $statut): static
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getDesactivate(): ?int
+    public function isDesactivate(): ?bool
     {
         return $this->desactivate;
     }
 
-    public function setDesactivate(int $desactivate): static
+    public function setDesactivate(bool $desactivate): static
     {
         $this->desactivate = $desactivate;
 
@@ -195,6 +209,48 @@ class NouvelleDemande
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    public function getTypeDemande(): ?TypeDemande
+    {
+        return $this->typeDemande;
+    }
+
+    public function setTypeDemande(?TypeDemande $typeDemande): static
+    {
+        $this->typeDemande = $typeDemande;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getDemande() === $this) {
+                $document->setDemande(null);
+            }
+        }
 
         return $this;
     }

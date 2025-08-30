@@ -20,6 +20,10 @@ class TypeDemandeDetail
     #[ORM\Column]
     private ?int $type_document_id = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: "type_document_id", referencedColumnName: "id")]
+    private ?TypeDocument $typeDocument = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -45,6 +49,18 @@ class TypeDemandeDetail
     public function setTypeDocumentId(int $type_document_id): static
     {
         $this->type_document_id = $type_document_id;
+
+        return $this;
+    }
+
+    public function getTypeDocument(): ?TypeDocument
+    {
+        return $this->typeDocument;
+    }
+
+    public function setTypeDocument(?TypeDocument $typeDocument): static
+    {
+        $this->typeDocument = $typeDocument;
 
         return $this;
     }
