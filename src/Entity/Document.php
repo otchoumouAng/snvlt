@@ -21,7 +21,7 @@ class Document
     private ?string $statut = null;
 
     #[ORM\Column]
-    private ?\DateTime $dateAjout = null;
+    private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
     #[ORM\JoinColumn(name: "demande_id", referencedColumnName: "id", nullable: false)]
@@ -30,8 +30,17 @@ class Document
     #[ORM\Column]
     private ?int $typeDocumentId = null;
 
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(name: "type_document_id", referencedColumnName: "id")]
+    private ?TypeDocument $typeDocument = null;
+
     #[ORM\Column(length: 255)]
-    private ?string $filePath = null;
+    private ?string $path = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -62,14 +71,14 @@ class Document
         return $this;
     }
 
-    public function getDateAjout(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
-        return $this->dateAjout;
+        return $this->createdAt;
     }
 
-    public function setDateAjout(\DateTime $dateAjout): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
-        $this->dateAjout = $dateAjout;
+        $this->createdAt = $createdAt;
 
         return $this;
     }
@@ -98,14 +107,26 @@ class Document
         return $this;
     }
 
-    public function getFilePath(): ?string
+    public function getTypeDocument(): ?TypeDocument
     {
-        return $this->filePath;
+        return $this->typeDocument;
     }
 
-    public function setFilePath(string $filePath): static
+    public function setTypeDocument(?TypeDocument $typeDocument): static
     {
-        $this->filePath = $filePath;
+        $this->typeDocument = $typeDocument;
+
+        return $this;
+    }
+
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
+
+    public function setPath(string $path): static
+    {
+        $this->path = $path;
 
         return $this;
     }

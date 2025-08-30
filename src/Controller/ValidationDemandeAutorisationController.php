@@ -62,10 +62,7 @@ class ValidationDemandeAutorisationController extends AbstractController
      */
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-
-
-        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'En cours']);
-
+        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'Soumis']);
 
         $data = [];
         foreach ($demandes as $demande) {
@@ -76,7 +73,6 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                 'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : '',
-
                 'societe' => $demande->getRaisonSocial()
             ];
         }
@@ -113,7 +109,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'nom' => $requiredDoc->getTypeDocument()->getDesignation(),
                 'statut' => $providedDoc ? 'Fourni' : 'Manquant',
                 'url' => $providedDoc ? $this->generateUrl('app_document_download', ['id' => $providedDoc->getId()]) : null,
-                'dateAjout' => $providedDoc ? $providedDoc->getDateAjout()->format('d/m/Y H:i') : null
+                'dateAjout' => $providedDoc ? $providedDoc->getCreatedAt()->format('d/m/Y H:i') : null
             ];
         }
 
