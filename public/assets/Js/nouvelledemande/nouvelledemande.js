@@ -262,8 +262,7 @@ class NouvelleDemandeApp {
                 <ul class="document-list">${documentsListHtml}</ul>
             `;
 
-            // Hide loader and show the content
-            $('#details-loader').hide();
+            // Show the content
             $('#details-placeholder').hide();
             $('#details-content').html(contentHtml).show().css('opacity', 0).animate({ opacity: 1 }, 300);
 
@@ -271,6 +270,9 @@ class NouvelleDemandeApp {
             console.error("Erreur lors du chargement des détails:", error);
             this.notification.error("Erreur lors du chargement des détails.");
             this.showDetailsPlaceholder();
+        } finally {
+            // This will always run, ensuring the loader is hidden.
+            $('#details-loader').hide();
         }
     }
 
