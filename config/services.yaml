@@ -16,6 +16,8 @@ parameters:
     publication_directory: 'uploads/publications'
     mediatech_directory: 'uploads/helper/medias'
     oi_tickets_directory: 'uploads/oi/tickets'
+    documents_directory: '%kernel.project_dir%/public/uploads/documents'
+    signatures_directory: '%kernel.project_dir%/public/uploads/signatures'
     app.locales: [fr, en]
 services:
     # default configuration for services in *this* file

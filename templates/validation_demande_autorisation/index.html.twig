@@ -1,0 +1,133 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Validation des Demandes{% endtrans %}
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+<!-- Phosphor Icons -->
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<!-- Custom CSS -->
+<style>
+    /* Styles précédents conservés */
+    .pro-card { border: none; border-radius: 12px; box-shadow: 0 8px 10px rgba(0, 0, 0, 0.05); background-color: #ffffff; }
+    .pro-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 1rem; }
+    .pro-card-title { font-weight: 600; font-size: 1.1rem; color: #212529; display: flex; align-items: center; gap: 0.5rem; }
+    .pro-card-title i { font-size: 1.5rem; color: #495057; }
+    .search-wrapper { position: relative; flex-grow: 1; }
+    .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 1.1rem; }
+    .search-input { padding-left: 38px; border-radius: 8px; border: 1px solid #dee2e6; transition: border-color .2s ease, box-shadow .2s ease; }
+    .search-input:focus { border-color: #80bdff; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
+    .request-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
+    .request-list-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e9ecef; cursor: pointer; transition: background-color .2s ease; }
+    .request-list-item:last-child { border-bottom: none; }
+    .request-list-item:hover { background-color: #f8f9fa; }
+    .request-list-item.active { background-color: #e7f1ff; border-left: 4px solid #0d6efd; padding-left: calc(1.5rem - 4px); }
+    .item-icon { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; margin-right: 1rem; color: #fff; font-size: 1.2rem; flex-shrink: 0; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; border-radius: 50px; font-weight: 500; font-size: 0.75rem; }
+    .status-badge i { font-size: 1rem; }
+    .status-approved { background-color: #d1e7dd; color: #0f5132; }
+    .status-pending { background-color: #fff3cd; color: #664d03; }
+    .status-rejected { background-color: #f8d7da; color: #842029; }
+    .details-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #6c757d; }
+    .details-placeholder i { font-size: 4rem; color: #ced4da; }
+    .details-content { opacity: 0; transition: opacity 0.4s ease; }
+    .details-content.visible { opacity: 1; }
+    .document-list .list-group-item { border-left: 0; border-right: 0; padding-left: 0; padding-right: 0; }
+    .document-list .badge { font-size: 0.8rem; }
+    .remove-doc-btn { opacity: 0; transition: opacity .2s ease; }
+    .list-group-item:hover .remove-doc-btn { opacity: 1; }
+
+    /* DataTable Styles */
+    .dataTables_wrapper { padding: 0 1.5rem; }
+    .dataTables_length, .dataTables_filter { margin-bottom: 1rem; }
+    .dataTables_filter input { margin-left: 0.5rem; }
+    table.dataTable { border-collapse: collapse !important; margin: 0 !important; }
+    table.dataTable thead th { border-bottom: 2px solid #dee2e6; }
+    table.dataTable tbody tr { cursor: pointer; }
+    table.dataTable tbody tr:hover { background-color: #f8f9fa; }
+    table.dataTable tbody tr.selected { background-color: #e7f1ff; }
+
+    /* Style pour la ligne sélectionnée */
+    table.dataTable tbody tr.selected {
+        background-color: #e7f1ff !important;
+    }
+
+    table.dataTable tbody tr.selected td {
+        background-color: #e7f1ff !important;
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <div class="row g-4">
+        <!-- Left Column: DataTable -->
+        <div class="col-lg-7">
+            <div class="card pro-card h-100">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">
+                        <i class="ph-fill ph-files"></i>
+                        <span>Demandes d'Autorisations à Valider</span>
+                    </div>
+                </div>
+                <div class="card-body p-0 d-flex flex-column">
+                    <table id="demandesTable" class="table table-hover" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Titre</th>
+                                <th>Type</th>
+                                <th>Société</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Details Panel -->
+        <div class="col-lg-5">
+            <div class="card pro-card h-100">
+                <div class="pro-card-header">
+                     <div class="pro-card-title">
+                        <i class="ph-fill ph-folder-open"></i>
+                        <span id="details-title-text">Détails de la Demande</span>
+                    </div>
+                </div>
+                <div class="card-body" id="details-panel">
+                    <div id="details-placeholder" class="details-placeholder">
+                        <i class="ph-light ph-file-search"></i>
+                        <p class="mt-3">Sélectionnez une demande pour voir ses détails.</p>
+                    </div>
+                    <div id="details-content" class="details-content">
+                        <!-- Details will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ asset('assets/node_modules/jquery/dist/jquery.min.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/lemonadejs/dist/lemonade.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@lemonadejs/signature/dist/index.min.js"></script>
+<script src="{{ asset('assets/Js/shared/api-service.js') }}"></script>
+<script src="{{ asset('assets/Js/nouvelledemande/notification.js') }}"></script>
+<script src="{{ asset('assets/Js/validationdemande/validationdemande.js') }}"></script>
+
+<script>
+$(document).ready(function() {
+    // Initialize the module
+    const validationDemandeApp = new ValidationDemandeApp();
+    validationDemandeApp.init();
+});
+</script>
+
+{% endblock %}

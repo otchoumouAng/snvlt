@@ -131,6 +131,7 @@ class ApiService {
         return this.post(`/admin/nouvelle_demande/${demandeId}/remove_document`, { document_id: documentId });
     }
 
+<<<<<<< HEAD:public/assets/Js/nouvelledemande/api-service.js
     // Dans la classe ApiService
     getTrackingView(demandeId) {
         // Cette route doit être créée côté backend. Elle retourne du HTML.
@@ -142,6 +143,23 @@ class ApiService {
         return this.get(`/admin/nouvelle_demande/suivi/${demandeId}/etape/${stepId}`);
     }
     }
+=======
+    // Méthodes spécifiques pour Validation Demande
+    getDemandesForValidation() {
+        return this.get('/admin/validation_demande_autorisation/liste');
+    }
+
+    getDemandeDetailsForValidation(id) {
+        return this.get(`/admin/validation_demande_autorisation/details/${id}`);
+    }
+
+    applyValidation(demandeId, data) {
+        this.cache.clear();
+        // This should be a new endpoint
+        return this.post(`/admin/validation_demande_autorisation/${demandeId}/validate`, data);
+    }
+}
+>>>>>>> main:public/assets/Js/shared/api-service.js
 
 // Export singleton instance
 window.apiService = new ApiService();

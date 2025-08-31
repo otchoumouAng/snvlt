@@ -31,11 +31,15 @@ class NouvelleDemande
     #[ORM\Column(length: 20)]
     private ?string $code_suivie = null;
 
+<<<<<<< HEAD
     #[ORM\Column(length: 100, nullable: true)]
+=======
+    #[ORM\Column(length: 255)]
+>>>>>>> main
     private ?string $statut = null;
 
     #[ORM\Column]
-    private ?int $desactivate = null;
+    private ?bool $desactivate = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $created_at = null;
@@ -54,6 +58,18 @@ class NouvelleDemande
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
+
+    #[ORM\ManyToOne(targetEntity: TypeDemande::class)]
+    #[ORM\JoinColumn(name: "type_demande_id", referencedColumnName: "id")]
+    private ?TypeDemande $typeDemande = null;
+
+    #[ORM\OneToMany(mappedBy: 'demande', targetEntity: Document::class, cascade: ['persist', 'remove'])]
+    private Collection $documents;
+
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -125,19 +141,23 @@ class NouvelleDemande
         return $this->statut;
     }
 
+<<<<<<< HEAD
     public function setStatut(?string $statut): static
+=======
+    public function setStatut(string $statut): static
+>>>>>>> main
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getDesactivate(): ?int
+    public function isDesactivate(): ?bool
     {
         return $this->desactivate;
     }
 
-    public function setDesactivate(int $desactivate): static
+    public function setDesactivate(bool $desactivate): static
     {
         $this->desactivate = $desactivate;
 
@@ -216,6 +236,7 @@ class NouvelleDemande
         return $this;
     }
 
+<<<<<<< HEAD
     #[ORM\OneToMany(mappedBy: 'demande', targetEntity: EtapeValidation::class, cascade: ['persist', 'remove'])]
     private Collection $etapesValidation;
 
@@ -237,17 +258,53 @@ class NouvelleDemande
         if (!$this->etapesValidation->contains($etapeValidation)) {
             $this->etapesValidation[] = $etapeValidation;
             $etapeValidation->setDemande($this);
+=======
+    public function getTypeDemande(): ?TypeDemande
+    {
+        return $this->typeDemande;
+    }
+
+    public function setTypeDemande(?TypeDemande $typeDemande): static
+    {
+        $this->typeDemande = $typeDemande;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Document>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setDemande($this);
+>>>>>>> main
         }
 
         return $this;
     }
 
+<<<<<<< HEAD
     public function removeEtapeValidation(EtapeValidation $etapeValidation): self
     {
         if ($this->etapesValidation->removeElement($etapeValidation)) {
             // set the owning side to null (unless already changed)
             if ($etapeValidation->getDemande() === $this) {
                 $etapeValidation->setDemande(null);
+=======
+    public function removeDocument(Document $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getDemande() === $this) {
+                $document->setDemande(null);
+>>>>>>> main
             }
         }
 
