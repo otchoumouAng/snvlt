@@ -20,11 +20,11 @@
                                 {% if mode == 'read' %}disabled{% endif %}>
                         </div>
                         <div class="col-md-6">
-                            <label for="typeDocument" class="form-label">Type de document *</label>
-                            <select class="form-select" id="typeDocument" name="typeDocumentId" required 
+                            <label for="typeDemande" class="form-label">Type de Demande *</label>
+                            <select class="form-select" id="typeDemande" name="typeDemandeId" required
                                 {% if mode == 'read' %}disabled{% endif %}>
                                 <option value="" selected disabled>Sélectionner un type...</option>
-                                {% for type in typesDocument %}
+                                {% for type in typesDemande %}
                                     <option value="{{ type.id }}">{{ type.designation }}</option>
                                 {% endfor %}
                             </select>

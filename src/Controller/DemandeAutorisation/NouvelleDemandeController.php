@@ -1,22 +1,25 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\DemandeAutorisation;
 
+use App\Entity\DemandeAutorisation\DemandeDocument;
+use App\Entity\DemandeAutorisation\Document;
 use App\Entity\DemandeAutorisation\EtapeValidation;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
-use App\Entity\DemandeAutorisation\TypeDocument;
+use App\Entity\DemandeAutorisation\TypeDemande;
+use App\Repository\Administration\NotificationRepository;
+use App\Repository\DemandeAutorisation\DemandeDocumentRepository;
 use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use App\Repository\DemandeAutorisation\TypeDocumentRepository;
-
-use App\Repository\Administration\NotificationRepository;
-use App\Repository\Autorisation\ContratBcbgfhRepository;
+use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,48 +42,46 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/", name="app_nouvelle_demande")
      */
-    public function index(ContratBcbgfhRepository $contratbcbgfhRepository, MenuRepository $menus, MenuPermissionRepository $permissions, Request $request, UserRepository $userRepository, NotificationRepository $notification, TypeDocumentRepository $typeDocumentRepos): Response
+    public function index(MenuRepository $menus, MenuPermissionRepository $permissions, Request $request, UserRepository $userRepository, NotificationRepository $notification, TypeDemandeRepository $typeDemandeRepository): Response
     {
-        if(!$request->getSession()->has('user_session')){
+        if (!$request->getSession()->has('user_session')) {
             return $this->redirectToRoute('app_login');
-        } else {
-            if ($this->isGranted('ROLE_MINEF') or  $this->isGranted('ROLE_ADMIN'))
-            {
-                $user = $userRepository->find($this->getUser());
-                $code_groupe = $user->getCodeGroupe()->getId();
+        }
 
-                return $this->render('nouvelle_demande/index.html.twig', [
-                    'contrats' => $contratbcbgfhRepository->findAll(),
-                    'liste_menus'=>$menus->findOnlyParent(),
-                    "all_menus"=>$menus->findAll(),
-                    'mes_notifs'=>$notification->findBy(['to_user'=>$user, 'lu'=>false],[],5,0),
-                    'menus'=>$permissions->findBy(['code_groupe_id'=>$code_groupe]),
-                    'groupe'=>$code_groupe,
-                    'liste_parent'=>$permissions,
-                    'typesDocument' => $typeDocumentRepos->findAll()
-                ]);
-            } else {
-                return  $this->redirectToRoute('app_no_permission_user_active');
-            }
+        if ($this->isGranted('ROLE_MINEF') or $this->isGranted('ROLE_ADMIN') or $this->isGranted('ROLE_EXPLOITANT')) {
+            $user = $userRepository->find($this->getUser());
+            $code_groupe = $user->getCodeGroupe()->getId();
+
+            return $this->render('DemandeAutorisation/nouvelle_demande/index.html.twig', [
+                'liste_menus' => $menus->findOnlyParent(),
+                "all_menus" => $menus->findAll(),
+                'mes_notifs' => $notification->findBy(['to_user' => $user, 'lu' => false], [], 5, 0),
+                'menus' => $permissions->findBy(['code_groupe_id' => $code_groupe]),
+                'groupe' => $code_groupe,
+                'liste_parent' => $permissions,
+                'typesDemande' => $typeDemandeRepository->findAll()
+            ]);
+        } else {
+            return $this->redirectToRoute('app_no_permission_user_active');
         }
     }
 
     /**
      * @Route("/liste", name="app_nouvelle_demande_liste")
      */
-    public function getListeDemandes(NouvelleDemandeRepository $NouvelleDemandeRepository): JsonResponse
+    public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-        $demandes = $NouvelleDemandeRepository->findAll();
+        $demandes = $nouvelleDemandeRepository->findAll();
 
         $data = [];
         foreach ($demandes as $demande) {
             $data[] = [
                 'id' => $demande->getId(),
-                'titre' => $demande->getRaisonSocial(),
+                'titre' => $demande->getTitre(),
                 'description' => $demande->getDescription(),
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                'typeDocument' => 'test',//$demande->getTypeDocument()->getNom(),
+                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
                 'societe' => $demande->getRaisonSocial()
             ];
         }
@@ -91,28 +92,58 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/details/{id}", name="app_nouvelle_demande_details")
      */
-    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDemandeDetailRepository $typeDemandeDetailRepository, TypeDocumentRepository $typeDocumentRepository): JsonResponse
+    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDemandeDetailRepository $typeDemandeDetailRepository): JsonResponse
     {
         $demande = $nouvelleDemandeRepository->find($id);
-        
+
         if (!$demande) {
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
-        // Fetch the required document details using the join table TypeDemandeDetail
-        $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['type_demande_id' => $demande->getTypeDemandeId()]);
+        // Get uploaded documents for the demand
+        $uploadedDocuments = [];
+        foreach ($demande->getDemandeDocuments() as $demandeDocument) {
+            $doc = $demandeDocument->getDocument();
+            $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
+                'id' => $doc->getId(),
+                'nom' => $doc->getNom(),
+                'path' => $doc->getPath(),
+                'statut' => 'fourni', // custom status
+                'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
+            ];
+        }
 
-        $documents = [];
-        foreach ($requiredDocumentDetails as $detail) {
-            // The TypeDemandeDetail entity is missing the relationship mapping, so we must fetch the TypeDocument manually.
-            $document = $typeDocumentRepository->find($detail->getTypeDocumentId());
-            if ($document) {
-                $documents[] = [
-                    'id' => $document->getId(),
-                    'nom' => $document->getDesignation(),
-                    'statut' => 'requis', // This status indicates it's a required document.
-                    'dateAjout' => null
-                ];
+        // Get required document types for the demand's type
+        $requiredDocuments = [];
+        if ($demande->getTypeDemande()) {
+            $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['typeDemande' => $demande->getTypeDemande()]);
+            foreach ($requiredDocumentDetails as $detail) {
+                $typeDocument = $detail->getTypeDocument();
+                $typeDocId = $typeDocument->getId();
+
+                if (isset($uploadedDocuments[$typeDocId])) {
+                    // Document is provided
+                    $requiredDocuments[] = [
+                        'type_document_id' => $typeDocId,
+                        'nom' => $typeDocument->getDesignation(),
+                        'statut' => 'fourni',
+                        'document_id' => $uploadedDocuments[$typeDocId]['id'],
+                        'nom_fichier' => $uploadedDocuments[$typeDocId]['nom'],
+                        'path' => $uploadedDocuments[$typeDocId]['path'],
+                        'dateAjout' => $uploadedDocuments[$typeDocId]['dateAjout'],
+                    ];
+                } else {
+                    // Document is missing
+                    $requiredDocuments[] = [
+                        'type_document_id' => $typeDocId,
+                        'nom' => $typeDocument->getDesignation(),
+                        'statut' => 'manquant',
+                        'document_id' => null,
+                        'nom_fichier' => null,
+                        'path' => null,
+                        'dateAjout' => null
+                    ];
+                }
             }
         }
 
@@ -122,63 +153,55 @@ class NouvelleDemandeController extends AbstractController
             'titre' => $demande->getTitre(),
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
-            'documents' => $documents,
-            'typeDocument' => $demande->getTypeDemande()
+            'documents' => $requiredDocuments,
+            'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
         ];
 
         return new JsonResponse($data);
     }
 
-    /**
-     * @Route("/form", name="app_nouvelle_demande_form")
-     */
-    public function getForm(Request $request, NouvelleDemandeRepository $NouvelleDemandeRepository): Response
-    {
-        $mode = $request->query->get('mode', 'new');
-        $id = $request->query->get('id');
-        
-        $typesDocument = $NouvelleDemandeRepository->findAll();
-        
-        return $this->render('nouvelle_demande/form.html.twig', [
-            'mode' => $mode,
-            'id' => $id,
-            'typesDocument' => $typesDocument
-        ]);
-    }
-
-   
 
     /**
      * @Route("/save", name="app_nouvelle_demande_save", methods={"POST"})
      */
-    public function saveDemande(Request $request, NouvelleDemandeRepository $NouvelleDemandeRepository): JsonResponse
+    public function saveDemande(Request $request, NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+        $user = $this->getUser();
+
         try {
-            if (isset($data['id'])) {
+            if (!empty($data['id'])) {
                 // Modification
-                $demande = $NouvelleDemandeRepository->find($data['id']);
+                $demande = $nouvelleDemandeRepository->find($data['id']);
                 if (!$demande) {
                     throw new \Exception('Demande non trouvée');
                 }
             } else {
                 // Création
                 $demande = new NouvelleDemande();
-                $demande->setDateCreation(new \DateTime());
-                $demande->setUser($this->getUser());
+                $demande->setCreatedAt(new \DateTime());
+                $demande->setCreatedBy($user->getUserIdentifier());
+                $demande->setOperateurId($user->getId()); // Assuming the user is the operator
+                if ($user->getExploitant()) {
+                    $demande->setRaisonSocial($user->getExploitant()->getRaisonSocialeExploitant());
+                } else {
+                    $demande->setRaisonSocial($user->getNom() . " " . $user->getPrenom());
+                }
+                $demande->setCodeSuivie(strtoupper(uniqid('SN-')));
             }
-            
+
             $demande->setTitre($data['titre']);
             $demande->setDescription($data['description']);
             $demande->setStatut($data['statut'] ?? 'en_attente');
-            
-            $typeDocument = $this->entityManager->getReference('App\Entity\TypeDocument', $data['typeDocumentId']);
-            $demande->setTypeDocument($typeDocument);
-            
+
+            if (isset($data['typeDemandeId'])) {
+                $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
+                $demande->setTypeDemande($typeDemande);
+            }
+
             $this->entityManager->persist($demande);
             $this->entityManager->flush();
-            
+
             return new JsonResponse(['success' => true, 'id' => $demande->getId()]);
         } catch (\Exception $e) {
             return new JsonResponse(['error' => $e->getMessage()], 500);
@@ -188,52 +211,96 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/{id}/add_document", name="app_nouvelle_demande_add_document", methods={"POST"})
      */
-    public function addDocument(int $id, Request $request, NouvelleDemandeRepository $NouvelleDemandeRepository): JsonResponse
+    public function addDocument(int $id, Request $request, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDocumentRepository $typeDocumentRepository): JsonResponse
     {
-        $demande = $NouvelleDemandeRepository->find($id);
-        
+        $demande = $nouvelleDemandeRepository->find($id);
+
         if (!$demande) {
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
-        
+
         $file = $request->files->get('document');
-        
-        if ($file && $file->getClientOriginalExtension() === 'pdf') {
-            $document = new TypeDocument();
-            $document->setNom($file->getClientOriginalName());
-            $document->setStatut('en_attente');
-            $document->setDateAjout(new \DateTime());
-            $document->setDemande($demande);
-            
-            // Ici vous devriez gérer le stockage du fichier
-            // $file->move($this->getParameter('documents_directory'), $newFilename);
-            
-            $this->entityManager->persist($document);
-            $this->entityManager->flush();
-            
-            return new JsonResponse(['success' => true]);
+        $typeDocumentId = $request->request->get('type_document_id');
+
+        if (!$file) {
+            return new JsonResponse(['error' => 'Aucun fichier fourni'], 400);
         }
-        
-        return new JsonResponse(['error' => 'Fichier PDF requis'], 400);
+
+        if (!$typeDocumentId) {
+            return new JsonResponse(['error' => 'Type de document non spécifié'], 400);
+        }
+
+        $typeDocument = $typeDocumentRepository->find($typeDocumentId);
+        if (!$typeDocument) {
+            return new JsonResponse(['error' => 'Type de document invalide'], 400);
+        }
+
+        // You should define 'documents_directory' in your services.yaml
+        $uploadsDirectory = $this->getParameter('documents_directory');
+        $newFilename = uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move($uploadsDirectory, $newFilename);
+        } catch (FileException $e) {
+            return new JsonResponse(['error' => 'Impossible de stocker le fichier'], 500);
+        }
+
+        $document = new Document();
+        $document->setNom($file->getClientOriginalName());
+        $document->setPath($newFilename);
+        $document->setStatut('fourni');
+        $document->setTypeDocument($typeDocument);
+        $document->setCreatedAt(new \DateTime());
+        $document->setCreatedBy($this->getUser()->getUserIdentifier());
+
+        $demandeDocument = new DemandeDocument();
+        $demandeDocument->setDemande($demande);
+        $demandeDocument->setDocument($document);
+
+        $this->entityManager->persist($document);
+        $this->entityManager->persist($demandeDocument);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 
     /**
      * @Route("/{id}/remove_document", name="app_nouvelle_demande_remove_document", methods={"POST"})
      */
-    public function removeDocument(int $id, Request $request): JsonResponse
+    public function removeDocument(int $id, Request $request, DemandeDocumentRepository $demandeDocumentRepository): JsonResponse
     {
         $documentId = $request->request->get('document_id');
-        $document = $this->entityManager->getRepository(TypeDocument::class)->find($documentId);
+        $demande = $this->entityManager->getRepository(NouvelleDemande::class)->find($id);
 
-        if (!$document || $document->getDemande()->getId() !== $id) {
+        if (!$demande) {
+            return new JsonResponse(['error' => 'Demande non trouvée'], 404);
+        }
+
+        $document = $this->entityManager->getRepository(Document::class)->find($documentId);
+
+        if (!$document) {
             return new JsonResponse(['error' => 'Document non trouvé'], 404);
         }
-        
+
+        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $document]);
+
+        if (!$demandeDocument) {
+            return new JsonResponse(['error' => 'Liaison document-demande non trouvée'], 404);
+        }
+
+        // Optional: remove the file from storage
+        // $filePath = $this->getParameter('documents_directory').'/'.$document->getPath();
+        // if (file_exists($filePath)) {
+        //     unlink($filePath);
+        // }
+
+        $this->entityManager->remove($demandeDocument);
         $this->entityManager->remove($document);
         $this->entityManager->flush();
-        
+
         return new JsonResponse(['success' => true]);
     }
+
 
     #[Route('/suivi/{id}', name: 'admin_nouvelle_demande_suivi', methods: ['GET'])]
     public function suivi(NouvelleDemande $demande): Response
@@ -264,7 +331,7 @@ class NouvelleDemandeController extends AbstractController
         }
 
         // 3. Rendre le template Twig et le retourner comme une réponse HTML
-        return $this->render('nouvelle_demande/suivi.html.twig', [
+        return $this->render('DemandeAutorisation/nouvelle_demande/suivi.html.twig', [
             'demande' => $demande,
             'etapes' => $etapesPourTwig,
         ]);
@@ -279,7 +346,7 @@ class NouvelleDemandeController extends AbstractController
             return new Response("<div>Détails non trouvés.</div>", 404);
         }
 
-        return $this->render('nouvelle_demande/_detail_etape.html.twig', [
+        return $this->render('DemandeAutorisation/nouvelle_demande/_detail_etape.html.twig', [
             'etape' => $etape,
         ]);
     }
@@ -307,15 +374,11 @@ class NouvelleDemandeController extends AbstractController
         // La première étape sans date de traitement est l'étape "active".
         // Sauf si la demande est déjà terminée (approuvée/rejetée).
         if ($demandeStatut === 'approuvee' || $demandeStatut === 'rejetee') {
-             return ['', false];
+            return ['', false];
         }
 
         // C'est la première étape non complétée, elle est donc active.
         $etapeActiveTrouvee = true;
         return ['active', true];
     }
-
-
-
-
 }
