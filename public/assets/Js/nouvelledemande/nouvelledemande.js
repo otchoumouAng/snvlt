@@ -6,12 +6,24 @@ class NouvelleDemandeApp {
         this.currentMode = null;
         this.dataTable = null;
         this.modal = null;
+        this.modalTemplates = {
+            new: null,
+            edit: null,
+            read: null
+        };
     }
 
     init() {
         this.initDataTable();
         this.bindEvents();
         this.loadDemandes();
+    }
+
+    // Précharger les templates des modaux
+    preloadModalTemplates() {
+        this.modalTemplates.new = $('#template-form-new').html();
+        this.modalTemplates.edit = $('#template-form-edit').html();
+        this.modalTemplates.read = $('#template-form-read').html();
     }
 
     initDataTable() {
@@ -22,15 +34,19 @@ class NouvelleDemandeApp {
             columns: [
                 { data: 'id' },
                 { data: 'titre' },
-                { data: 'typeDemande' },
+                { data: 'typeDocument' },
                 { data: 'societe' },
                 { data: 'dateCreation' },
-                {
+                { 
                     data: 'statut',
-                    render: (data, type, row) => NouvelleDemandeApp.getStatusBadge(data)
+                    render: function(data, type, row) {
+                        return NouvelleDemandeApp.getStatusBadge(data);
+                    }
                 }
             ],
+    
             dom: "<'dataTables_top'l f> t <'dataTables_bottom' i p>",
+            
             select: {
                 style: 'single',
                 info: false
@@ -41,60 +57,82 @@ class NouvelleDemandeApp {
             lengthMenu: [5, 10, 25, 50]
         });
 
+        
         this.dataTable.on('select', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                const data = this.dataTable.row(indexes).data();
-                if (data) {
-                    this.selectedDemandeId = data.id;
-                    $('#editBtn').prop('disabled', false);
-                    $('#trackBtn').prop('disabled', false);
-                    this.displayDetailsPanel(data);
-                }
+        if (type === 'row') {
+            const data = this.dataTable.row(indexes).data();
+            if (data) {
+                this.selectedDemandeId = data.id;
+                $('#editBtn').prop('disabled', false);
+                $('#trackBtn').prop('disabled', false);
+                // On charge les documents dans le panneau de droite
+                this.displayDocumentPanel(data); 
             }
-        });
+        }
+    });
 
-        this.dataTable.on('deselect', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                this.selectedDemandeId = null;
-                $('#editBtn').prop('disabled', true);
-                $('#trackBtn').prop('disabled', true);
-                this.showDetailsPlaceholder();
+    // ÉVÉNEMENT : Désélection
+    this.dataTable.on('deselect', (e, dt, type, indexes) => {
+        if (type === 'row') {
+            this.selectedDemandeId = null;
+            $('#editBtn').prop('disabled', true);
+            $('#trackBtn').prop('disabled', true);
+            this.showDetailsPlaceholder(); // Retour à l'état initial
+        }
+    });
+
+    // SUPPRESSION du double-clic pour le modal 'read'
+    this.dataTable.off('dblclick', 'tbody tr');
+
+
+        // Event for double-click remains the same
+        /*this.dataTable.on('dblclick', 'tbody tr', (e) => {
+            const row = this.dataTable.row(e.currentTarget);
+            const data = row.data();
+            if (data) {
+                this.openModal(data.id, 'read');
             }
-        });
+        });*/
+
     }
 
     bindEvents() {
+        // Les boutons d'ouverture de modal ne changent pas
         $('#addBtn').on('click', () => this.openModal(null, 'new'));
         $('#editBtn').on('click', () => {
             if (this.selectedDemandeId) {
                 this.openModal(this.selectedDemandeId, 'edit');
             }
         });
+
         $('#trackBtn').on('click', () => {
             if (this.selectedDemandeId) {
                 this.showTrackingPortal(this.selectedDemandeId);
             }
         });
 
+        // La soumission du formulaire dans le modal ne change pas
         $(document).on('submit', '#demandeForm', (e) => {
             e.preventDefault();
-            this.saveDemande();
+            this.saveDemande(); // La fonction saveDemande est déjà correcte
         });
 
-        // Event delegation for document panel
-        $('#details-panel')
-            .on('click', '.upload-doc-btn', function() {
-                $(this).siblings('.pdf-upload-panel').click();
-            })
-            .on('change', '.pdf-upload-panel', (e) => {
-                const typeDocId = $(e.currentTarget).closest('.document-item').data('type-doc-id');
-                this.handleFileUpload(e.target.files, typeDocId);
-            })
-            .on('click', '.remove-doc-btn', (e) => {
-                const documentId = $(e.currentTarget).closest('.document-item').data('doc-id');
-                this.removeDocument(documentId);
-            });
+        // Événements pour le panneau de documents
+        // Notez le sélecteur d'événement délégué pour les éléments créés dynamiquement
+        $('#details-panel').on('click', '#addDocumentBtnPanel', () => {
+            $('#pdf-upload-panel').click();
+        });
+        
+        $('#details-panel').on('change', '#pdf-upload-panel', (e) => {
+            this.handleFileUpload(e.target.files);
+        });
 
+        $('#details-panel').on('click', '.remove-doc-btn', (e) => {
+            const documentId = $(e.currentTarget).closest('.list-group-item').data('doc-id');
+            this.removeDocument(documentId);
+        });
+
+        // Utiliser la délégation d'événements pour les éléments chargés en AJAX
         $(document).on('click', '#back-to-list', (e) => {
             e.preventDefault();
             this.showMainView();
@@ -104,131 +142,326 @@ class NouvelleDemandeApp {
             const stepId = $(e.currentTarget).data('step-id');
             this.loadStepDetails(this.selectedDemandeId, stepId);
         });
+
     }
 
+        // Nouvelle fonction pour afficher le portail de suivi
     async showTrackingPortal(demandeId) {
+        // Supposons une nouvelle méthode API qui retourne le HTML du portail
         try {
+            // Idéalement, votre API retourne le HTML pré-rempli
             const trackingHtml = await this.apiService.getTrackingView(demandeId);
+            
+            // Remplacer le contenu de la page
+            // Assurez-vous d'avoir un conteneur global, ex: <div id="page-wrapper">
             $('#page_content').fadeOut(200, function() {
                 $(this).html(trackingHtml).fadeIn(200);
             });
+
         } catch (error) {
             this.notification.error("Impossible de charger la vue de suivi.");
             console.error(error);
         }
     }
 
+    // Nouvelle fonction pour revenir à la vue principale
     showMainView() {
-        location.reload();
+        // Vous devez avoir une fonction qui peut recharger la vue initiale.
+        // La solution la plus simple est de recharger la page, mais pour une vraie SPA,
+        // vous devriez avoir le template initial et le re-injecter.
+        location.reload(); // Solution simple et efficace pour le moment
     }
 
+    // Nouvelle fonction pour charger les détails d'une étape
     async loadStepDetails(demandeId, stepId) {
+        // Supposons une nouvelle méthode API qui retourne le HTML des détails
         try {
             const detailsHtml = await this.apiService.getStepDetails(demandeId, stepId);
             $('#step-details-placeholder').hide();
             $('#step-details-content').html(detailsHtml);
+
+            // Ajoute un indicateur visuel sur l'étape cliquée
             $('.stepper-item').removeClass('selected');
             $(`.stepper-item[data-step-id="${stepId}"]`).addClass('selected');
+
         } catch (error) {
             this.notification.error("Impossible de charger les détails de l'étape.");
             console.error(error);
         }
     }
 
+
+
     async loadDemandes() {
         try {
             this.notification.info('Chargement des demandes...', 2000);
             const demandes = await this.apiService.getDemandes();
             this.dataTable.clear().rows.add(demandes).draw();
+            
+            // Réinitialiser la sélection
             this.selectedDemandeId = null;
             $('#editBtn').prop('disabled', true);
-            $('#trackBtn').prop('disabled', true);
             this.showDetailsPlaceholder();
+            
         } catch (error) {
             this.notification.error('Erreur lors du chargement des demandes');
             console.error(error);
         }
     }
 
-    async displayDetailsPanel(demandeData) {
-        this.showLoader();
-        $('#details-title-text').html(`Détails pour : <span class="fw-normal">${demandeData.titre}</span>`);
-
+    async selectDemande(id) {
         try {
-            const details = await this.apiService.getDemandeDetails(demandeData.id);
-            let documentsListHtml = '';
-            if (details.documents && details.documents.length > 0) {
-                documentsListHtml = details.documents.map(doc => {
-                    if (doc.statut === 'fourni') {
-                        return `
-                            <li class="document-item" data-doc-id="${doc.document_id}" data-type-doc-id="${doc.type_document_id}">
-                                <i class="ph-fill ph-file-pdf icon"></i>
-                                <div class="info">
-                                    <div class="name">${doc.nom}</div>
-                                    <div class="meta">Fichier: ${doc.nom_fichier || 'N/A'}</div>
-                                </div>
-                                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                                <button class="btn btn-sm btn-danger remove-doc-btn"><i class="ph ph-trash"></i></button>
-                            </li>
-                        `;
-                    } else { // manquant
-                        return `
-                             <li class="document-item" data-type-doc-id="${doc.type_document_id}">
-                                <i class="ph-light ph-file icon"></i>
-                                <div class="info">
-                                    <div class="name">${doc.nom}</div>
-                                    <div class="meta">Requis</div>
-                                </div>
-                                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                                <button class="btn btn-sm btn-primary upload-doc-btn"><i class="ph ph-upload-simple"></i></button>
-                                <input type="file" class="pdf-upload-panel" accept=".pdf" style="display: none;" />
-                            </li>
-                        `;
-                    }
-                }).join('');
-            } else {
-                documentsListHtml = `
-                    <div class="text-center p-4">
-                        <i class="ph-light ph-file-magnifying-glass" style="font-size: 2.5rem; color: #ced4da;"></i>
-                        <p class="text-muted mt-2 small">Aucun document requis pour ce type de demande.</p>
-                    </div>
-                `;
-            }
-
-            const contentHtml = `
-                <div class="mb-3">
-                    <p class="text-muted mb-2">${details.description || 'Aucune description.'}</p>
-                    ${NouvelleDemandeApp.getStatusBadge(details.statut)}
-                    <div class="mt-2 small text-muted">Type: ${details.typeDemande}</div>
-                </div>
-                <hr>
-                <h6 class="text-muted small fw-bold text-uppercase mb-3">Documents Requis</h6>
-                <ul class="document-list">${documentsListHtml}</ul>
-            `;
-
-            $('#details-placeholder').hide();
-            $('#details-content').html(contentHtml).show().css('opacity', 0).animate({ opacity: 1 }, 300);
+            this.selectedDemandeId = id;
+            $('#editBtn').prop('disabled', false);
+            
+            const details = await this.apiService.getDemandeDetails(id);
+            this.displayDetails(details);
         } catch (error) {
-            console.error("Erreur lors du chargement des détails:", error);
-            this.notification.error("Erreur lors du chargement des détails.");
-            this.showDetailsPlaceholder();
-        } finally {
-            $('#details-loader').hide();
+            this.notification.error('Erreur lors du chargement des détails');
+            console.error(error);
         }
     }
 
-    showLoader() {
-        $('#details-placeholder').hide();
-        $('#details-content').hide();
-        $('#details-loader').show();
+    displayDetails(details) {
+    const detailsContent = $('#details-content');
+    const placeholder = $('#details-placeholder');
+    
+    placeholder.hide();
+    detailsContent.removeClass('visible');
+    
+    // On construit la liste des documents, chacun avec son bouton de suppression
+    let documentsHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        details.documents.forEach((doc) => {
+            documentsHtml += `
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
+                    <a href="${doc.url || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 70%;">${doc.nom}</a>
+                    <div class="d-flex align-items-center gap-2">
+                        ${NouvelDemandeApp.getDocumentStatusBadge(doc.statut)}
+                        <button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
+                            <i class="ph-fill ph-x"></i>
+                        </button>
+                    </div>
+                </li>`;
+        });
+    } else {
+        documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
     }
 
+    // On construit le HTML complet du panneau
+    const contentHtml = `
+        <div class="mb-3">
+            <h5 class="fw-bold mb-1">${details.titre}</h5>
+            <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
+            ${NouvelleDemandeApp.getStatusBadge(details.statut)}
+            <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        
+        <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
+    `;
+
+    detailsContent.html(contentHtml);
+    setTimeout(() => detailsContent.addClass('visible'), 10);
+    
+    // On attache les événements aux nouveaux boutons
+    $('#addDocumentBtnPanel').on('click', () => {
+        $('#pdf-upload-panel').click();
+    });
+    
+    $('#pdf-upload-panel').on('change', (e) => {
+        this.handleFileUpload(e.target.files);
+    });
+}
+
     showDetailsPlaceholder() {
-        $('#details-loader').hide();
-        $('#details-content').hide();
-        $('#details-placeholder').show();
-        $('#details-title-text').text('Documents');
+        const detailsContent = $('#details-content');
+        const placeholder = $('#details-placeholder');
+        
+        detailsContent.removeClass('visible').html('');
+        placeholder.show();
     }
+
+    async openModal(id, mode) {
+    try {
+        // Utiliser le template préchargé
+        const formHtml = this.modalTemplates[mode];
+        if (!formHtml) {
+            throw new Error(`Template non trouvé pour le mode: ${mode}`);
+        }
+        
+        $('#modalContainer').html(formHtml);
+        
+        // Initialiser le modal Bootstrap
+        const modalElement = document.getElementById('demandeModal');
+        this.modal = new bootstrap.Modal(modalElement);
+        this.modal.show();
+        
+        this.currentMode = mode;
+        
+        // Si nous avons un ID, charger les données
+        if (id) {
+            // Utiliser les données du DataTable si disponibles
+            const row = this.dataTable.row(`#${id}`);
+            const rowData = row.data();
+            
+            if (rowData) {
+                this.setupModalWithData(mode, rowData);
+            } else {
+                // Fallback: charger depuis l'API
+                await this.loadDemandeData(id);
+            }
+        } else {
+            this.setupModal(mode, null);
+        }
+        
+    } catch (error) {
+        this.notification.error('Erreur lors de l\'ouverture du modal');
+        console.error(error);
+    }
+}
+
+setupModalWithData(mode, data) {
+    const modal = $('#demandeModal');
+    const title = modal.find('#modal-title');
+    const icon = modal.find('#modal-icon');
+    const saveBtn = modal.find('#saveBtn');
+    const deleteBtn = modal.find('#deleteBtn');
+    const form = modal.find('#demandeForm');
+    // On cible la section des documents
+    const documentsSection = modal.find('#documents-section');
+    
+    // Remplir le formulaire avec les données
+    form.find('#demandeId').val(data.id);
+    form.find('#titre').val(data.titre);
+    form.find('#description').val(data.description);
+    form.find('#typeDocument').val(data.typeDocumentId);
+    
+    // Set mode-specific configurations
+    switch(mode) {
+        case 'new':
+            title.text('Nouvelle Demande');
+            icon.attr('class', 'ph-fill ph-file-plus');
+            saveBtn.show().text('Créer');
+            deleteBtn.hide();
+            documentsSection.hide(); // La section est déjà cachée pour 'new'
+            form.find('input, select, textarea').prop('disabled', false);
+            break;
+            
+        case 'edit':
+            title.text('Modifier la Demande');
+            icon.attr('class', 'ph-fill ph-pencil-simple');
+            saveBtn.show().text('Modifier');
+            deleteBtn.show();
+            documentsSection.hide(); // CHANGEMENT : On cache la section
+            form.find('input, select, textarea').prop('disabled', false);
+            
+            // SUPPRIMÉ : On ne charge plus les documents dans la modale
+            // this.loadDocuments(data.id);
+            break;
+            
+        case 'read':
+            title.text('Détails de la Demande');
+            icon.attr('class', 'ph-fill ph-eye');
+            saveBtn.hide();
+            deleteBtn.hide();
+            documentsSection.hide(); // CHANGEMENT : On cache la section
+            form.find('input, select, textarea').prop('disabled', true);
+            
+            // SUPPRIMÉ : On ne charge plus les documents dans la modale
+            // this.loadDocuments(data.id);
+            break;
+    }
+}
+
+// NOUVELLE FONCTION CENTRALE pour le panneau
+async displayDocumentPanel(demandeData) {
+    this.showLoader(); // Affiche le spinner
+    $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
+    
+    try {
+        const details = await this.apiService.getDemandeDetails(demandeData.id);
+        const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
+
+        $('#details-loader').hide();
+        $('#details-content').html(contentHtml).fadeIn(300);
+
+    } catch (error) {
+        this.notification.error("Erreur lors du chargement des documents.");
+        this.showDetailsPlaceholder(); // En cas d'erreur, on revient au placeholder
+    }
+}
+
+// NOUVELLE FONCTION pour construire le HTML du panneau
+// Fichier : nouvelledemande.js
+
+buildDocumentsHtml(details) {
+    let documentsListHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        documentsListHtml = details.documents.map(doc => `
+            <li class="document-item" data-doc-id="${doc.id}">
+                <i class="ph-fill ph-file-pdf icon"></i>
+                <div class="info">
+                    <div class="name">${doc.nom}</div>
+                    <div class="meta">PDF Document</div>
+                </div>
+                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
+                <div class="actions ms-3">
+                    <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                        <i class="ph-fill ph-download-simple"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer">
+                        <i class="ph-fill ph-trash-simple"></i>
+                    </button>
+                </div>
+            </li>
+        `).join('');
+    } else {
+        return `
+            <div class="text-center p-5 mt-3">
+                <i class="ph-light ph-file-magnifying-glass" style="font-size: 3rem; color: #ced4da;"></i>
+                <h6 class="mt-3">Aucun Document</h6>
+                <p class="text-muted small">Cette demande n'a pas encore de document attaché.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Fichiers Attachés</h6>
+            <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus-circle"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        <ul class="document-list">${documentsListHtml}</ul>
+    `;
+}
+
+// Fonctions de gestion des états du panneau
+showLoader() {
+    $('#details-placeholder').hide();
+    $('#details-content').hide();
+    $('#details-loader').show();
+}
+
+showDetailsPlaceholder() {
+    $('#details-loader').hide();
+    $('#details-content').hide();
+    $('#details-placeholder').show();
+    $('#details-title-text').text('Documents');
+}
+
+
+
+    
 
     async saveDemande() {
         try {
@@ -236,10 +469,11 @@ class NouvelleDemandeApp {
                 id: $('#demandeId').val() || null,
                 titre: $('#titre').val(),
                 description: $('#description').val(),
-                typeDemandeId: $('#typeDemande').val()
+                typeDocumentId: $('#typeDocument').val()
             };
             
-            if (!formData.titre || !formData.typeDemandeId) {
+            // Validation
+            if (!formData.titre || !formData.typeDocumentId) {
                 this.notification.warning('Veuillez remplir tous les champs obligatoires');
                 return;
             }
@@ -259,13 +493,32 @@ class NouvelleDemandeApp {
         }
     }
 
-    async handleFileUpload(files, typeDocId) {
-        if (!this.selectedDemandeId) {
-            this.notification.warning('Veuillez sélectionner une demande');
+    async deleteDemande() {
+        if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.')) {
             return;
         }
         
-        const demandeId = this.selectedDemandeId;
+        try {
+            const demandeId = $('#demandeId').val();
+            // Implémentez la suppression côté serveur et appez l'API ici
+            this.notification.info('Fonctionnalité de suppression à implémenter');
+            
+            // Pour l'instant, on ferme juste le modal
+            $('#demandeModal').modal('hide');
+            
+        } catch (error) {
+            this.notification.error('Erreur lors de la suppression');
+            console.error(error);
+        }
+    }
+
+    async handleFileUpload(files) {
+        if (!this.selectedDemandeId && !$('#demandeId').val()) {
+            this.notification.warning('Veuillez d\'abord enregistrer la demande');
+            return;
+        }
+        
+        const demandeId = this.selectedDemandeId || $('#demandeId').val();
         
         for (const file of files) {
             if (file.type !== 'application/pdf') {
@@ -280,14 +533,16 @@ class NouvelleDemandeApp {
             
             const formData = new FormData();
             formData.append('document', file);
-            formData.append('type_document_id', typeDocId);
             
             try {
                 await this.apiService.addDocument(demandeId, formData);
                 this.notification.success('Document ajouté avec succès');
-                const selectedData = this.dataTable.row({ selected: true }).data();
-                if (selectedData) {
-                    this.displayDetailsPanel(selectedData);
+                
+                // Reload the data
+                if (this.currentMode) {
+                    this.loadDemandeData(demandeId);
+                } else {
+                    this.selectDemande(demandeId);
                 }
             } catch (error) {
                 this.notification.error('Erreur lors de l\'ajout du document');
@@ -297,7 +552,7 @@ class NouvelleDemandeApp {
     }
 
     async removeDocument(documentId) {
-        if (!this.selectedDemandeId) {
+        if (!this.selectedDemandeId && !$('#demandeId').val()) {
             this.notification.error('Aucune demande sélectionnée');
             return;
         }
@@ -306,19 +561,31 @@ class NouvelleDemandeApp {
             return;
         }
         
-        const demandeId = this.selectedDemandeId;
+        const demandeId = this.selectedDemandeId || $('#demandeId').val();
         
         try {
             await this.apiService.removeDocument(demandeId, documentId);
             this.notification.success('Document retiré avec succès');
-            const selectedData = this.dataTable.row({ selected: true }).data();
-            if (selectedData) {
-                this.displayDetailsPanel(selectedData);
+            
+            // Reload the data
+            if (this.currentMode) {
+                this.loadDemandeData(demandeId);
+            } else {
+                this.selectDemande(demandeId);
             }
         } catch (error) {
             this.notification.error('Erreur lors du retrait du document');
             console.error(error);
         }
+    }
+
+    cleanupModal() {
+        if (this.modal) {
+            this.modal.dispose();
+            this.modal = null;
+        }
+        $('#modalContainer').empty();
+        this.currentMode = null;
     }
 
     static getStatusBadge(status) {
@@ -333,7 +600,7 @@ class NouvelleDemandeApp {
             case 'rejetée':
                 return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejetée</span>';
             default: 
-                return `<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> ${status}</span>`;
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> ' + status + '</span>';
         }
     }
 
@@ -349,21 +616,28 @@ class NouvelleDemandeApp {
             case 'en_validation':
                 return '<span class="badge bg-warning-subtle text-warning-emphasis"><i class="ph-fill ph-hourglass me-1"></i>En validation</span>';
             default: 
-                return `<span class="badge bg-secondary">${status}</span>`;
+                return '<span class="badge bg-secondary">' + status + '</span>';
         }
     }
 }
 
+// Initialisation de l'application lorsque le document est prêt
 $(document).ready(function() {
+    // Vérifier que les dépendances sont chargées
     if (typeof window.apiService === 'undefined') {
         console.error('ApiService non chargé');
         return;
     }
+    
     if (typeof window.notificationSystem === 'undefined') {
         console.error('NotificationSystem non chargé');
         return;
     }
+    
+    // Initialiser l'application
     const nouvelleDemandeApp = new NouvelleDemandeApp();
     nouvelleDemandeApp.init();
+    
+    // Exposer l'instance globalement pour le débogage
     window.nouvelleDemandeApp = nouvelleDemandeApp;
 });

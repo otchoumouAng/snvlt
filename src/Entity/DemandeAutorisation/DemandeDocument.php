@@ -7,7 +7,7 @@
 
 namespace App\Entity\DemandeAutorisation;
 
-use App\Repository\DemandeDocumentRepository;
+use App\Repository\DemandeAutorisation\DemandeDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 

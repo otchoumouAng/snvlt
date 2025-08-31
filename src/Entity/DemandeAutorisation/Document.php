@@ -9,7 +9,7 @@
 namespace App\Entity\DemandeAutorisation;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\DocumentRepository;
+use App\Repository\DemandeAutorisation\DocumentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

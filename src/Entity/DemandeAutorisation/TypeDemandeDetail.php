@@ -9,7 +9,7 @@
 
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\TypeDemandeDetailRepository;
+use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeDemandeDetailRepository::class)]

@@ -11,7 +11,7 @@
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\User;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\ValidationActionRepository;
+use App\Repository\DemandeAutorisation\ValidationActionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

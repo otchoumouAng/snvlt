@@ -11,7 +11,7 @@
 namespace App\Entity\DemandeAutorisation;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\TypeDocumentRepository;
+use App\Repository\DemandeAutorisation\TypeDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeDocumentRepository::class)]

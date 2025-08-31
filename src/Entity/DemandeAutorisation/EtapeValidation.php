@@ -12,7 +12,7 @@
 
 namespace App\Entity\DemandeAutorisation;
 
-use App\Repository\EtapeValidationRepository;
+use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

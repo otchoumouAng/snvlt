@@ -302,7 +302,9 @@ class NouvelleDemandeController extends AbstractController
     }
 
 
-    #[Route('/suivi/{id}', name: 'admin_nouvelle_demande_suivi', methods: ['GET'])]
+    /**
+     * @Route("/suivi/{id}", name="admin_nouvelle_demande_suivi", methods={"GET"})
+     */
     public function suivi(NouvelleDemande $demande): Response
     {
         // 1. Logique pour récupérer les étapes de validation de la demande
@@ -310,6 +312,7 @@ class NouvelleDemandeController extends AbstractController
             ['demande' => $demande],
             ['ordre' => 'ASC']
         );
+
 
         // 2. Préparer les données pour Twig (y compris le statut de chaque étape)
         $etapesPourTwig = [];
@@ -337,7 +340,9 @@ class NouvelleDemandeController extends AbstractController
         ]);
     }
 
-    #[Route('/suivi/{demandeId}/etape/{etapeId}', name: 'admin_nouvelle_demande_suivi_etape', methods: ['GET'])]
+    /**
+     * @Route("/suivi/{demandeId}/etape/{etapeId}", name="admin_nouvelle_demande_suivi_etape", methods={"GET"})
+     */
     public function detailEtape(int $demandeId, int $etapeId): Response
     {
         $etape = $this->etapeValidationRepository->find($etapeId);
