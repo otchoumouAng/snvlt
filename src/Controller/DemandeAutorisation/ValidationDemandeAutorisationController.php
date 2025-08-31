@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\DemandeAutorisation;
 
-use App\Entity\NouvelleDemande;
-use App\Entity\TypeDemandeDetail;
-use App\Entity\ValidationAction;
-use App\Repository\NouvelleDemandeRepository;
-use App\Repository\TypeDemandeDetailRepository;
+use App\Entity\DemandeAutorisation\NouvelleDemande;
+use App\Entity\DemandeAutorisation\TypeDemandeDetail;
+use App\Entity\DemandeAutorisation\ValidationAction;
+use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
@@ -43,7 +43,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 $user = $userRepository->find($this->getUser());
                 $code_groupe = $user->getCodeGroupe()->getId();
 
-                return $this->render('validation_demande_autorisation/index.html.twig', [
+            return $this->render('DemandeAutorisation/validation_demande_autorisation/index.html.twig', [
                     'liste_menus'=>$menus->findOnlyParent(),
                     "all_menus"=>$menus->findAll(),
                     'mes_notifs'=>$notification->findBy(['to_user'=>$user, 'lu'=>false],[],5,0),

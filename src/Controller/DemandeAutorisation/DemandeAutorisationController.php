@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\DemandeAutorisation;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -46,7 +46,7 @@ class DemandeAutorisationController extends AbstractController
         //dd($code_groupe);
       
 
-        return $this->render('demande_autorisation/index.html.twig', [
+        return $this->render('DemandeAutorisation/index.html.twig', [
                     'liste_menus'=>$menus->findOnlyParent(),
                     "all_menus"=>$menus->findAll(),
                     'mes_notifs'=>$notification->findBy(['to_user'=>$user, 'lu'=>false],[],5,0),

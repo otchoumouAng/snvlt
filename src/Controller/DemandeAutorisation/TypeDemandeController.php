@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\DemandeAutorisation;
 
-use App\Entity\TypeDemande;
+use App\Entity\DemandeAutorisation\TypeDemande;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,9 +14,9 @@ use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 
-use App\Repository\TypeDocumentRepository;
-use App\Entity\TypeDemandeDetail;
-use App\Entity\TypeDocument;
+use App\Repository\DemandeAutorisation\TypeDocumentRepository;
+use App\Entity\DemandeAutorisation\TypeDemandeDetail;
+use App\Entity\DemandeAutorisation\TypeDocument;
 
 /**
  * @Route("/admin/type_demandes")
@@ -33,22 +33,22 @@ class TypeDemandeController extends AbstractController
         $titre = 'Gestion des type_Demandes';
         
         // Précharger les formulaires dans le template
-        $newForm = $this->renderView('type_demande/form.html.twig', [
+        $newForm = $this->renderView('DemandeAutorisation/type_demande/form.html.twig', [
             'mode' => 'new',
             'type_demande' => null,
         ]);
 
-        $editForm = $this->renderView('type_demande/form.html.twig', [
+        $editForm = $this->renderView('DemandeAutorisation/type_demande/form.html.twig', [
             'mode' => 'edit',
             'type_demande' => null,
         ]);
 
-        $readForm = $this->renderView('type_demande/form.html.twig', [
+        $readForm = $this->renderView('DemandeAutorisation/type_demande/form.html.twig', [
             'mode' => 'read',
             'type_demande' => null,
         ]);
 
-        return $this->render('type_demande/index.html.twig', [
+        return $this->render('DemandeAutorisation/type_demande/index.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),
             "all_menus" => $menus->findAll(),
             'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
@@ -101,7 +101,7 @@ class TypeDemandeController extends AbstractController
             $type_Demande = $em->getRepository(TypeDemande::class)->find($id);
         }
         
-        return $this->render('type_demande/form.html.twig', [
+        return $this->render('DemandeAutorisation/type_demande/form.html.twig', [
             'mode' => $mode,
             'type_demande' => $type_Demande,
         ]);

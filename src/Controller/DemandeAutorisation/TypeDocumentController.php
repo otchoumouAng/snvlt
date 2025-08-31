@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\DemandeAutorisation;
 
-use App\Entity\TypeDocument;
+use App\Entity\DemandeAutorisation\TypeDocument;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,22 +29,22 @@ class TypeDocumentController extends AbstractController
         $titre = 'Gestion des type_documents';
         
         // Précharger les formulaires dans le template
-        $newForm = $this->renderView('type_document/form.html.twig', [
+        $newForm = $this->renderView('DemandeAutorisation/type_document/form.html.twig', [
             'mode' => 'new',
             'type_document' => null,
         ]);
         
-        $editForm = $this->renderView('type_document/form.html.twig', [
+        $editForm = $this->renderView('DemandeAutorisation/type_document/form.html.twig', [
             'mode' => 'edit',
             'type_document' => null,
         ]);
         
-        $readForm = $this->renderView('type_document/form.html.twig', [
+        $readForm = $this->renderView('DemandeAutorisation/type_document/form.html.twig', [
             'mode' => 'read',
             'type_document' => null,
         ]);
         
-        return $this->render('type_document/index.html.twig', [
+        return $this->render('DemandeAutorisation/type_document/index.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),
             "all_menus" => $menus->findAll(),
             'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
@@ -97,7 +97,7 @@ class TypeDocumentController extends AbstractController
             $type_document = $em->getRepository(TypeDocument::class)->find($id);
         }
         
-        return $this->render('type_document/form.html.twig', [
+        return $this->render('DemandeAutorisation/type_document/form.html.twig', [
             'mode' => $mode,
             'type_document' => $type_document,
         ]);
