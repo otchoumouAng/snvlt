@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
-use App\Entity\EtapeValidation;
-use App\Entity\NouvelleDemande;
-use App\Entity\TypeDocument;
-use App\Repository\EtapeValidationRepository;
-use App\Repository\NouvelleDemandeRepository;
-use App\Repository\TypeDemandeDetailRepository;
-use App\Repository\TypeDocumentRepository;
+use App\Entity\DemandeAutorisation\EtapeValidation;
+use App\Entity\DemandeAutorisation\NouvelleDemande;
+use App\Entity\DemandeAutorisation\TypeDocument;
+use App\Repository\DemandeAutorisation\EtapeValidationRepository;
+use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
+use App\Repository\DemandeAutorisation\TypeDocumentRepository;
+
 use App\Repository\Administration\NotificationRepository;
 use App\Repository\Autorisation\ContratBcbgfhRepository;
 use App\Repository\MenuPermissionRepository;

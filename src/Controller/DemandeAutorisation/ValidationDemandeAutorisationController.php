@@ -62,11 +62,8 @@ class ValidationDemandeAutorisationController extends AbstractController
      */
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-<<<<<<< HEAD
-        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'En cours']);
-=======
+
         $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'Soumis']);
->>>>>>> main
 
         $data = [];
         foreach ($demandes as $demande) {
@@ -113,11 +110,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'nom' => $requiredDoc->getTypeDocument()->getDesignation(),
                 'statut' => $providedDoc ? 'Fourni' : 'Manquant',
                 'url' => $providedDoc ? $this->generateUrl('app_document_download', ['id' => $providedDoc->getId()]) : null,
-<<<<<<< HEAD
-                'dateAjout' => $providedDoc ? $providedDoc->getDateAjout()->format('d/m/Y H:i') : null
-=======
                 'dateAjout' => $providedDoc ? $providedDoc->getCreatedAt()->format('d/m/Y H:i') : null
->>>>>>> main
             ];
         }
 
@@ -127,11 +120,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
             'documents' => $documents,
-<<<<<<< HEAD
-            'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getNom() : ''
-=======
             'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : ''
->>>>>>> main
         ];
 
         return new JsonResponse($data);
@@ -204,11 +193,4 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         return $filename;
     }
-<<<<<<< HEAD
-
-    
-    
-   
-=======
->>>>>>> main
 }

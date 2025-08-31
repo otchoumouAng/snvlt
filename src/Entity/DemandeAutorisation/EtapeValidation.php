@@ -1,37 +1,48 @@
 <?php
 
-namespace App\Entity;
+/*
+    - shema: metier
+    - table: aut_etape_validation
+    - Gestion des EtapeValidation
+    - Cette entité nous permet de suivre l'évolution d'un demande(EtapeValidation) et gérer les détails d'une demande d'autorisation (NouvelleDemande)
+    - Ex: pour une demande choisie, on peut voir les étapes de validations franchises, l'étape en cours et les etapes restantes
+    - Pour chaque Etape, nous pouvons consulter et éditer les détails
+
+*/
+
+namespace App\Entity\DemandeAutorisation;
 
 use App\Repository\EtapeValidationRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EtapeValidationRepository::class)]
-#[ORM\Table(name: "etape_validation", schema: "metier")]
+#[ORM\Table(name: "aut_etape_validation", schema: "metier")]
 class EtapeValidation
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
-    private $nom;
+    #[ORM\Column(length: 255)]
+    private ?string $nom = null;
 
-    #[ORM\Column(type: 'datetime', nullable: true)]
-    private $dateTraitement;
+    #[ORM\Column(name: "date_traitement", type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $dateTraitement = null;
 
-    #[ORM\Column(type: 'string', length: 50)]
-    private $statut;
+    #[ORM\Column(length: 50)]
+    private ?string $statut = null;
 
-    #[ORM\Column(type: 'integer')]
-    private $ordre;
+    #[ORM\Column]
+    private ?int $ordre = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    private $details;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $details = null;
 
-    #[ORM\ManyToOne(targetEntity: NouvelleDemande::class, inversedBy: 'etapesValidation')]
+    #[ORM\ManyToOne(inversedBy: 'etapesValidation')]
     #[ORM\JoinColumn(nullable: false)]
-    private $demande;
+    private ?NouvelleDemande $demande = null;
 
     public function getId(): ?int
     {

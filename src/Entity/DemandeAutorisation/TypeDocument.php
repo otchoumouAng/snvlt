@@ -1,14 +1,27 @@
 <?php
 
-namespace App\Entity;
+/*
+    - master data
+    - shema: metier
+    - table: aut_type_document
+    - Gestion des TypeDocument
+    - Cette entité nous permet de CRUD un type de document
+*/
 
+namespace App\Entity\DemandeAutorisation;
+
+use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\TypeDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeDocumentRepository::class)]
-#[ORM\Table(name: "type_document", schema: "metier")]
+#[ORM\Table(name: "aut_type_document", schema: "metier")]
+#[ORM\HasLifecycleCallbacks]
 class TypeDocument
 {
+    // Utilisation du Trait pour inclure tous les champs d'audit
+    use AuditTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -16,9 +29,6 @@ class TypeDocument
 
     #[ORM\Column(length: 255)]
     private ?string $designation = null;
-
-    #[ORM\Column]
-    private ?bool $desactivate = null;
 
     public function getId(): ?int
     {
@@ -33,19 +43,7 @@ class TypeDocument
     public function setDesignation(string $designation): static
     {
         $this->designation = $designation;
-
-        return $this;
-    }
-
-    public function isDesactivate(): ?bool
-    {
-        return $this->desactivate;
-    }
-
-    public function setDesactivate(bool $desactivate): static
-    {
-        $this->desactivate = $desactivate;
-
         return $this;
     }
 }
+

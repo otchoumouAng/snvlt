@@ -1,42 +1,48 @@
 <?php
 
-namespace App\Entity;
 
+/*
+    - shema: metier
+    - table: aut_validation_action
+    - Gestion des ValidationAction
+    - Cette entité nous permet gérer les étapes de validation d'une NouvelleDemande
+*/
+
+namespace App\Entity\DemandeAutorisation;
+use App\Entity\User;
+use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\ValidationActionRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ValidationActionRepository::class)]
+#[ORM\Table(name: "aut_validation_action", schema: "metier")]
+#[ORM\HasLifecycleCallbacks]
 class ValidationAction
 {
+    use AuditTrait;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(targetEntity: NouvelleDemande::class)]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?NouvelleDemande $demande = null;
 
-    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\ManyToOne] // Assurez-vous que l'entité User existe bien dans App\Entity
     #[ORM\JoinColumn(nullable: false)]
     private ?User $validator = null;
 
     #[ORM\Column(length: 255)]
     private ?string $statut = null;
 
-    #[ORM\Column(type: 'text', nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $note = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $signaturePath = null;
-
-    #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
-
-    public function __construct()
-    {
-        $this->createdAt = new \DateTimeImmutable();
-    }
 
     public function getId(): ?int
     {
@@ -51,7 +57,6 @@ class ValidationAction
     public function setDemande(?NouvelleDemande $demande): static
     {
         $this->demande = $demande;
-
         return $this;
     }
 
@@ -63,7 +68,6 @@ class ValidationAction
     public function setValidator(?User $validator): static
     {
         $this->validator = $validator;
-
         return $this;
     }
 
@@ -75,7 +79,6 @@ class ValidationAction
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
-
         return $this;
     }
 
@@ -87,7 +90,6 @@ class ValidationAction
     public function setNote(?string $note): static
     {
         $this->note = $note;
-
         return $this;
     }
 
@@ -99,19 +101,6 @@ class ValidationAction
     public function setSignaturePath(?string $signaturePath): static
     {
         $this->signaturePath = $signaturePath;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
         return $this;
     }
 }
