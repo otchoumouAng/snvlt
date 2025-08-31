@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\DemandeAutorisation;
 
-use App\Entity\NouvelleDemande;
+use App\Entity\DemandeAutorisation\NouvelleDemande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

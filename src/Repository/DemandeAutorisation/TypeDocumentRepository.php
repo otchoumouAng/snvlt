@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\DemandeAutorisation;
 
-use App\Entity\TypeDocument;
+use App\Entity\DemandeAutorisation\TypeDocument;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\DemandeAutorisation;
 
-use App\Entity\EtapeValidation;
+use App\Entity\DemandeAutorisation\EtapeValidation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
