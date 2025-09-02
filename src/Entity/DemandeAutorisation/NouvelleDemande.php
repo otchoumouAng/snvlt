@@ -10,7 +10,8 @@
 
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\DemandeAutorisation\NouvelleDemandeRepository; 
+use App\Entity\References\CircuitCommunication;
+use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -51,14 +52,18 @@ class NouvelleDemande
 
     #[ORM\OneToMany(mappedBy: 'demande', targetEntity: EtapeValidation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $etapesValidation;
-    
+
     #[ORM\OneToMany(mappedBy: 'demande', targetEntity: DemandeDocument::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $demandeDocuments;
+
+    #[ORM\OneToMany(mappedBy: 'nouvelleDemande', targetEntity: CircuitCommunication::class)]
+    private Collection $circuitCommunications;
 
     public function __construct()
     {
         $this->etapesValidation = new ArrayCollection();
         $this->demandeDocuments = new ArrayCollection();
+        $this->circuitCommunications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -194,6 +199,36 @@ class NouvelleDemande
                 $demandeDocument->setDemande(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CircuitCommunication>
+     */
+    public function getCircuitCommunications(): Collection
+    {
+        return $this->circuitCommunications;
+    }
+
+    public function addCircuitCommunication(CircuitCommunication $circuitCommunication): static
+    {
+        if (!$this->circuitCommunications->contains($circuitCommunication)) {
+            $this->circuitCommunications->add($circuitCommunication);
+            $circuitCommunication->setNouvelleDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCircuitCommunication(CircuitCommunication $circuitCommunication): static
+    {
+        if ($this->circuitCommunications->removeElement($circuitCommunication)) {
+            // set the owning side to null (unless already changed)
+            if ($circuitCommunication->getNouvelleDemande() === $this) {
+                $circuitCommunication->setNouvelleDemande(null);
+            }
+        }
+
         return $this;
     }
 }

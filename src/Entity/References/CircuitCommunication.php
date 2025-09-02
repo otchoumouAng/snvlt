@@ -2,7 +2,7 @@
 
 namespace App\Entity\References;
 
-use App\Entity\Administration\DemandeOperateur;
+use App\Entity\DemandeAutorisation\NouvelleDemande;
 use App\Repository\References\CircuitCommunicationRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,7 +25,7 @@ class CircuitCommunication
     private ?int $num_seq = null;
 
     #[ORM\ManyToOne(inversedBy: 'circuitCommunications')]
-    private ?DocumentOperateur $code_document_operateur = null;
+    private ?NouvelleDemande $nouvelleDemande = null;
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $statut = null;
@@ -62,9 +62,6 @@ class CircuitCommunication
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $operateur = null;
-
-    #[ORM\ManyToOne(inversedBy: 'circuitCommunications')]
-    private ?DemandeOperateur $code_demande_operateur = null;
 
     public function getId(): ?int
     {
@@ -107,14 +104,14 @@ class CircuitCommunication
         return $this;
     }
 
-    public function getCodeDocumentOperateur(): ?DocumentOperateur
+    public function getNouvelleDemande(): ?NouvelleDemande
     {
-        return $this->code_document_operateur;
+        return $this->nouvelleDemande;
     }
 
-    public function setCodeDocumentOperateur(?DocumentOperateur $code_document_operateur): static
+    public function setNouvelleDemande(?NouvelleDemande $nouvelleDemande): static
     {
-        $this->code_document_operateur = $code_document_operateur;
+        $this->nouvelleDemande = $nouvelleDemande;
 
         return $this;
     }
@@ -263,15 +260,4 @@ class CircuitCommunication
         return $this;
     }
 
-    public function getCodeDemandeOperateur(): ?DemandeOperateur
-    {
-        return $this->code_demande_operateur;
-    }
-
-    public function setCodeDemandeOperateur(?DemandeOperateur $code_demande_operateur): static
-    {
-        $this->code_demande_operateur = $code_demande_operateur;
-
-        return $this;
-    }
 }

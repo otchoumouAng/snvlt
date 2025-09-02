@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Validation de la demande{% endblock %}
+
+{% block body %}
+    <h1>Validation de la demande : {{ demande.titre }}</h1>
+
+    <p><strong>Description :</strong> {{ demande.description }}</p>
+    <p><strong>Statut :</strong> {{ demande.statut }}</p>
+    <p><strong>Demandeur :</strong> {{ demande.raisonSocial }}</p>
+    <p><strong>Date de création :</strong> {{ demande.createdAt|date('d/m/Y') }}</p>
+
+    <h2>Documents</h2>
+    <ul>
+        {% for doc in demande.demandeDocuments %}
+            <li><a href="{{ asset('uploads/documents/' ~ doc.document.path) }}" target="_blank">{{ doc.document.nom }}</a></li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+
+    <h2>Validation</h2>
+    {% if circuit %}
+        <form action="{{ path('app_validation_process', {'id': circuit.id}) }}" method="post">
+            <div class="form-group">
+                <label for="observation">Observation</label>
+                <textarea name="observation" id="observation" class="form-control"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Décision</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="status" id="status_valide" value="Validé" checked>
+                    <label class="form-check-label" for="status_valide">
+                        Valider
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="status" id="status_rejete" value="Rejeté">
+                    <label class="form-check-label" for="status_rejete">
+                        Rejeter
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Soumettre</button>
+        </form>
+    {% else %}
+        <p>Aucune étape de validation en attente pour cette demande.</p>
+    {% endif %}
+{% endblock %}

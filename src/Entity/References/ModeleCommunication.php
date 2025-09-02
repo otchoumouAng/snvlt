@@ -2,6 +2,7 @@
 
 namespace App\Entity\References;
 
+use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Repository\References\ModeleCommunicationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -45,7 +46,7 @@ class ModeleCommunication
     private ?string $updated_by = null;
 
     #[ORM\ManyToOne(inversedBy: 'modeleCommunications')]
-    private ?TypeModeleCommunication $code_type_modele_communication = null;
+    private ?TypeDemande $typeDemande = null;
 
     public function __construct()
     {
@@ -190,14 +191,14 @@ class ModeleCommunication
         return $this;
     }
 
-    public function getCodeTypeModeleCommunication(): ?TypeModeleCommunication
+    public function getTypeDemande(): ?TypeDemande
     {
-        return $this->code_type_modele_communication;
+        return $this->typeDemande;
     }
 
-    public function setCodeTypeModeleCommunication(?TypeModeleCommunication $code_type_modele_communication): static
+    public function setTypeDemande(?TypeDemande $typeDemande): static
     {
-        $this->code_type_modele_communication = $code_type_modele_communication;
+        $this->typeDemande = $typeDemande;
 
         return $this;
     }

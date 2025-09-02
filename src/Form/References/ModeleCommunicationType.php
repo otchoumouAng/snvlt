@@ -2,8 +2,8 @@
 
 namespace App\Form\References;
 
+use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Entity\References\ModeleCommunication;
-use App\Entity\References\TypeModeleCommunication;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
@@ -44,9 +44,10 @@ class ModeleCommunicationType extends AbstractType
                     ])
                 ]
             ])
-            ->add('code_type_modele_communication', EntityType::class, [
-                'label'=>$this->translator->trans('Model Type Name'),
-                'class'=>TypeModeleCommunication::class,
+            ->add('typeDemande', EntityType::class, [
+                'label'=>$this->translator->trans('Request Type Name'),
+                'class'=>TypeDemande::class,
+                'choice_label' => 'designation',
                 'required'=>true,
                 'label_attr'=>[
                     'class'=>'text-danger fw-bold',
@@ -60,7 +61,7 @@ class ModeleCommunicationType extends AbstractType
                 'expanded'=>false,
                 'constraints'=>[
                     new NotBlank([
-                        'message' => $this->translator->trans('The model name cannot be null'),
+                        'message' => $this->translator->trans('The request type name cannot be null'),
                     ])
                 ]
             ])

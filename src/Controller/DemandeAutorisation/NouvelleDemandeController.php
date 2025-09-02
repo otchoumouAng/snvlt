@@ -17,6 +17,7 @@ use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
+use App\Services\ValidationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -32,11 +33,13 @@ class NouvelleDemandeController extends AbstractController
 {
     private $entityManager;
     private $etapeValidationRepository;
+    private $validationService;
 
-    public function __construct(EntityManagerInterface $entityManager, EtapeValidationRepository $etapeValidationRepository)
+    public function __construct(EntityManagerInterface $entityManager, EtapeValidationRepository $etapeValidationRepository, ValidationService $validationService)
     {
         $this->entityManager = $entityManager;
         $this->etapeValidationRepository = $etapeValidationRepository;
+        $this->validationService = $validationService;
     }
 
     /**
@@ -168,6 +171,7 @@ class NouvelleDemandeController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $user = $this->getUser();
+        $isNew = false;
 
         try {
             if (!empty($data['id'])) {
@@ -178,6 +182,7 @@ class NouvelleDemandeController extends AbstractController
                 }
             } else {
                 // Création
+                $isNew = true;
                 $demande = new NouvelleDemande();
                 $demande->setCreatedAt(new \DateTime());
                 $demande->setCreatedBy($user->getUserIdentifier());
@@ -201,6 +206,10 @@ class NouvelleDemandeController extends AbstractController
 
             $this->entityManager->persist($demande);
             $this->entityManager->flush();
+
+            if ($isNew) {
+                $this->validationService->initializeValidation($demande);
+            }
 
             return new JsonResponse(['success' => true, 'id' => $demande->getId()]);
         } catch (\Exception $e) {

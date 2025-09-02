@@ -20,7 +20,6 @@ use App\Repository\References\DirectionRepository;
 use App\Repository\References\GrilleLegaliteRepository;
 use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\References\ServiceMinefRepository;
-use App\Repository\References\TypeModeleCommunicationRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -152,13 +151,14 @@ class ModeleCommunicationController extends AbstractController
         }
     }
 
-        #[Route('snvlt/ref/mc/change_statut/{id_modele}/{id_type_modele}', name: 'app_modele_com.change_status')]
+use App\Repository\DemandeAutorisation\TypeDemandeRepository;
+        #[Route('snvlt/ref/mc/change_statut/{id_modele}/{id_type_demande}', name: 'app_modele_com.change_status')]
         public  function  modeleActif(
             int $id_modele,
-            int $id_type_modele,
+            int $id_type_demande,
             ModeleCommunication $modeleCommunication = null,
             ModeleCommunicationRepository $modeleCommunicationRepository,
-            TypeModeleCommunicationRepository $typeModeleCommunicationRepository,
+            TypeDemandeRepository $typeDemandeRepository,
             UserRepository $userRepository,
             EntityManagerInterface $entityManager,
             User $user = null,
@@ -171,10 +171,10 @@ class ModeleCommunicationController extends AbstractController
                 return $this->redirectToRoute('app_login');
             } else {
                 if ($this->isGranted('ROLE_MINEF') or $this->isGranted('ROLE_ADMIN')) {
-                    if ($id_type_modele){
-                        $modeleType = $typeModeleCommunicationRepository->find($id_type_modele);
+                    if ($id_type_demande){
+                        $typeDemande = $typeDemandeRepository->find($id_type_demande);
 
-                        $liste_modeles = $modeleCommunicationRepository->findBy(['code_type_modele_communication'=>$modeleType]);
+                        $liste_modeles = $modeleCommunicationRepository->findBy(['typeDemande'=>$typeDemande]);
                         // Réinitialisation  et enregistrement de tous les modeles avec Statut = ""
                         foreach ($liste_modeles as $modele)
                         {
