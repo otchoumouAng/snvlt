@@ -40,9 +40,10 @@ class TransactionController extends AbstractController
         $clientNom = $data['client_nom'] ?? null;
         $clientPrenom = $data['client_prenom'] ?? null;
         $telephone = $data['telephone'] ?? null;
+        $typeDemandeId = $data['type_demande_id'] ?? null;
 
-        if (!$serviceId || !$clientNom || !$clientPrenom) {
-            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom et client_prenom sont requis'], 400);
+        if (!$serviceId || !$clientNom || !$clientPrenom || !$typeDemandeId) {
+            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom, client_prenom et type_demande_id sont requis'], 400);
         }
 
         $service = $this->em->getRepository(CatalogueServices::class)->find($serviceId);
@@ -56,6 +57,13 @@ class TransactionController extends AbstractController
         $transaction->setClientNom($clientNom);
         $transaction->setClientPrenom($clientPrenom);
         $transaction->setTelephone($telephone);
+
+        $typeDemande = $this->em->getRepository(\App\Entity\References\TypeDemande::class)->find($typeDemandeId);
+        if (!$typeDemande) {
+            return $this->json(['success' => false, 'message' => 'Type de demande non trouvé'], 404);
+        }
+        $transaction->setTypeDemande($typeDemande);
+
         $transaction->setStatut('EN_ATTENTE_AVIS');
 
         $identifiant = 'FORET-' . date('Y') . '-' . time() . rand(100, 999);

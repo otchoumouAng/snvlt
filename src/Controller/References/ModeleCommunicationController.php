@@ -356,4 +356,3 @@ class ModeleCommunicationController extends AbstractController
         }
     }
 }
-

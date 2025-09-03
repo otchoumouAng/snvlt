@@ -7,7 +7,7 @@ use App\Repository\References\CategoriesActiviteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoriesActiviteRepository::class)]
-#[ORM\Table(name: 'pay_ref_categories_activite', schema: 'metier')]
+#[ORM\Table(name: 'ref_categories_activite', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
 class CategoriesActivite
 {

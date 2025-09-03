@@ -6,7 +6,6 @@ use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\References\TypeDemandeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-
 #[ORM\Entity(repositoryClass: TypeDemandeRepository::class)]
 #[ORM\Table(name: 'pay_ref_types_demande', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]

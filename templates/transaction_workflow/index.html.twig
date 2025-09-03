@@ -17,14 +17,12 @@
     <div class="card">
         <div class="card-body">
             <div id="transaction-workflow">
-                <!-- Étape 1: Sélection du Service -->
-                <div id="service-selection-step">
+                <!-- Étape 1: Sélection -->
+                <div id="selection-step">
                     <h4 class="card-title">Étape 1: Sélection du Service</h4>
-                    <p class="card-description">Veuillez utiliser les filtres pour trouver le service désiré.</p>
-
                     <div class="row" id="filters-container">
                         <div class="col-md-4 mb-3">
-                            <label for="categorie_activite_id" class="form-label fw-bold">Catégorie d'Activité</label>
+                            <label for="categorie_activite_id" class="form-label fw-bold">1. Catégorie d'Activité</label>
                             <select id="categorie_activite_id" name="categorie_activite_id" class="form-select">
                                 <option value="">Sélectionner...</option>
                                 {% for option in initial_options %}
@@ -32,21 +30,21 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <!-- Les selects pour Type de Service et Service seront ajoutés ici par JS -->
+                        <!-- Les selects pour Service et Type de Demande seront ajoutés ici par JS -->
                     </div>
                 </div>
 
                 <!-- Étape 2: Confirmation du Service -->
-                <div id="confirmation-step" style="display: none;">
-                     <h4 class="card-title">Étape 2: Confirmation du Service</h4>
+                <div id="confirmation-step" class="mt-4" style="display: none;">
+                     <h4 class="card-title">Étape 2: Résumé et Confirmation</h4>
                      <div class="alert alert-info" id="service-summary">
                         <!-- Le résumé du service sera affiché ici -->
                     </div>
-                    <button id="btn-confirm" class="btn btn-success">Confirmer et Continuer</button>
+                    <button id="btn-confirm" class="btn btn-success">Confirmer et Renseigner mes Informations</button>
                 </div>
 
                 <!-- Étape 3: Informations Client -->
-                <div id="client-info-step" style="display: none;">
+                <div id="client-info-step" class="mt-4" style="display: none;">
                     <h4 class="card-title">Étape 3: Informations du Client</h4>
                     <form id="client-info-form">
                         <div class="row">
@@ -70,7 +68,7 @@
 
                 <!-- Boutons d'action -->
                 <div class="mt-4 d-flex justify-content-end">
-                    <button id="btn-reset" class="btn btn-secondary me-2" style="display: none;">Réinitialiser</button>
+                    <button id="btn-reset" class="btn btn-secondary me-2">Réinitialiser la Sélection</button>
                     <button id="btn-submit" class="btn btn-primary" style="display: none;">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
                         Générer l'Avis de Recette

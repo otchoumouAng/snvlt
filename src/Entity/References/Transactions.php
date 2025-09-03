@@ -47,6 +47,9 @@ class Transactions
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $tresorpay_response_message = null;
 
+    #[ORM\ManyToOne]
+    private ?TypeDemande $typeDemande = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -156,6 +159,18 @@ class Transactions
     public function setTresorpayResponseMessage(?string $tresorpay_response_message): static
     {
         $this->tresorpay_response_message = $tresorpay_response_message;
+
+        return $this;
+    }
+
+    public function getTypeDemande(): ?TypeDemande
+    {
+        return $this->typeDemande;
+    }
+
+    public function setTypeDemande(?TypeDemande $typeDemande): static
+    {
+        $this->typeDemande = $typeDemande;
 
         return $this;
     }

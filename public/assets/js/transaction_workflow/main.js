@@ -1,177 +1,140 @@
 document.addEventListener('DOMContentLoaded', function() {
     const filtersContainer = document.getElementById('filters-container');
     const clientInfoStep = document.getElementById('client-info-step');
+    const confirmationStep = document.getElementById('confirmation-step');
     const serviceSummary = document.getElementById('service-summary');
+    const btnConfirm = document.getElementById('btn-confirm');
     const btnSubmit = document.getElementById('btn-submit');
     const btnReset = document.getElementById('btn-reset');
 
-    let selectedServiceId = null;
-    let currentFilters = {};
-
-    const fieldLabels = {
-        'categorie_activite': 'Catégorie d\'Activité',
-        'type_service': 'Type de Service',
-        'services': 'Service'
+    let selectedValues = {
+        categorie_id: null,
+        service_id: null,
+        type_demande_id: null,
+        service_details: null
     };
 
-    filtersContainer.addEventListener('change', async (e) => {
+    const api = {
+        getServices: (categoryId) => fetch(`/api/services_by_category?categorie_id=${categoryId}`).then(res => res.json()),
+        getTypesDemande: () => fetch('/api/types_demande_options').then(res => res.json()),
+        submitTransaction: (payload) => fetch('/api/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(res => res.json())
+    };
+
+    // --- Event Listeners ---
+
+    filtersContainer.addEventListener('change', (e) => {
         if (e.target.tagName !== 'SELECT') return;
 
         const select = e.target;
         const fieldName = select.name.replace('_id', '');
-        const value = select.value;
 
-        const filterOrder = ['categorie_activite', 'type_service'];
-        const currentFieldIndex = filterOrder.indexOf(fieldName);
+        resetSubsequentSteps(fieldName);
 
-        // Clear subsequent filters from the object
-        for (let i = currentFieldIndex + 1; i < filterOrder.length; i++) {
-            delete currentFilters[filterOrder[i]];
-        }
+        selectedValues[fieldName + '_id'] = select.value;
 
-        // Mettre à jour les filtres actuels
-        if(value) {
-            currentFilters[fieldName] = value;
-        } else {
-            delete currentFilters[fieldName];
-        }
+        if (!select.value) return;
 
-
-        // Supprimer les filtres suivants
-        removeNextFilters(select);
-        hideFinalStep();
-
-        if (!value) return;
-
-        // Déterminer le prochain champ à charger
-        let nextField;
         if (fieldName === 'categorie_activite') {
-            nextField = 'type_service';
-        } else if (fieldName === 'type_service') {
-            nextField = 'services';
-        } else {
-            return; // Fin du flux
+            loadServices(select.value);
+        } else if (fieldName === 'service') {
+            const selectedOption = select.options[select.selectedIndex];
+            selectedValues.service_details = {
+                label: selectedOption.text,
+                montant: selectedOption.dataset.montant
+            };
+            loadTypesDemande();
+        } else if (fieldName === 'type_demande') {
+            showConfirmationStep();
         }
-
-        await fetchAndPopulateNextSelect(nextField);
     });
 
-    async function fetchAndPopulateNextSelect(nextFieldName) {
-        const params = new URLSearchParams(currentFilters).toString().replace(/%5B%5D/g, '');
+    btnConfirm.addEventListener('click', () => {
+        confirmationStep.style.display = 'none';
+        clientInfoStep.style.display = 'block';
+        btnSubmit.style.display = 'inline-block';
+    });
 
+    btnReset.addEventListener('click', resetAll);
+
+    btnSubmit.addEventListener('click', handleSubmit);
+
+    // --- Logic Functions ---
+
+    async function loadServices(categoryId) {
         try {
-            const response = await fetch(`/api/services/options?${params}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-
-            const data = await response.json();
-
-            if (data.options && data.options.length > 0) {
-                createSelect(nextFieldName, data.options);
+            const services = await api.getServices(categoryId);
+            if (services.length > 0) {
+                createSelect('service', '2. Service', services);
             } else {
-                Notification.warning('Aucune option disponible pour la sélection actuelle.');
+                Notification.warning('Aucun service disponible pour cette catégorie.');
             }
-        } catch (error) {
-            Notification.error('Erreur lors de la récupération des options.');
-            console.error(error);
+        } catch (e) {
+            Notification.error('Erreur de chargement des services.');
         }
     }
 
-    function createSelect(fieldName, options) {
+    async function loadTypesDemande() {
+        try {
+            const types = await api.getTypesDemande();
+            if (types.length > 0) {
+                createSelect('type_demande', '3. Type de Demande', types);
+            } else {
+                Notification.warning('Aucun type de demande trouvé. Veuillez en créer un.');
+            }
+        } catch (e) {
+            Notification.error('Erreur de chargement des types de demande.');
+        }
+    }
+
+    function createSelect(name, labelText, options) {
         const col = document.createElement('div');
         col.className = 'col-md-4 mb-3';
-        col.id = `col-${fieldName}`;
+        col.id = `col-${name}`;
 
         const label = document.createElement('label');
         label.className = 'form-label fw-bold';
-        label.htmlFor = `${fieldName}_id`;
-        label.textContent = fieldLabels[fieldName];
+        label.htmlFor = `${name}_id`;
+        label.textContent = labelText;
 
         const select = document.createElement('select');
-        select.id = `${fieldName}_id`;
-        select.name = `${fieldName}_id`;
+        select.id = `${name}_id`;
+        select.name = `${name}_id`;
         select.className = 'form-select';
 
-        let placeholder = fieldName === 'services' ? 'Sélectionner un service final...' : 'Sélectionner...';
-        select.innerHTML = `<option value="">${placeholder}</option>`;
-
+        select.innerHTML = `<option value="">Sélectionner...</option>`;
         options.forEach(opt => {
-            let text = opt.label;
-            if (fieldName === 'services') {
-                text += ` - ${Number(opt.montant_fcfa).toLocaleString('fr-FR')} FCFA`;
+            const option = document.createElement('option');
+            option.value = opt.id;
+            option.textContent = opt.label;
+            if (opt.montant) {
+                option.dataset.montant = opt.montant;
             }
-            select.innerHTML += `<option value="${opt.id}">${text}</option>`;
+            select.appendChild(option);
         });
-
-        if (fieldName === 'services') {
-            select.addEventListener('change', handleFinalServiceSelection);
-        }
 
         col.appendChild(label);
         col.appendChild(select);
         filtersContainer.appendChild(col);
     }
 
-    function handleFinalServiceSelection(e) {
-        const select = e.target;
-        const selectedOption = select.options[select.selectedIndex];
-        if (select.value) {
-            selectedServiceId = select.value;
-            const serviceName = selectedOption.text;
-            showConfirmationStep(serviceName);
-        } else {
-            hideConfirmationStep();
-            hideFinalStep();
-        }
-    }
+    function showConfirmationStep() {
+        if (!selectedValues.service_details || !selectedValues.type_demande_id) return;
 
-    document.getElementById('btn-confirm').addEventListener('click', () => {
-        hideConfirmationStep();
-        showFinalStep();
-    });
+        const typeDemandeSelect = document.getElementById('type_demande_id');
+        const typeDemandeText = typeDemandeSelect.options[typeDemandeSelect.selectedIndex].text;
 
-    function removeNextFilters(currentSelect) {
-        let nextElement = currentSelect.parentElement.nextElementSibling;
-        while (nextElement) {
-            let toRemove = nextElement;
-            nextElement = nextElement.nextElementSibling;
-            toRemove.remove();
-        }
-    }
-
-    function showConfirmationStep(serviceName) {
-        const confirmationStep = document.getElementById('confirmation-step');
-        const summary = confirmationStep.querySelector('#service-summary');
-        summary.innerHTML = `<strong>Service sélectionné :</strong><br>${serviceName}`;
+        serviceSummary.innerHTML = `
+            <p><strong>Service :</strong> ${selectedValues.service_details.label}</p>
+            <p><strong>Type de Demande :</strong> ${typeDemandeText}</p>
+        `;
         confirmationStep.style.display = 'block';
-        btnReset.style.display = 'inline-block';
     }
 
-    function hideConfirmationStep() {
-        document.getElementById('confirmation-step').style.display = 'none';
-    }
-
-    function showFinalStep() {
-        clientInfoStep.style.display = 'block';
-        btnSubmit.style.display = 'inline-block';
-    }
-
-    function hideFinalStep() {
-        clientInfoStep.style.display = 'none';
-        btnSubmit.style.display = 'none';
-        selectedServiceId = null;
-    }
-
-    btnReset.addEventListener('click', () => {
-        const firstSelect = filtersContainer.querySelector('select');
-        removeNextFilters(firstSelect);
-        firstSelect.value = '';
-        currentFilters = {};
-        hideConfirmationStep();
-        hideFinalStep();
-        btnReset.style.display = 'none';
-    });
-
-    btnSubmit.addEventListener('click', async () => {
+    async function handleSubmit() {
         const form = document.getElementById('client-info-form');
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -179,7 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const payload = {
-            service_id: selectedServiceId,
+            service_id: selectedValues.service_id,
+            type_demande_id: selectedValues.type_demande_id,
             client_nom: document.getElementById('client_nom').value,
             client_prenom: document.getElementById('client_prenom').value,
             telephone: document.getElementById('telephone').value
@@ -190,14 +154,9 @@ document.addEventListener('DOMContentLoaded', function() {
         btnSubmit.disabled = true;
 
         try {
-            const response = await fetch('/api/transactions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
+            const result = await api.submitTransaction(payload);
 
-            if (response.ok && result.success) {
+            if (result.success) {
                 document.getElementById('transaction-workflow').style.display = 'none';
                 const resultContainer = document.getElementById('result-container');
                 resultContainer.innerHTML = `
@@ -213,10 +172,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             Notification.error('Erreur de communication avec le serveur.');
-            console.error('Submission error:', error);
         } finally {
             spinner.style.display = 'none';
             btnSubmit.disabled = false;
         }
-    });
+    }
+
+    function resetSubsequentSteps(fieldName) {
+        const order = ['categorie_activite', 'service', 'type_demande'];
+        const index = order.indexOf(fieldName);
+
+        for(let i = index + 1; i < order.length; i++) {
+            const selectContainer = document.getElementById(`col-${order[i]}`);
+            if(selectContainer) selectContainer.remove();
+            selectedValues[order[i] + '_id'] = null;
+        }
+
+        confirmationStep.style.display = 'none';
+        clientInfoStep.style.display = 'none';
+        btnSubmit.style.display = 'none';
+    }
+
+    function resetAll() {
+        const firstSelect = filtersContainer.querySelector('select');
+        resetSubsequentSteps(firstSelect.name.replace('_id', ''));
+        firstSelect.value = '';
+        selectedValues = {};
+    }
 });
