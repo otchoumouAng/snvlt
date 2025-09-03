@@ -1,0 +1,32 @@
+{% set mode = mode|default('new') %}
+{% set entity = entity|default(null) %}
+
+<div class="container-fluid">
+    <h4 class="mb-4 text-primary">{{ mode == 'edit' ? 'Modifier' : 'Nouveau' }} {{ title|lower }}</h4>
+
+    <form id="genericForm" method="post" data-entity-name="{{ entityName }}">
+        {% if entity and entity.id %}
+            <input type="hidden" name="id" value="{{ entity.id }}">
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="libelle" class="form-label fw-bold">Libellé</label>
+                    <input type="text" class="form-control" id="libelle" name="libelle"
+                           value="{{ entity.libelle ?? '' }}"
+                           required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 text-end">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    {{ entity and entity.id ? 'Modifier' : 'Créer' }}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>

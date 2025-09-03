@@ -1,0 +1,88 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Catalogue des Services
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+    <style>
+        .service-row.selected {
+            background-color: #e6f7ff !important;
+        }
+        #notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            width: 350px;
+        }
+        .notification {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s forwards;
+            border-left: 4px solid;
+        }
+        .notification.success { border-left-color: #28a745; }
+        .notification.error { border-left-color: #dc3545; }
+        .notification .icon { font-size: 24px; margin-right: 15px; }
+        .notification.success .icon { color: #28a745; }
+        .notification.error .icon { color: #dc3545; }
+        .notification .content { flex: 1; }
+        .notification .close { background: none; border: none; font-size: 18px; cursor: pointer; color: #6c757d; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+    </style>
+
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/icons/16x16/settings.png') }}" alt="Catalogue des Services"> Catalogue des Services
+    </h2>
+
+    <div class="d-sm-flex justify-content-xl-between align-items-center mb-2">
+        <div class="btn-group p-1 rounded-5" role="group">
+            <button id="btnAdd" class="btn btn-primary p-2 mt-2">
+                <i class="mdi mdi-plus-circle me-2"></i>Ajouter un Service
+            </button>
+        </div>
+    </div>
+
+    <table class="table table-responsive-sm w-100 p-2 bg-white" id="catalogueServicesTable">
+        <!-- Le contenu du tableau sera généré par DataTables -->
+    </table>
+
+    <!-- Modal pour le formulaire -->
+    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModalTitle">Gestion de Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="formModalBody">
+                    <!-- Le contenu du formulaire sera chargé ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification-container"></div>
+
+    <script type="text/template" id="template-form-new">
+        {{ preloaded_forms.new|raw }}
+    </script>
+
+    <script type="text/template" id="template-form-edit">
+        {{ preloaded_forms.edit|raw }}
+    </script>
+
+    <script src="{{ asset('assets/js/references/catalogue_services/notification.js') }}"></script>
+    <script src="{{ asset('assets/js/references/catalogue_services/main.js') }}"></script>
+{% endblock %}
