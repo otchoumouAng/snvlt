@@ -1,0 +1,100 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - Initier une Transaction
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid">
+    <h2 class="text-dark font-weight-bold mb-4">
+        <i class="mdi mdi-cash-register"></i> Initier une Transaction de Paiement
+    </h2>
+
+    <div class="card">
+        <div class="card-body">
+            <div id="transaction-workflow">
+                <!-- Étape 1: Sélection du Service -->
+                <div id="service-selection-step">
+                    <h4 class="card-title">Étape 1: Sélection du Service</h4>
+                    <p class="card-description">Veuillez utiliser les filtres pour trouver le service désiré.</p>
+
+                    <div class="row" id="filters-container">
+                        <div class="col-md-4 mb-3">
+                            <label for="type_service_id" class="form-label fw-bold">Type de Service</label>
+                            <select id="type_service_id" name="type_service_id" class="form-select" data-next="categorie_activite">
+                                <option value="">Sélectionner...</option>
+                                {% for option in initial_options %}
+                                    <option value="{{ option.id }}">{{ option.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <!-- Les autres selects seront ajoutés dynamiquement ici -->
+                    </div>
+                </div>
+
+                <!-- Étape 2: Résumé et Informations Client -->
+                <div id="client-info-step" style="display: none;">
+                    <h4 class="card-title">Étape 2: Confirmation et Informations du Client</h4>
+
+                    <div class="alert alert-info" id="service-summary">
+                        <!-- Le résumé du service sera affiché ici -->
+                    </div>
+
+                    <form id="client-info-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="client_nom" class="form-label fw-bold">Nom</label>
+                                <input type="text" id="client_nom" name="client_nom" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="client_prenom" class="form-label fw-bold">Prénom(s)</label>
+                                <input type="text" id="client_prenom" name="client_prenom" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telephone" class="form-label fw-bold">Téléphone</label>
+                                <input type="tel" id="telephone" name="telephone" class="form-control">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="mt-4 d-flex justify-content-end">
+                    <button id="btn-reset" class="btn btn-secondary me-2" style="display: none;">Réinitialiser</button>
+                    <button id="btn-submit" class="btn btn-primary" style="display: none;">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                        Générer l'Avis de Recette
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone de résultat -->
+            <div id="result-container" class="mt-4" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+
+<div id="notification-container"></div>
+<style>
+    #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px; }
+    .notification { background: white; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; margin-bottom: 10px; display: flex; align-items: center; animation: slideIn 0.3s forwards; border-left: 4px solid; }
+    .notification.success { border-left-color: #28a745; }
+    .notification.error { border-left-color: #dc3545; }
+    .notification .icon { font-size: 24px; margin-right: 15px; }
+    .notification.success .icon { color: #28a745; }
+    .notification.error .icon { color: #dc3545; }
+    .notification .content { flex: 1; }
+    .notification .close { background: none; border: none; font-size: 18px; cursor: pointer; color: #6c757d; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+</style>
+
+<script src="{{ asset('assets/js/transaction_workflow/notification.js') }}"></script>
+<script src="{{ asset('assets/js/transaction_workflow/main.js') }}"></script>
+{% endblock %}
