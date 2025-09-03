@@ -7,7 +7,7 @@ use App\Repository\References\TypesDemandeurRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypesDemandeurRepository::class)]
-#[ORM\Table(name: 'ref_types_demandeur', schema: 'metier')]
+#[ORM\Table(name: 'pay_ref_types_demandeur', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
 class TypesDemandeur
 {

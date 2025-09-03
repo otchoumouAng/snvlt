@@ -8,7 +8,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransactionsRepository::class)]
-#[ORM\Table(name: 'trans_transactions', schema: 'metier')]
+#[ORM\Table(name: 'pay_trans_transactions', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
 class Transactions
 {
