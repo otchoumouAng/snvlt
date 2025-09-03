@@ -14,7 +14,6 @@ class NouvelleDemandeApp {
     }
 
     init() {
-        this.preloadModalTemplates(); // Précharger les templates
         this.initDataTable();
         this.bindEvents();
         this.loadDemandes();
@@ -35,7 +34,7 @@ class NouvelleDemandeApp {
             columns: [
                 { data: 'id' },
                 { data: 'titre' },
-                { data: 'typeDemande' },
+                { data: 'typeDocument' },
                 { data: 'societe' },
                 { data: 'dateCreation' },
                 { 
@@ -214,22 +213,80 @@ class NouvelleDemandeApp {
         try {
             this.selectedDemandeId = id;
             $('#editBtn').prop('disabled', false);
-            $('#trackBtn').prop('disabled', false);
             
-            // This now becomes the main function to call
-            this.displayDocumentPanel({ id: id });
-
+            const details = await this.apiService.getDemandeDetails(id);
+            this.displayDetails(details);
         } catch (error) {
-            this.notification.error('Erreur lors de la sélection de la demande.');
+            this.notification.error('Erreur lors du chargement des détails');
             console.error(error);
         }
     }
 
+    displayDetails(details) {
+    const detailsContent = $('#details-content');
+    const placeholder = $('#details-placeholder');
+
+    placeholder.hide();
+    detailsContent.removeClass('visible');
+
+    // On construit la liste des documents, chacun avec son bouton de suppression
+    let documentsHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        details.documents.forEach((doc) => {
+            documentsHtml += `
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
+                    <a href="${doc.url || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 70%;">${doc.nom}</a>
+                    <div class="d-flex align-items-center gap-2">
+                        ${NouvelDemandeApp.getDocumentStatusBadge(doc.statut)}
+                        <button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
+                            <i class="ph-fill ph-x"></i>
+                        </button>
+                    </div>
+                </li>`;
+        });
+    } else {
+        documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
+    }
+
+    // On construit le HTML complet du panneau
+    const contentHtml = `
+        <div class="mb-3">
+            <h5 class="fw-bold mb-1">${details.titre}</h5>
+            <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
+            ${NouvelleDemandeApp.getStatusBadge(details.statut)}
+            <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
+            <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+
+        <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
+    `;
+
+    detailsContent.html(contentHtml);
+    setTimeout(() => detailsContent.addClass('visible'), 10);
+
+    // On attache les événements aux nouveaux boutons
+    $('#addDocumentBtnPanel').on('click', () => {
+        $('#pdf-upload-panel').click();
+    });
+
+    $('#pdf-upload-panel').on('change', (e) => {
+        this.handleFileUpload(e.target.files);
+    });
+}
+
     showDetailsPlaceholder() {
-        $('#details-loader').hide();
-        $('#details-content').hide().html('');
-        $('#details-placeholder').show();
-        $('#details-title-text').text('Documents');
+        const detailsContent = $('#details-content');
+        const placeholder = $('#details-placeholder');
+
+        detailsContent.removeClass('visible').html('');
+        placeholder.show();
     }
 
     async openModal(id, mode) {
@@ -285,7 +342,7 @@ setupModalWithData(mode, data) {
     form.find('#demandeId').val(data.id);
     form.find('#titre').val(data.titre);
     form.find('#description').val(data.description);
-    form.find('#typeDemande').val(data.typeDemandeId);
+    form.find('#typeDocument').val(data.typeDocumentId);
     
     // Set mode-specific configurations
     switch(mode) {
@@ -324,81 +381,74 @@ setupModalWithData(mode, data) {
     }
 }
 
-// Fonction pour afficher le panneau de détails complet
+// NOUVELLE FONCTION CENTRALE pour le panneau
 async displayDocumentPanel(demandeData) {
     this.showLoader(); // Affiche le spinner
+    $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
 
     try {
         const details = await this.apiService.getDemandeDetails(demandeData.id);
-
-        // Mettre à jour le titre du panneau
-        $('#details-title-text').html(`Détails : <span class="fw-normal">${details.titre}</span>`);
-
-        // Construire la liste des documents
-        let documentsHtml = '';
-        if (details.documents && details.documents.length > 0) {
-            documentsHtml = details.documents.map(doc => `
-                <li class="document-item" data-doc-id="${doc.document_id}">
-                    <i class="ph-fill ph-file-pdf icon"></i>
-                    <div class="info">
-                        <div class="name">${doc.nom}</div>
-                        <div class="meta">${doc.nom_fichier || 'Non fourni'}</div>
-                    </div>
-                    ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                    <div class="actions ms-3">
-                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger" ${!doc.path ? 'disabled' : ''}>
-                            <i class="ph-fill ph-download-simple"></i>
-                        </a>
-                        <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer" data-doc-id="${doc.document_id}" ${!doc.document_id ? 'disabled' : ''}>
-                            <i class="ph-fill ph-trash-simple"></i>
-                        </button>
-                    </div>
-                </li>
-            `).join('');
-        } else {
-            documentsHtml = `
-                <div class="text-center p-4">
-                    <p class="text-muted">Aucun type de document requis pour cette demande.</p>
-                </div>
-            `;
-        }
-
-        // Construire le HTML complet du panneau
-        const contentHtml = `
-            <div class="mb-3">
-                <h5 class="fw-bold mb-1">${details.titre}</h5>
-                <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
-                ${NouvelleDemandeApp.getStatusBadge(details.statut)}
-                <div class="mt-2 small text-muted">Type: <strong>${details.typeDemande}</strong></div>
-            </div>
-
-            <hr>
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
-                <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
-                    <i class="ph-fill ph-plus-circle"></i> Ajouter un Fichier
-                </button>
-                <input type="file" id="pdf-upload-panel" accept=".pdf,.doc,.docx" style="display: none;" multiple />
-            </div>
-            <ul class="document-list">${documentsHtml}</ul>
-        `;
+        const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
 
         $('#details-loader').hide();
-        $('#details-content').html(contentHtml).show().addClass('visible');
+        $('#details-content').html(contentHtml).fadeIn(300);
 
     } catch (error) {
-        console.error("Erreur lors du chargement des détails :", error);
-        this.notification.error("Erreur lors du chargement des détails.");
+        this.notification.error("Erreur lors du chargement des documents.");
         this.showDetailsPlaceholder(); // En cas d'erreur, on revient au placeholder
     }
 }
 
+// NOUVELLE FONCTION pour construire le HTML du panneau
+// Fichier : nouvelledemande.js
+
+buildDocumentsHtml(details) {
+    let documentsListHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        documentsListHtml = details.documents.map(doc => `
+            <li class="document-item" data-doc-id="${doc.id}">
+                <i class="ph-fill ph-file-pdf icon"></i>
+                <div class="info">
+                    <div class="name">${doc.nom}</div>
+                    <div class="meta">PDF Document</div>
+                </div>
+                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
+                <div class="actions ms-3">
+                    <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                        <i class="ph-fill ph-download-simple"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer">
+                        <i class="ph-fill ph-trash-simple"></i>
+                    </button>
+                </div>
+            </li>
+        `).join('');
+    } else {
+        return `
+            <div class="text-center p-5 mt-3">
+                <i class="ph-light ph-file-magnifying-glass" style="font-size: 3rem; color: #ced4da;"></i>
+                <h6 class="mt-3">Aucun Document</h6>
+                <p class="text-muted small">Cette demande n'a pas encore de document attaché.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Fichiers Attachés</h6>
+            <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus-circle"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        <ul class="document-list">${documentsListHtml}</ul>
+    `;
+}
 
 // Fonctions de gestion des états du panneau
 showLoader() {
     $('#details-placeholder').hide();
-    $('#details-content').hide().removeClass('visible');
+    $('#details-content').hide();
     $('#details-loader').show();
 }
 
