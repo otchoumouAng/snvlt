@@ -3,13 +3,14 @@
 namespace App\Entity\References;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\References\RegimesFiscauxRepository;
+use App\Repository\References\TypeDemandeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: RegimesFiscauxRepository::class)]
-#[ORM\Table(name: 'pay_ref_regimes_fiscaux', schema: 'metier')]
+
+#[ORM\Entity(repositoryClass: TypeDemandeRepository::class)]
+#[ORM\Table(name: 'pay_ref_types_demande', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
-class RegimesFiscaux
+class TypeDemande
 {
     use AuditTrait;
 

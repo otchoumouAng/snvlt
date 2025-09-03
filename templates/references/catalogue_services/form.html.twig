@@ -83,17 +83,6 @@
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="form-group mb-3">
-                    <label for="regime_fiscal_id" class="form-label fw-bold">Régime Fiscal</label>
-                    <select class="form-control" id="regime_fiscal_id" name="regime_fiscal_id">
-                        <option value="">(Optionnel)</option>
-                        {% for item in regimes_fiscaux %}
-                            <option value="{{ item.id }}">{{ item.libelle }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
         </div>
 
         <div class="row">
