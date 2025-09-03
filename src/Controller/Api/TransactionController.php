@@ -81,6 +81,8 @@ class TransactionController extends AbstractController
             $telephone
         );
 
+        dd($tresorPayResponse);
+
         $responseCode = $tresorPayResponse['response_code'] ?? -1;
         $responseMessage = $tresorPayResponse['response_message'] ?? 'Réponse invalide de l\'API';
 
