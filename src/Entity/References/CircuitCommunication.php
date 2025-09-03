@@ -2,6 +2,7 @@
 
 namespace App\Entity\References;
 
+
 use App\Entity\Administration\DemandeOperateur;
 use App\Repository\References\CircuitCommunicationRepository;
 use Doctrine\DBAL\Types\Types;

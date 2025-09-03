@@ -7,7 +7,7 @@ use App\Repository\References\TypesServiceRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypesServiceRepository::class)]
-#[ORM\Table(name: 'ref_types_service', schema: 'metier')]
+#[ORM\Table(name: 'pay_ref_types_service', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
 class TypesService
 {

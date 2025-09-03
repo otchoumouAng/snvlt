@@ -7,7 +7,7 @@ use App\Repository\References\RegimesFiscauxRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: RegimesFiscauxRepository::class)]
-#[ORM\Table(name: 'ref_regimes_fiscaux', schema: 'metier')]
+#[ORM\Table(name: 'pay_ref_regimes_fiscaux', schema: 'metier')]
 #[ORM\HasLifecycleCallbacks]
 class RegimesFiscaux
 {

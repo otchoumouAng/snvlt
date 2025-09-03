@@ -9,6 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
+
 #[ORM\Table(name: 'metier.modele_communication')]
 #[UniqueEntity(fields: ['libelle_modele'], message: 'There is already a model with this name')]
 #[ORM\Entity(repositoryClass: ModeleCommunicationRepository::class)]
