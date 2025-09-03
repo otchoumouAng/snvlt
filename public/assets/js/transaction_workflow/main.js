@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmationStep.style.display = 'none';
         clientInfoStep.style.display = 'block';
         btnSubmit.style.display = 'inline-block';
+        prefillUserInfo();
     });
 
     btnReset.addEventListener('click', resetAll);
@@ -125,6 +126,20 @@ document.addEventListener('DOMContentLoaded', function() {
         col.appendChild(label);
         col.appendChild(select);
         filtersContainer.appendChild(col);
+    }
+
+    function prefillUserInfo() {
+        const workflowContainer = document.getElementById('transaction-workflow');
+        const nomInput = document.getElementById('client_nom');
+        const prenomInput = document.getElementById('client_prenom');
+        const telephoneInput = document.getElementById('telephone');
+
+        nomInput.value = workflowContainer.dataset.userNom || '';
+        prenomInput.value = workflowContainer.dataset.userPrenom || '';
+        telephoneInput.value = workflowContainer.dataset.userTelephone || '';
+
+        nomInput.readOnly = true;
+        prenomInput.readOnly = true;
     }
 
     function showConfirmationStep() {
