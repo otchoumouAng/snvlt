@@ -148,6 +148,11 @@ document.addEventListener('DOMContentLoaded', function() {
         col.appendChild(label);
         col.appendChild(select);
         filtersContainer.appendChild(col);
+
+        // Initialize Select2 on the new dropdown
+        $(select).select2({
+            theme: "bootstrap-5"
+        });
     }
 
     function prefillUserInfo() {
@@ -249,4 +254,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         updateStepper(1);
     }
+
+    // Initialize Select2 on the initial dropdown
+    $('#categorie_activite_id').select2({
+        theme: "bootstrap-5"
+    });
 });
