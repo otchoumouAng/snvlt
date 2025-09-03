@@ -7,7 +7,6 @@ use App\Entity\References\CatalogueServices;
 use App\Entity\References\TypesService;
 use App\Entity\References\CategoriesActivite;
 use App\Entity\References\TypesDemandeur;
-use App\Entity\References\RegimesFiscaux;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -39,7 +38,6 @@ class CatalogueServicesController extends AbstractController
             'categories_activite' => $em->getRepository(CategoriesActivite::class)->findAll(),
             'types_demandeur' => $em->getRepository(TypesDemandeur::class)->findAll(),
             'types_demande' => $em->getRepository(TypeDemande::class)->findBy(['desactivate' => false]),
-            'regimes_fiscaux' => $em->getRepository(RegimesFiscaux::class)->findAll(),
             'catalogue_service' => null
         ];
 
@@ -128,11 +126,6 @@ class CatalogueServicesController extends AbstractController
                 $catalogueService->setTypeDemande(null);
             }
 
-            if (!empty($data['regime_fiscal_id'])) {
-                $catalogueService->setRegimeFiscal($em->getRepository(RegimesFiscaux::class)->find($data['regime_fiscal_id']));
-            } else {
-                $catalogueService->setRegimeFiscal(null);
-            }
 
             $em->persist($catalogueService);
             $em->flush();
@@ -159,7 +152,6 @@ class CatalogueServicesController extends AbstractController
                 'categorie_activite_id' => $catalogueService->getCategorieActivite()?->getId(),
                 'type_demandeur_id' => $catalogueService->getTypeDemandeur()?->getId(),
                 'type_demande_id' => $catalogueService->getTypeDemande()?->getId(),
-                'regime_fiscal_id' => $catalogueService->getRegimeFiscal()?->getId(),
             ];
 
             return $this->json($data);

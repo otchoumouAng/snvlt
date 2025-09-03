@@ -46,8 +46,6 @@ class CatalogueServices
     #[ORM\ManyToOne]
     private ?TypeDemande $type_demande = null;
 
-    #[ORM\ManyToOne]
-    private ?RegimesFiscaux $regime_fiscal = null;
 
     public function getId(): ?int
     {
@@ -150,15 +148,4 @@ class CatalogueServices
         return $this;
     }
 
-    public function getRegimeFiscal(): ?RegimesFiscaux
-    {
-        return $this->regime_fiscal;
-    }
-
-    public function setRegimeFiscal(?RegimesFiscaux $regime_fiscal): static
-    {
-        $this->regime_fiscal = $regime_fiscal;
-
-        return $this;
-    }
 }
