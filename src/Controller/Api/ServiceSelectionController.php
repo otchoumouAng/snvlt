@@ -18,31 +18,26 @@ class ServiceSelectionController extends AbstractController
      */
     public function getOptions(Request $request, CatalogueServicesRepository $repo): JsonResponse
     {
-        $filters = [
-            'type_service' => $request->query->get('type_service_id'),
-            'categorie_activite' => $request->query->get('categorie_activite_id'),
-            'type_demandeur' => $request->query->get('type_demandeur_id'),
-            'type_demande' => $request->query->get('type_demande_id'),
-            'regime_fiscal' => $request->query->get('regime_fiscal_id'),
-        ];
+        $categorie_activite_id = $request->query->get('categorie_activite_id');
+        $type_service_id = $request->query->get('type_service_id');
 
-        // Déterminer le prochain champ à peupler
-        $nextField = null;
-        foreach ($filters as $key => $value) {
-            if (empty($value)) {
-                $nextField = $key;
-                break;
-            }
+        $filters = [];
+        $nextField = 'type_service'; // Par défaut, on cherche les types de service
+
+        if ($categorie_activite_id) {
+            $filters['categorie_activite'] = $categorie_activite_id;
         }
 
-        // Si aucun champ n'est à peupler, on retourne les services finaux
-        if ($nextField === null) {
-            $services = $repo->findDistinctBy($filters, null);
-             return $this->json(['type' => 'services', 'options' => $services]);
+        if ($type_service_id) {
+            $filters['type_service'] = $type_service_id;
+            $nextField = 'services'; // Si les deux sont fournis, on cherche les services finaux
         }
 
-
-        $options = $repo->findDistinctBy(array_filter($filters), $nextField);
+        if ($nextField === 'services') {
+             $options = $repo->findDistinctBy($filters, null);
+        } else {
+             $options = $repo->findDistinctBy($filters, $nextField);
+        }
 
         return $this->json([
             'type' => $nextField,

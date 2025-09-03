@@ -24,15 +24,15 @@
 
                     <div class="row" id="filters-container">
                         <div class="col-md-4 mb-3">
-                            <label for="type_service_id" class="form-label fw-bold">Type de Service</label>
-                            <select id="type_service_id" name="type_service_id" class="form-select" data-next="categorie_activite">
+                            <label for="categorie_activite_id" class="form-label fw-bold">Catégorie d'Activité</label>
+                            <select id="categorie_activite_id" name="categorie_activite_id" class="form-select">
                                 <option value="">Sélectionner...</option>
                                 {% for option in initial_options %}
                                     <option value="{{ option.id }}">{{ option.libelle }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                        <!-- Les autres selects seront ajoutés dynamiquement ici -->
+                        <!-- Les selects pour Type de Service et Service seront ajoutés ici par JS -->
                     </div>
                 </div>
 

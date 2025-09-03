@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Repository\References\TypesServiceRepository;
+use App\Repository\References\CategoriesActiviteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,7 +17,7 @@ class TransactionWorkflowController extends AbstractController
      * @Route("/transaction/new", name="app_transaction_workflow")
      */
     public function index(
-        TypesServiceRepository $typesServiceRepo,
+        CategoriesActiviteRepository $categoriesActiviteRepo,
         MenuRepository $menus,
         NotificationRepository $notification,
         MenuPermissionRepository $permissions,
@@ -35,7 +35,7 @@ class TransactionWorkflowController extends AbstractController
             'groupe' => $code_groupe,
             'titre' => 'Initier une Transaction',
             'liste_parent' => $permissions,
-            'initial_options' => $typesServiceRepo->findAll(),
+            'initial_options' => $categoriesActiviteRepo->findAll(),
         ]);
     }
 }
