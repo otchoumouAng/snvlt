@@ -36,14 +36,18 @@
                     </div>
                 </div>
 
-                <!-- Étape 2: Résumé et Informations Client -->
-                <div id="client-info-step" style="display: none;">
-                    <h4 class="card-title">Étape 2: Confirmation et Informations du Client</h4>
-
-                    <div class="alert alert-info" id="service-summary">
+                <!-- Étape 2: Confirmation du Service -->
+                <div id="confirmation-step" style="display: none;">
+                     <h4 class="card-title">Étape 2: Confirmation du Service</h4>
+                     <div class="alert alert-info" id="service-summary">
                         <!-- Le résumé du service sera affiché ici -->
                     </div>
+                    <button id="btn-confirm" class="btn btn-success">Confirmer et Continuer</button>
+                </div>
 
+                <!-- Étape 3: Informations Client -->
+                <div id="client-info-step" style="display: none;">
+                    <h4 class="card-title">Étape 3: Informations du Client</h4>
                     <form id="client-info-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">

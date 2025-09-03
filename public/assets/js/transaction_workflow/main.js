@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentFilters = {};
 
     const fieldLabels = {
+        'categorie_activite': 'Catégorie d\'Activité',
         'type_service': 'Type de Service',
         'services': 'Service'
     };
@@ -20,8 +21,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const fieldName = select.name.replace('_id', '');
         const value = select.value;
 
+        const filterOrder = ['categorie_activite', 'type_service'];
+        const currentFieldIndex = filterOrder.indexOf(fieldName);
+
+        // Clear subsequent filters from the object
+        for (let i = currentFieldIndex + 1; i < filterOrder.length; i++) {
+            delete currentFilters[filterOrder[i]];
+        }
+
         // Mettre à jour les filtres actuels
-        currentFilters[fieldName] = value;
+        if(value) {
+            currentFilters[fieldName] = value;
+        } else {
+            delete currentFilters[fieldName];
+        }
+
 
         // Supprimer les filtres suivants
         removeNextFilters(select);
@@ -103,11 +117,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (select.value) {
             selectedServiceId = select.value;
             const serviceName = selectedOption.text;
-            showFinalStep(serviceName);
+            showConfirmationStep(serviceName);
         } else {
+            hideConfirmationStep();
             hideFinalStep();
         }
     }
+
+    document.getElementById('btn-confirm').addEventListener('click', () => {
+        hideConfirmationStep();
+        showFinalStep();
+    });
 
     function removeNextFilters(currentSelect) {
         let nextElement = currentSelect.parentElement.nextElementSibling;
@@ -118,17 +138,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function showFinalStep(serviceName) {
-        serviceSummary.innerHTML = `<strong>Service sélectionné :</strong> ${serviceName}`;
+    function showConfirmationStep(serviceName) {
+        const confirmationStep = document.getElementById('confirmation-step');
+        const summary = confirmationStep.querySelector('#service-summary');
+        summary.innerHTML = `<strong>Service sélectionné :</strong><br>${serviceName}`;
+        confirmationStep.style.display = 'block';
+        btnReset.style.display = 'inline-block';
+    }
+
+    function hideConfirmationStep() {
+        document.getElementById('confirmation-step').style.display = 'none';
+    }
+
+    function showFinalStep() {
         clientInfoStep.style.display = 'block';
         btnSubmit.style.display = 'inline-block';
-        btnReset.style.display = 'inline-block';
     }
 
     function hideFinalStep() {
         clientInfoStep.style.display = 'none';
         btnSubmit.style.display = 'none';
-        btnReset.style.display = 'none';
         selectedServiceId = null;
     }
 
@@ -137,7 +166,9 @@ document.addEventListener('DOMContentLoaded', function() {
         removeNextFilters(firstSelect);
         firstSelect.value = '';
         currentFilters = {};
+        hideConfirmationStep();
         hideFinalStep();
+        btnReset.style.display = 'none';
     });
 
     btnSubmit.addEventListener('click', async () => {
