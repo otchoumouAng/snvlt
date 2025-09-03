@@ -16,6 +16,22 @@
 
     <div class="card">
         <div class="card-body">
+            <div class="stepper-wrapper mb-5">
+                <div class="progress-bar"></div>
+                <div class="stepper-item active" data-step="1">
+                    <div class="step-counter">1</div>
+                    <div class="step-name">Sélection</div>
+                </div>
+                <div class="stepper-item" data-step="2">
+                    <div class="step-counter">2</div>
+                    <div class="step-name">Confirmation</div>
+                </div>
+                <div class="stepper-item" data-step="3">
+                    <div class="step-counter">3</div>
+                    <div class="step-name">Paiement</div>
+                </div>
+            </div>
+
             <div id="transaction-workflow"
                  data-user-nom="{{ user_info.nom|e('html_attr') }}"
                  data-user-prenom="{{ user_info.prenom|e('html_attr') }}"
@@ -87,6 +103,81 @@
 
 <div id="notification-container"></div>
 <style>
+    .stepper-wrapper {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin-bottom: 4rem;
+    }
+    .stepper-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        width: 100%;
+        height: 2px;
+        background-color: #e0e0e0;
+        z-index: 1;
+    }
+    .stepper-wrapper .progress-bar {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        height: 2px;
+        background-color: #0d6efd;
+        z-index: 2;
+        width: 0;
+        transition: width 0.3s ease-in-out;
+    }
+    .stepper-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+        color: #6c757d;
+    }
+    .step-counter {
+        height: 40px;
+        width: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #e0e0e0;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .step-name {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+    .stepper-item.active .step-counter {
+        border-color: #0d6efd;
+        background-color: #0d6efd;
+        color: #fff;
+    }
+    .stepper-item.active .step-name {
+        color: #0d6efd;
+        font-weight: bold;
+    }
+    .stepper-item.completed .step-counter {
+        border-color: #198754;
+        background-color: #198754;
+        color: #fff;
+    }
+    .stepper-item.completed .step-counter::after {
+        content: '✓';
+        font-size: 24px;
+    }
+    .stepper-item.completed .step-name {
+        color: #198754;
+    }
+
     #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px; }
     .notification { background: white; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; margin-bottom: 10px; display: flex; align-items: center; animation: slideIn 0.3s forwards; border-left: 4px solid; }
     .notification.success { border-left-color: #28a745; }
