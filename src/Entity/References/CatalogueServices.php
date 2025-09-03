@@ -3,7 +3,7 @@
 namespace App\Entity\References;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Entity\DemandeAutorisation\TypeDemande;
+use App\Entity\References\TypeDemande;
 use App\Repository\References\CatalogueServicesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

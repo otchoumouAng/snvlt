@@ -8,14 +8,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnReset = document.getElementById('btn-reset');
 
     let selectedValues = {
-        categorie_id: null,
-        service_id: null,
+        categorie_activite_id: null,
         type_demande_id: null,
+        service_id: null,
         service_details: null
     };
 
     const api = {
-        getServices: (categoryId) => fetch(`/api/services_by_category?categorie_id=${categoryId}`).then(res => res.json()),
+        getServices: (categoryId, typeDemandeId) => {
+            let url = `/api/services_by_category?categorie_id=${categoryId}`;
+            if (typeDemandeId) {
+                url += `&type_demande_id=${typeDemandeId}`;
+            }
+            return fetch(url).then(res => res.json());
+        },
         getTypesDemande: () => fetch('/api/types_demande_options').then(res => res.json()),
         submitTransaction: (payload) => fetch('/api/transactions', {
             method: 'POST',
@@ -39,15 +45,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!select.value) return;
 
         if (fieldName === 'categorie_activite') {
-            loadServices(select.value);
+            loadTypesDemande();
+        } else if (fieldName === 'type_demande') {
+            loadServices(selectedValues.categorie_activite_id, select.value);
         } else if (fieldName === 'service') {
             const selectedOption = select.options[select.selectedIndex];
             selectedValues.service_details = {
                 label: selectedOption.text,
                 montant: selectedOption.dataset.montant
             };
-            loadTypesDemande();
-        } else if (fieldName === 'type_demande') {
             showConfirmationStep();
         }
     });
@@ -56,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmationStep.style.display = 'none';
         clientInfoStep.style.display = 'block';
         btnSubmit.style.display = 'inline-block';
+        prefillUserInfo();
     });
 
     btnReset.addEventListener('click', resetAll);
@@ -64,29 +71,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Logic Functions ---
 
-    async function loadServices(categoryId) {
-        try {
-            const services = await api.getServices(categoryId);
-            if (services.length > 0) {
-                createSelect('service', '2. Service', services);
-            } else {
-                Notification.warning('Aucun service disponible pour cette catégorie.');
-            }
-        } catch (e) {
-            Notification.error('Erreur de chargement des services.');
-        }
-    }
-
     async function loadTypesDemande() {
         try {
             const types = await api.getTypesDemande();
             if (types.length > 0) {
-                createSelect('type_demande', '3. Type de Demande', types);
+                createSelect('type_demande', '2. Type de Demande', types);
             } else {
                 Notification.warning('Aucun type de demande trouvé. Veuillez en créer un.');
             }
         } catch (e) {
             Notification.error('Erreur de chargement des types de demande.');
+        }
+    }
+
+    async function loadServices(categoryId, typeDemandeId) {
+        try {
+            const services = await api.getServices(categoryId, typeDemandeId);
+            if (services.length > 0) {
+                createSelect('service', '3. Catalogue de Service', services);
+            } else {
+                Notification.warning('Aucun service disponible pour cette sélection.');
+            }
+        } catch (e) {
+            Notification.error('Erreur de chargement des services.');
         }
     }
 
@@ -121,6 +128,20 @@ document.addEventListener('DOMContentLoaded', function() {
         filtersContainer.appendChild(col);
     }
 
+    function prefillUserInfo() {
+        const workflowContainer = document.getElementById('transaction-workflow');
+        const nomInput = document.getElementById('client_nom');
+        const prenomInput = document.getElementById('client_prenom');
+        const telephoneInput = document.getElementById('telephone');
+
+        nomInput.value = workflowContainer.dataset.userNom || '';
+        prenomInput.value = workflowContainer.dataset.userPrenom || '';
+        telephoneInput.value = workflowContainer.dataset.userTelephone || '';
+
+        nomInput.readOnly = true;
+        prenomInput.readOnly = true;
+    }
+
     function showConfirmationStep() {
         if (!selectedValues.service_details || !selectedValues.type_demande_id) return;
 
@@ -128,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const typeDemandeText = typeDemandeSelect.options[typeDemandeSelect.selectedIndex].text;
 
         serviceSummary.innerHTML = `
-            <p><strong>Service :</strong> ${selectedValues.service_details.label}</p>
+            <p><strong>Catalogue de Service :</strong> ${selectedValues.service_details.label}</p>
             <p><strong>Type de Demande :</strong> ${typeDemandeText}</p>
         `;
         confirmationStep.style.display = 'block';
@@ -179,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetSubsequentSteps(fieldName) {
-        const order = ['categorie_activite', 'service', 'type_demande'];
+        const order = ['categorie_activite', 'type_demande', 'service'];
         const index = order.indexOf(fieldName);
 
         for(let i = index + 1; i < order.length; i++) {
@@ -197,6 +218,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const firstSelect = filtersContainer.querySelector('select');
         resetSubsequentSteps(firstSelect.name.replace('_id', ''));
         firstSelect.value = '';
-        selectedValues = {};
+        selectedValues = {
+            categorie_activite_id: null,
+            type_demande_id: null,
+            service_id: null,
+            service_details: null
+        };
     }
 });

@@ -27,6 +27,12 @@ class TransactionWorkflowController extends AbstractController
         $user = $userRepository->find($this->getUser());
         $code_groupe = $user->getCodeGroupe()->getId();
 
+        $userInfo = [
+            'nom' => $user->getNomUtilisateur(),
+            'prenom' => $user->getPrenomsUtilisateur(),
+            'telephone' => $user->getMobile()
+        ];
+
         return $this->render('transaction_workflow/index.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),
             "all_menus" => $menus->findAll(),
@@ -36,6 +42,7 @@ class TransactionWorkflowController extends AbstractController
             'titre' => 'Initier une Transaction',
             'liste_parent' => $permissions,
             'initial_options' => $categoriesActiviteRepo->findAll(),
+            'user_info' => $userInfo,
         ]);
     }
 }

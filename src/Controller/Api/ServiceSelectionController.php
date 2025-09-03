@@ -20,11 +20,18 @@ class ServiceSelectionController extends AbstractController
     public function getServicesByCategory(Request $request, CatalogueServicesRepository $repo): JsonResponse
     {
         $categorieId = $request->query->get('categorie_id');
+        $typeDemandeId = $request->query->get('type_demande_id');
+
         if (!$categorieId) {
             return $this->json(['error' => 'categorie_id is required'], 400);
         }
 
-        $services = $repo->findBy(['categorie_activite' => $categorieId]);
+        $criteria = ['categorie_activite' => $categorieId];
+        if ($typeDemandeId) {
+            $criteria['type_demande'] = $typeDemandeId;
+        }
+
+        $services = $repo->findBy($criteria);
 
         $data = [];
         foreach ($services as $service) {
