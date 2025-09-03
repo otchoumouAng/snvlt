@@ -36,6 +36,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Services\TresorPayService:
+        arguments:
+            $tresorpayApiUrl: '%env(TRESORPAY_API_URL)%'
+            $tresorpayCredentialId: '%env(TRESORPAY_CREDENTIAL_ID)%'
     App\EventListeners\ProcessListener:
         tags:
             - { name: kernel.event_listener, event: stockdoc.edit, method: onStockDocAdd }

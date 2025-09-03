@@ -1,0 +1,117 @@
+{% set mode = mode|default('new') %}
+{% set catalogue_service = catalogue_service|default(null) %}
+
+<div class="container-fluid">
+    <h4 class="mb-4 text-primary">{{ mode == 'edit' ? 'Modifier le Service' : 'Nouveau Service' }}</h4>
+
+    <form id="catalogueServiceForm" method="post">
+        {% if catalogue_service and catalogue_service.id %}
+            <input type="hidden" name="id" id="id" value="{{ catalogue_service.id }}">
+        {% else %}
+            <input type="hidden" name="id" id="id" value="">
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="code_service" class="form-label fw-bold">Code Service</label>
+                    <input type="text" class="form-control" id="code_service" name="code_service" value="{{ catalogue_service.codeService ?? '' }}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="montant_fcfa" class="form-label fw-bold">Montant (FCFA)</label>
+                    <input type="number" class="form-control" id="montant_fcfa" name="montant_fcfa" value="{{ catalogue_service.montantFcfa ?? '' }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="designation" class="form-label fw-bold">Désignation</label>
+                    <input type="text" class="form-control" id="designation" name="designation" value="{{ catalogue_service.designation ?? '' }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="type_service_id" class="form-label fw-bold">Type de Service</label>
+                    <select class="form-control" id="type_service_id" name="type_service_id" required>
+                        <option value="">Sélectionner...</option>
+                        {% for item in types_service %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="categorie_activite_id" class="form-label fw-bold">Catégorie d'Activité</label>
+                    <select class="form-control" id="categorie_activite_id" name="categorie_activite_id" required>
+                        <option value="">Sélectionner...</option>
+                        {% for item in categories_activite %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="type_demandeur_id" class="form-label fw-bold">Type de Demandeur</label>
+                    <select class="form-control" id="type_demandeur_id" name="type_demandeur_id">
+                        <option value="">(Optionnel)</option>
+                        {% for item in types_demandeur %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="type_demande_id" class="form-label fw-bold">Type de Demande</label>
+                    <select class="form-control" id="type_demande_id" name="type_demande_id">
+                        <option value="">(Optionnel)</option>
+                        {% for item in types_demande %}
+                            <option value="{{ item.id }}">{{ item.designation }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label for="regime_fiscal_id" class="form-label fw-bold">Régime Fiscal</label>
+                    <select class="form-control" id="regime_fiscal_id" name="regime_fiscal_id">
+                        <option value="">(Optionnel)</option>
+                        {% for item in regimes_fiscaux %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="form-group mb-3">
+                    <label for="note" class="form-label fw-bold">Note</label>
+                    <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12 text-end">
+                <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    {{ mode == 'edit' ? 'Modifier' : 'Créer' }}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
