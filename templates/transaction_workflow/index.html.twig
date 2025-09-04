@@ -4,6 +4,11 @@
     SNVLT - Initier une Transaction
 {% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/stepper.css') }}">
+{% endblock %}
+
 {% block menu %}
     {% include 'base/menu.html.twig' %}
 {% endblock %}
@@ -16,12 +21,30 @@
 
     <div class="card">
         <div class="card-body">
+            <div class="stepper-container mb-5">
+                <div class="stepper">
+                    <div class="step active" data-step="1">
+                        <div class="step-icon">1</div>
+                        <div class="step-label">Sélection</div>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-icon">2</div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-icon">3</div>
+                        <div class="step-label">Paiement</div>
+                    </div>
+                </div>
+            </div>
+
             <div id="transaction-workflow"
                  data-user-nom="{{ user_info.nom|e('html_attr') }}"
                  data-user-prenom="{{ user_info.prenom|e('html_attr') }}"
                  data-user-telephone="{{ user_info.telephone|e('html_attr') }}">
+
                 <!-- Étape 1: Sélection -->
-                <div id="selection-step">
+                <div id="selection-step" class="step-content active" data-step="1">
                     <h4 class="card-title">Étape 1: Sélection du Service</h4>
                     <div class="row" id="filters-container">
                         <div class="col-md-4 mb-3">
@@ -38,7 +61,7 @@
                 </div>
 
                 <!-- Étape 2: Confirmation du Service -->
-                <div id="confirmation-step" class="mt-4" style="display: none;">
+                <div id="confirmation-step" class="step-content" data-step="2">
                      <h4 class="card-title">Étape 2: Résumé et Confirmation</h4>
                      <div class="alert alert-info" id="service-summary">
                         <!-- Le résumé du service sera affiché ici -->
@@ -47,7 +70,7 @@
                 </div>
 
                 <!-- Étape 3: Informations Client -->
-                <div id="client-info-step" class="mt-4" style="display: none;">
+                <div id="client-info-step" class="step-content" data-step="3">
                     <h4 class="card-title">Étape 3: Informations du Client</h4>
                     <form id="client-info-form">
                         <div class="row">
@@ -87,6 +110,9 @@
 
 <div id="notification-container"></div>
 <style>
+    .step-content:not(.active) {
+        display: none;
+    }
     #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px; }
     .notification { background: white; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; margin-bottom: 10px; display: flex; align-items: center; animation: slideIn 0.3s forwards; border-left: 4px solid; }
     .notification.success { border-left-color: #28a745; }

@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnConfirm = document.getElementById('btn-confirm');
     const btnSubmit = document.getElementById('btn-submit');
     const btnReset = document.getElementById('btn-reset');
+    const stepper = document.querySelector('.stepper');
+    const steps = document.querySelectorAll('.step');
+    const stepContents = document.querySelectorAll('.step-content');
 
+    let currentStep = 1;
     let selectedValues = {
         categorie_activite_id: null,
         type_demande_id: null,
@@ -58,14 +62,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    btnConfirm.addEventListener('click', () => {
-        confirmationStep.style.display = 'none';
-        clientInfoStep.style.display = 'block';
-        btnSubmit.style.display = 'inline-block';
-        prefillUserInfo();
-    });
+    btnConfirm.addEventListener('click', () => showStep(3));
 
-    btnReset.addEventListener('click', resetAll);
+    btnReset.addEventListener('click', () => {
+        resetAll();
+    });
 
     btnSubmit.addEventListener('click', handleSubmit);
 
@@ -152,8 +153,50 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Catalogue de Service :</strong> ${selectedValues.service_details.label}</p>
             <p><strong>Type de Demande :</strong> ${typeDemandeText}</p>
         `;
-        confirmationStep.style.display = 'block';
+        showStep(2);
     }
+
+    function showStep(stepNumber) {
+        currentStep = stepNumber;
+        stepContents.forEach(content => {
+            const contentStep = parseInt(content.dataset.step);
+            if (contentStep === currentStep) {
+                content.style.display = 'block';
+                content.classList.add('active');
+            } else {
+                content.style.display = 'none';
+                content.classList.remove('active');
+            }
+        });
+
+        if (currentStep === 3) {
+            btnSubmit.style.display = 'inline-block';
+            prefillUserInfo();
+        } else {
+            btnSubmit.style.display = 'none';
+        }
+
+        updateStepper();
+    }
+
+    function updateStepper() {
+        steps.forEach((step, index) => {
+            const stepNum = parseInt(step.dataset.step);
+            if (stepNum < currentStep) {
+                step.classList.add('completed');
+                step.classList.remove('active');
+            } else if (stepNum === currentStep) {
+                step.classList.add('active');
+                step.classList.remove('completed');
+            } else {
+                step.classList.remove('active', 'completed');
+            }
+        });
+
+        const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
+        stepper.style.setProperty('--progress-width', `${progress}%`);
+    }
+
 
     async function handleSubmit() {
         const form = document.getElementById('client-info-form');
@@ -209,21 +252,22 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedValues[order[i] + '_id'] = null;
         }
 
-        confirmationStep.style.display = 'none';
-        clientInfoStep.style.display = 'none';
-        btnSubmit.style.display = 'none';
+        showStep(1); // Revenir à la première étape
     }
 
     function resetAll() {
         const firstSelect = filtersContainer.querySelector('select');
-        resetSubsequentSteps(firstSelect.name.replace('_id', ''));
-        firstSelect.value = '';
+        if (firstSelect) {
+            resetSubsequentSteps(firstSelect.name.replace('_id', ''));
+            firstSelect.value = '';
+        }
         selectedValues = {
             categorie_activite_id: null,
             type_demande_id: null,
             service_id: null,
             service_details: null
         };
+        showStep(1);
     }
 
 });
