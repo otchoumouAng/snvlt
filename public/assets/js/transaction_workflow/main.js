@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
         clientInfoStep.style.display = 'block';
         btnSubmit.style.display = 'inline-block';
         prefillUserInfo();
-        updateStepper(3);
     });
 
     btnReset.addEventListener('click', resetAll);
@@ -71,27 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSubmit.addEventListener('click', handleSubmit);
 
     // --- Logic Functions ---
-
-    function updateStepper(currentStep) {
-        const stepperItems = document.querySelectorAll('.stepper-item');
-        const progressBar = document.querySelector('.stepper-wrapper .progress-bar');
-
-        stepperItems.forEach((item, index) => {
-            const step = index + 1;
-            if (step < currentStep) {
-                item.classList.add('completed');
-                item.classList.remove('active');
-            } else if (step === currentStep) {
-                item.classList.add('active');
-                item.classList.remove('completed');
-            } else {
-                item.classList.remove('active', 'completed');
-            }
-        });
-
-        const progress = (currentStep - 1) / (stepperItems.length - 1) * 100;
-        progressBar.style.width = `${progress}%`;
-    }
 
     async function loadTypesDemande() {
         try {
@@ -180,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <p><strong>Type de Demande :</strong> ${typeDemandeText}</p>
         `;
         confirmationStep.style.display = 'block';
-        updateStepper(2);
     }
 
     async function handleSubmit() {
@@ -252,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
             service_id: null,
             service_details: null
         };
-        updateStepper(1);
     }
 
     // Initialize Select2 on the initial dropdown
