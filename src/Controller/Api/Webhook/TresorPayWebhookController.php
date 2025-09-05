@@ -14,28 +14,20 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/webhooks/tresorpay')]
 class TresorPayWebhookController extends AbstractController
 {
-    /**
-     * The secret token shared with TrésorPay.
-     * This value is injected from the TRESORPAY_WEBHOOK_SECRET environment variable.
-     * Make sure to add 'TRESORPAY_WEBHOOK_SECRET=your_secret_token' to your .env file.
-     */
-    private string $tresorPayWebhookSecret;
+    private const EXPECTED_AUTH_TOKEN = 'VOTRE_TOKEN_SECRET_PARTAGE_AVEC_TRESORPAY';
 
     public function __construct(
         private TransactionsRepository $transactionRepository,
         private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger,
-        string $tresorPayWebhookSecret
-    ) {
-        $this->tresorPayWebhookSecret = $tresorPayWebhookSecret;
-    }
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/confirmation', name: 'api_webhook_tresorpay_confirmation', methods: ['POST'])]
     public function handleConfirmation(Request $request): JsonResponse
     {
         // --- a. Security ---
         $authToken = $request->headers->get('Authorization');
-        if ('Bearer ' . $this->tresorPayWebhookSecret !== $authToken) {
+        if ('Bearer ' . self::EXPECTED_AUTH_TOKEN !== $authToken) {
             $this->logger->warning('Unauthorized access attempt to TrésorPay webhook.');
             return new JsonResponse(['error' => 'Unauthorized access.'], 403);
         }
