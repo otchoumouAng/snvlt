@@ -50,6 +50,18 @@ class Transactions
     #[ORM\ManyToOne]
     private ?TypeDemande $typeDemande = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $tresorpay_receipt_reference = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $paid_at = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $payer_phone = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0', nullable: true)]
+    private ?string $paid_amount = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -171,6 +183,54 @@ class Transactions
     public function setTypeDemande(?TypeDemande $typeDemande): static
     {
         $this->typeDemande = $typeDemande;
+
+        return $this;
+    }
+
+    public function getTresorpayReceiptReference(): ?string
+    {
+        return $this->tresorpay_receipt_reference;
+    }
+
+    public function setTresorpayReceiptReference(?string $tresorpay_receipt_reference): static
+    {
+        $this->tresorpay_receipt_reference = $tresorpay_receipt_reference;
+
+        return $this;
+    }
+
+    public function getPaidAt(): ?\DateTimeInterface
+    {
+        return $this->paid_at;
+    }
+
+    public function setPaidAt(?\DateTimeInterface $paid_at): static
+    {
+        $this->paid_at = $paid_at;
+
+        return $this;
+    }
+
+    public function getPayerPhone(): ?string
+    {
+        return $this->payer_phone;
+    }
+
+    public function setPayerPhone(?string $payer_phone): static
+    {
+        $this->payer_phone = $payer_phone;
+
+        return $this;
+    }
+
+    public function getPaidAmount(): ?string
+    {
+        return $this->paid_amount;
+    }
+
+    public function setPaidAmount(?string $paid_amount): static
+    {
+        $this->paid_amount = $paid_amount;
 
         return $this;
     }
