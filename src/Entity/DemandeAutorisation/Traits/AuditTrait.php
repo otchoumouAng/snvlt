@@ -34,6 +34,15 @@ trait AuditTrait
         $this->createdAt = new \DateTimeImmutable();
     }
 
+    /**
+     * Met à jour automatiquement la date de modification avant la mise à jour.
+     */
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
     public function isDesactivate(): ?bool
     {
         return $this->desactivate;
