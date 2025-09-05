@@ -7,7 +7,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class TresorPayService
 {
     private $httpClient;
-    private $apiUrl = 'https://wbservice.tresor.gouv.ci/wbpartenaires/tstrest/GenererAvisrecette';
+    //private $apiUrl = 'https://wbservice.tresor.gouv.ci/wbpartenaires/tstrest/GenererAvisrecette';
+    private $apiUrl = 'https://wbservice2.tresor.gouv.ci/wbpartenaires/tstrest/GenererAvisrecette';
     private $credentialId = 'l4lhut2b_0cvR4CcF';
 
     public function __construct(HttpClientInterface $httpClient)
