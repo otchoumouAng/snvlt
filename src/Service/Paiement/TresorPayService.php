@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Service\Paiement;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
