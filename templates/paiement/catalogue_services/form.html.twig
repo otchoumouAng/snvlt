@@ -74,11 +74,11 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group mb-3">
-                    <label for="type_demande_id" class="form-label fw-bold">Type de Demande</label>
-                    <select class="form-control" id="type_demande_id" name="type_demande_id">
+                    <label for="type_paiement_id" class="form-label fw-bold">Type de Paiement</label>
+                    <select class="form-control" id="type_paiement_id" name="type_paiement_id">
                         <option value="">(Optionnel)</option>
-                        {% for item in types_demande %}
-                            <option value="{{ item.id }}">{{ item.designation }}</option>
+                        {% for item in type_paiements %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
                         {% endfor %}
                     </select>
                 </div>
