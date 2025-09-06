@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\References;
+namespace App\Repository\Paiement;
 
-use App\Entity\References\CategoriesActivite;
+use App\Entity\Paiement\CategoriesActivite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
