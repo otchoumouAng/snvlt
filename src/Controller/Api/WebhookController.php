@@ -30,6 +30,18 @@ class WebhookController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Transaction non trouvée'], 404);
         }
 
+        if ($transaction->getStatut() === "PAYE") {
+            return $this->json(['success' => false, 'message' => 'Transaction déjà traîtée'], 404);
+        }
+
+        if ($transaction->getStatut() === "PAYE") {
+            return $this->json(['success' => false, 'message' => 'Transaction déjà traîtée'], 404);
+        }
+
+        if ($transaction->getStatut() != "AVIS_GENERE") {
+            return $this->json(['success' => false, 'message' => 'Cet avis de recette a rencontré un problème lors de sa création'], 404);
+        }
+
         // Assume this webhook is always a success confirmation
         $transaction->setStatut('PAYE');
         $transaction->setTresorpayReceiptReference($data['reference'] ?? null);
