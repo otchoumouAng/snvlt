@@ -51,6 +51,6 @@ class WebhookController extends AbstractController
 
         $em->flush();
 
-        return $this->json(['success' => true, 'message' => 'Webhook traité avec succès']);
+        return $this->json(['success' => true, 'message' => 'Transaction traitée avec succès']);
     }
 }
