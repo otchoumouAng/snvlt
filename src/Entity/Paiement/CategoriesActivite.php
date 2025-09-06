@@ -1,18 +1,14 @@
 <?php
 
-namespace App\Entity\References;
+namespace App\Entity\Paiement;
 
-use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\References\CategoriesActiviteRepository;
+use App\Repository\Paiement\CategoriesActiviteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CategoriesActiviteRepository::class)]
 #[ORM\Table(name: 'pay_ref_categories_activite', schema: 'metier')]
-#[ORM\HasLifecycleCallbacks]
 class CategoriesActivite
 {
-    use AuditTrait;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
