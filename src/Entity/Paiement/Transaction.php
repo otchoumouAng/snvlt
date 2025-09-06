@@ -52,7 +52,7 @@ class Transaction
     #[ORM\ManyToOne]
     private ?TypePaiement $typePaiement = null;
     
-    #[ORM\Column(length: 100, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $tresorpay_receipt_reference = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -63,7 +63,6 @@ class Transaction
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0', nullable: true)]
     private ?string $paid_amount = null;
-
 
     public function getId(): ?int
     {
@@ -179,7 +178,7 @@ class Transaction
         $this->typePaiement = $typePaiement;
         return $this;
     }
-    
+
     public function getTresorpayReceiptReference(): ?string
     {
         return $this->tresorpay_receipt_reference;

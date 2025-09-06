@@ -31,12 +31,11 @@ class WebhookController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Transaction non trouvée'], 404);
         }
 
-        // Update transaction status based on webhook data
-        if ($statut === 'PAIEMENT_EFFECTUE') {
-            $transaction->setStatut('PAID');
-        } else {
-            $transaction->setStatut('FAILED');
-        }
+        $transaction->setStatut('PAYE');
+        $transaction->setTresorpayReceiptReference($data['reference'] ?? null);
+        $transaction->setPaidAt(new \DateTime($data['date_paiement'] ?? 'now'));
+        $transaction->setPayerPhone($data['payment_phone'] ?? null);
+        $transaction->setPaidAmount($data['montant_paiement'] ?? null);
 
         $em->flush();
 
