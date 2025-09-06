@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // API Service specific to this CRUD
     const apiService = {
-        getCatalogueData: () => fetch('/paiement/catalogue_services/data').then(res => res.json()),
-        getCatalogueServiceDetails: (id) => fetch(`/paiement/catalogue_services/${id}/details`).then(res => res.json()),
-        saveCatalogueService: (data) => fetch('/paiement/catalogue_services/save', {
+        getCatalogueData: () => fetch('/admin/paiement/catalogue_services/data').then(res => res.json()),
+        getCatalogueServiceDetails: (id) => fetch(`/admin/paiement/catalogue_services/${id}/details`).then(res => res.json()),
+        saveCatalogueService: (data) => fetch('/admin/paiement/catalogue_services/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
             processing: true,
             serverSide: false,
             ajax: {
-                url: '/admin/catalogue_services/data',
+                url: '/admin/paiement/catalogue_services/data',
                 dataSrc: 'data',
                 error: function(xhr, error, thrown) {
                     console.error('DataTables AJAX error:', error, thrown);
