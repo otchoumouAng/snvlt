@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalTitle = document.getElementById('formModalTitle');
 
     // API Service specific to this CRUD
+    
     const apiService = {
         getCatalogueData: () => fetch('/paiement/catalogue_services/data').then(res => res.json()),
         getCatalogueServiceDetails: (id) => fetch(`/paiement/catalogue_services/${id}/details`).then(res => res.json()),
@@ -28,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
             processing: true,
             serverSide: false,
             ajax: {
-                url: '/admin/catalogue_services/data',
+                url: '/paiement/catalogue_services/data',
                 dataSrc: 'data',
                 error: function(xhr, error, thrown) {
                     console.error('DataTables AJAX error:', error, thrown);

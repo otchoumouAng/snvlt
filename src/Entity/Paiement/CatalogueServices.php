@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Entity\Paiement;
 
 use App\Repository\Paiement\CatalogueServicesRepository;
@@ -7,12 +8,15 @@ use App\Entity\References\TypesService;
 use App\Entity\Paiement\CategoriesActivite;
 use App\Entity\References\TypesDemandeur;
 use Doctrine\DBAL\Types\Types;
+use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CatalogueServicesRepository::class)]
 #[ORM\Table(name: 'pay_trans_catalogue_services', schema: 'metier')]
+#[ORM\HasLifecycleCallbacks]
 class CatalogueServices
 {
+    use AuditTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
