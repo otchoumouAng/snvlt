@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // API Service specific to this CRUD
     const apiService = {
-        getCatalogueData: () => fetch('/admin/catalogue_services/data').then(res => res.json()),
-        getCatalogueServiceDetails: (id) => fetch(`/admin/catalogue_services/${id}/details`).then(res => res.json()),
-        saveCatalogueService: (data) => fetch('/admin/catalogue_services/save', {
+        getCatalogueData: () => fetch('/paiement/catalogue_services/data').then(res => res.json()),
+        getCatalogueServiceDetails: (id) => fetch(`/paiement/catalogue_services/${id}/details`).then(res => res.json()),
+        saveCatalogueService: (data) => fetch('/paiement/catalogue_services/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
