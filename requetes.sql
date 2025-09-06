@@ -163,3 +163,23 @@ CREATE TABLE metier.pay_trans_transactions (
 
 ALTER TABLE metier.pay_trans_transactions ADD CONSTRAINT fk_transaction_type_demande FOREIGN KEY (type_demande_id) REFERENCES metier.pay_ref_types_demande(id);
 ALTER TABLE metier.pay_trans_transactions ADD CONSTRAINT pay_trans_transactions_service_id_fkey FOREIGN KEY (service_id) REFERENCES metier.pay_trans_catalogue_services(id);
+
+
+
+
+CREATE TABLE metier.pay_type_paiement (
+    id SERIAL NOT NULL,
+    libelle VARCHAR(255) NOT NULL,
+    PRIMARY KEY(id)
+);
+
+INSERT INTO metier.pay_type_paiement (libelle) VALUES ('Nouvelle Demande'), ('Renouvellement');
+
+ALTER TABLE metier.pay_trans_catalogue_services ADD type_paiement_id INT DEFAULT NULL;
+
+ALTER TABLE metier.pay_trans_catalogue_services ADD CONSTRAINT FK_83B2E33B438595B2 FOREIGN KEY (type_paiement_id) REFERENCES metier.pay_type_paiement (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+CREATE INDEX IDX_83B2E33B438595B2 ON metier.pay_trans_catalogue_services (type_paiement_id);
+
+ALTER TABLE metier.pay_trans_transactions ADD type_paiement_id INT DEFAULT NULL;
+ALTER TABLE metier.pay_trans_transactions ADD CONSTRAINT FK_33259837438595B2 FOREIGN KEY (type_paiement_id) REFERENCES metier.pay_type_paiement (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+CREATE INDEX IDX_33259837438595B2 ON metier.pay_trans_transactions (type_paiement_id);
