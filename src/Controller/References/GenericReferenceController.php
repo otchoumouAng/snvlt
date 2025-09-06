@@ -20,9 +20,9 @@ class GenericReferenceController extends AbstractController
 {
     private const ENTITY_MAP = [
         'types_service' => \App\Entity\References\TypesService::class,
-        'categories_activite' => \App\Entity\References\CategoriesActivite::class,
+        'categories_activite' => \App\Entity\Paiement\CategoriesActivite::class,
         'types_demandeur' => \App\Entity\References\TypesDemandeur::class,
-        'types_demande' => \App\Entity\References\TypeDemande::class,
+        'types_paiement' => \App\Entity\Paiement\TypePaiement::class,
     ];
 
     private function getEntityClass(string $entityName): ?string
@@ -36,7 +36,7 @@ class GenericReferenceController extends AbstractController
             'types_service' => 'Types de Service',
             'categories_activite' => 'Catégories d\'Activité',
             'types_demandeur' => 'Types de Demandeur',
-            'types_demande' => 'Types de Demande',
+            'types_paiement' => 'Type de paiement',
         ];
         return $titles[$entityName] ?? 'Gestion de Référence';
     }
