@@ -5,14 +5,18 @@ namespace App\Entity\Paiement;
 use App\Repository\Paiement\TransactionRepository;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\TypePaiement;
+use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'pay_trans_transactions', schema: 'metier')]
 
+#[ORM\HasLifecycleCallbacks]
 class Transaction
 {
+    use AuditTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
