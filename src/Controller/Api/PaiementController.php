@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Paiement;
+namespace App\Controller\Api;
 
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\Transaction;
@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
+#[Route('/api')]
 class PaiementController extends AbstractController
 {
     private $em;
