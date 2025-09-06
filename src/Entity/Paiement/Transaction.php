@@ -51,14 +51,14 @@ class Transaction
 
     #[ORM\ManyToOne]
     private ?TypePaiement $typePaiement = null;
-    
+
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $tresorpay_receipt_reference = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $paid_at = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $payer_phone = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0', nullable: true)]
@@ -77,6 +77,7 @@ class Transaction
     public function setIdentifiant(string $identifiant): static
     {
         $this->identifiant = $identifiant;
+
         return $this;
     }
 
@@ -88,6 +89,7 @@ class Transaction
     public function setService(?CatalogueServices $service): static
     {
         $this->service = $service;
+
         return $this;
     }
 
@@ -99,6 +101,7 @@ class Transaction
     public function setMontantFcfa(string $montant_fcfa): static
     {
         $this->montant_fcfa = $montant_fcfa;
+
         return $this;
     }
 
@@ -110,6 +113,7 @@ class Transaction
     public function setClientNom(string $client_nom): static
     {
         $this->client_nom = $client_nom;
+
         return $this;
     }
 
@@ -121,6 +125,7 @@ class Transaction
     public function setClientPrenom(string $client_prenom): static
     {
         $this->client_prenom = $client_prenom;
+
         return $this;
     }
 
@@ -132,6 +137,7 @@ class Transaction
     public function setTelephone(?string $telephone): static
     {
         $this->telephone = $telephone;
+
         return $this;
     }
 
@@ -143,6 +149,7 @@ class Transaction
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
+
         return $this;
     }
 
@@ -154,6 +161,7 @@ class Transaction
     public function setTresorpayResponseCode(?int $tresorpay_response_code): static
     {
         $this->tresorpay_response_code = $tresorpay_response_code;
+
         return $this;
     }
 
@@ -165,6 +173,7 @@ class Transaction
     public function setTresorpayResponseMessage(?string $tresorpay_response_message): static
     {
         $this->tresorpay_response_message = $tresorpay_response_message;
+
         return $this;
     }
 
@@ -176,6 +185,7 @@ class Transaction
     public function setTypePaiement(?TypePaiement $typePaiement): static
     {
         $this->typePaiement = $typePaiement;
+
         return $this;
     }
 
@@ -187,6 +197,7 @@ class Transaction
     public function setTresorpayReceiptReference(?string $tresorpay_receipt_reference): static
     {
         $this->tresorpay_receipt_reference = $tresorpay_receipt_reference;
+
         return $this;
     }
 
@@ -198,6 +209,7 @@ class Transaction
     public function setPaidAt(?\DateTimeInterface $paid_at): static
     {
         $this->paid_at = $paid_at;
+
         return $this;
     }
 
@@ -209,6 +221,7 @@ class Transaction
     public function setPayerPhone(?string $payer_phone): static
     {
         $this->payer_phone = $payer_phone;
+
         return $this;
     }
 
@@ -220,14 +233,7 @@ class Transaction
     public function setPaidAmount(?string $paid_amount): static
     {
         $this->paid_amount = $paid_amount;
+
         return $this;
-    }
-    
-    #[ORM\PreUpdate]
-    public function setUpdatedAtValue(): void
-    {
-        if (method_exists($this, 'setUpdatedAt')) {
-            $this->setUpdatedAt(new \DateTime());
-        }
     }
 }

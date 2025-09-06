@@ -19,7 +19,7 @@ use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 
 /**
- * @Route("admin/paiement/catalogue_services")
+ * @Route("/paiement/catalogue_services")
  */
 class CatalogueServicesController extends AbstractController
 {

@@ -17,6 +17,7 @@ class WebhookController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
+        // Use 'numero_avis' as the identifier
         $identifiant = $data['numero_avis'] ?? null;
 
         if (!$identifiant) {
@@ -29,17 +30,13 @@ class WebhookController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Transaction non trouvée'], 404);
         }
 
-        if ($transaction->getStatut() === "PAYE") {
-            return $this->json(['success' => false, 'message' => 'Transaction déjà traîtée'], 404);
-        }
-
         // Assume this webhook is always a success confirmation
         $transaction->setStatut('PAYE');
         $transaction->setTresorpayReceiptReference($data['reference'] ?? null);
         $transaction->setPaidAt(new \DateTime($data['date_paiement'] ?? 'now'));
         $transaction->setPayerPhone($data['payment_phone'] ?? null);
         $transaction->setPaidAmount($data['montant_paiement'] ?? null);
-        
+
         $em->flush();
 
         return $this->json(['success' => true, 'message' => 'Webhook traité avec succès']);
