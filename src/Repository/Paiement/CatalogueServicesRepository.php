@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\References;
+namespace App\Repository\Paiement;
 
-use App\Entity\References\CatalogueServices;
+use App\Entity\Paiement\CatalogueServices;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -41,8 +41,8 @@ class CatalogueServicesRepository extends ServiceEntityRepository
             $joinAlias = $targetField;
             $qb->join('cs.' . $targetField, $joinAlias);
 
-            // Pour type_demande, le champ est 'designation', pour les autres 'libelle'
-            $labelField = ($targetField === 'type_demande') ? 'designation' : 'libelle';
+            // Pour typePaiement, le champ est 'libelle'
+            $labelField = 'libelle';
 
             $qb->select("DISTINCT $joinAlias.id, $joinAlias.$labelField as label")
                ->orderBy("label", 'ASC');

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Paiement;
 
-use App\Repository\References\CategoriesActiviteRepository;
+use App\Repository\Paiement\TypePaiementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -11,13 +11,13 @@ use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 
-class TransactionWorkflowController extends AbstractController
+class PaiementWorkflowController extends AbstractController
 {
     /**
-     * @Route("/transaction/new", name="app_transaction_workflow")
+     * @Route("/paiement/new", name="app_paiement_workflow")
      */
     public function index(
-        CategoriesActiviteRepository $categoriesActiviteRepo,
+        TypePaiementRepository $typePaiementRepository,
         MenuRepository $menus,
         NotificationRepository $notification,
         MenuPermissionRepository $permissions,
@@ -33,7 +33,7 @@ class TransactionWorkflowController extends AbstractController
             'telephone' => $user->getMobile()
         ];
 
-        return $this->render('transaction_workflow/index.html.twig', [
+        return $this->render('paiement/index.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),
             "all_menus" => $menus->findAll(),
             'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
@@ -41,7 +41,7 @@ class TransactionWorkflowController extends AbstractController
             'groupe' => $code_groupe,
             'titre' => 'Initier une Transaction',
             'liste_parent' => $permissions,
-            'initial_options' => $categoriesActiviteRepo->findAll(),
+            'type_paiements' => $typePaiementRepository->findAll(),
             'user_info' => $userInfo,
         ]);
     }

@@ -1,20 +1,18 @@
 <?php
 
-namespace App\Entity\References;
+namespace App\Entity\Paiement;
 
-use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Entity\References\TypeDemande;
-use App\Repository\References\CatalogueServicesRepository;
+use App\Repository\Paiement\CatalogueServicesRepository;
+use App\Entity\References\TypesService;
+use App\Entity\Paiement\CategoriesActivite;
+use App\Entity\References\TypesDemandeur;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: CatalogueServicesRepository::class)]
 #[ORM\Table(name: 'pay_trans_catalogue_services', schema: 'metier')]
-#[ORM\HasLifecycleCallbacks]
 class CatalogueServices
 {
-    use AuditTrait;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -44,7 +42,8 @@ class CatalogueServices
     private ?TypesDemandeur $type_demandeur = null;
 
     #[ORM\ManyToOne]
-    private ?TypeDemande $type_demande = null;
+    #[ORM\JoinColumn(nullable: true)]
+    private ?TypePaiement $typePaiement = null;
 
 
     public function getId(): ?int
@@ -136,14 +135,14 @@ class CatalogueServices
         return $this;
     }
 
-    public function getTypeDemande(): ?TypeDemande
+    public function getTypePaiement(): ?TypePaiement
     {
-        return $this->type_demande;
+        return $this->typePaiement;
     }
 
-    public function setTypeDemande(?TypeDemande $type_demande): static
+    public function setTypePaiement(?TypePaiement $typePaiement): static
     {
-        $this->type_demande = $type_demande;
+        $this->typePaiement = $typePaiement;
 
         return $this;
     }

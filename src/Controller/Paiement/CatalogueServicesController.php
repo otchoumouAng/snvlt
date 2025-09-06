@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Controller\References;
+namespace App\Controller\Paiement;
 
-use App\Entity\DemandeAutorisation\TypeDemande;
-use App\Entity\References\CatalogueServices;
+use App\Entity\Paiement\TypePaiement;
+use App\Entity\Paiement\CatalogueServices;
 use App\Entity\References\TypesService;
-use App\Entity\References\CategoriesActivite;
+use App\Entity\Paiement\CategoriesActivite;
 use App\Entity\References\TypesDemandeur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +19,7 @@ use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 
 /**
- * @Route("/admin/catalogue_services")
+ * @Route("/paiement/catalogue_services")
  */
 class CatalogueServicesController extends AbstractController
 {
@@ -37,14 +37,14 @@ class CatalogueServicesController extends AbstractController
             'types_service' => $em->getRepository(TypesService::class)->findAll(),
             'categories_activite' => $em->getRepository(CategoriesActivite::class)->findAll(),
             'types_demandeur' => $em->getRepository(TypesDemandeur::class)->findAll(),
-            'types_demande' => $em->getRepository(TypeDemande::class)->findBy(['desactivate' => false]),
+            'type_paiements' => $em->getRepository(TypePaiement::class)->findAll(),
             'catalogue_service' => null
         ];
 
-        $newForm = $this->renderView('references/catalogue_services/form.html.twig', ['mode' => 'new'] + $formData);
-        $editForm = $this->renderView('references/catalogue_services/form.html.twig', ['mode' => 'edit'] + $formData);
+        $newForm = $this->renderView('paiement/catalogue_services/form.html.twig', ['mode' => 'new'] + $formData);
+        $editForm = $this->renderView('paiement/catalogue_services/form.html.twig', ['mode' => 'edit'] + $formData);
 
-        return $this->render('references/catalogue_services/index.html.twig', [
+        return $this->render('paiement/catalogue_services/index.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),
             "all_menus" => $menus->findAll(),
             'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
@@ -120,10 +120,10 @@ class CatalogueServicesController extends AbstractController
                  $catalogueService->setTypeDemandeur(null);
             }
 
-            if (!empty($data['type_demande_id'])) {
-                $catalogueService->setTypeDemande($em->getRepository(TypeDemande::class)->find($data['type_demande_id']));
+            if (!empty($data['type_paiement_id'])) {
+                $catalogueService->setTypePaiement($em->getRepository(TypePaiement::class)->find($data['type_paiement_id']));
             } else {
-                $catalogueService->setTypeDemande(null);
+                $catalogueService->setTypePaiement(null);
             }
 
 
@@ -151,7 +151,7 @@ class CatalogueServicesController extends AbstractController
                 'type_service_id' => $catalogueService->getTypeService()?->getId(),
                 'categorie_activite_id' => $catalogueService->getCategorieActivite()?->getId(),
                 'type_demandeur_id' => $catalogueService->getTypeDemandeur()?->getId(),
-                'type_demande_id' => $catalogueService->getTypeDemande()?->getId(),
+                'type_paiement_id' => $catalogueService->getTypePaiement()?->getId(),
             ];
 
             return $this->json($data);

@@ -12,22 +12,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let currentStep = 1;
     let selectedValues = {
+        type_paiement_id: null,
         categorie_activite_id: null,
-        type_demande_id: null,
         service_id: null,
         service_details: null
     };
 
     const api = {
-        getServices: (categoryId, typeDemandeId) => {
-            let url = `/api/services_by_category?categorie_id=${categoryId}`;
-            if (typeDemandeId) {
-                url += `&type_demande_id=${typeDemandeId}`;
-            }
+        getServices: (typePaiementId, categoryId) => {
+            let url = `/api/services_by_type_and_category?type_paiement_id=${typePaiementId}&categorie_id=${categoryId}`;
             return fetch(url).then(res => res.json());
         },
-        getTypesDemande: () => fetch('/api/types_demande_options').then(res => res.json()),
-        submitTransaction: (payload) => fetch('/api/transactions', {
+        getCategoriesActivite: () => fetch('/api/categories_activite').then(res => res.json()),
+        submitTransaction: (payload) => fetch('/paiement/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -48,10 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!select.value) return;
 
-        if (fieldName === 'categorie_activite') {
-            loadTypesDemande();
-        } else if (fieldName === 'type_demande') {
-            loadServices(selectedValues.categorie_activite_id, select.value);
+        if (fieldName === 'type_paiement') {
+            loadCategoriesActivite();
+        } else if (fieldName === 'categorie_activite') {
+            loadServices(selectedValues.type_paiement_id, select.value);
         } else if (fieldName === 'service') {
             const selectedOption = select.options[select.selectedIndex];
             selectedValues.service_details = {
@@ -72,22 +69,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- Logic Functions ---
 
-    async function loadTypesDemande() {
+    async function loadCategoriesActivite() {
         try {
-            const types = await api.getTypesDemande();
-            if (types.length > 0) {
-                createSelect('type_demande', '2. Type de Demande', types);
+            const categories = await api.getCategoriesActivite();
+            if (categories.length > 0) {
+                createSelect('categorie_activite', '2. Catégorie d\'Activité', categories);
             } else {
-                Notification.warning('Aucun type de demande trouvé. Veuillez en créer un.');
+                Notification.warning('Aucune catégorie d\'activité trouvée. Veuillez en créer une.');
             }
         } catch (e) {
-            Notification.error('Erreur de chargement des types de demande.');
+            Notification.error('Erreur de chargement des catégories d\'activité.');
         }
     }
 
-    async function loadServices(categoryId, typeDemandeId) {
+    async function loadServices(typePaiementId, categoryId) {
         try {
-            const services = await api.getServices(categoryId, typeDemandeId);
+            const services = await api.getServices(typePaiementId, categoryId);
             if (services.length > 0) {
                 createSelect('service', '3. Catalogue de Service', services);
             } else {
@@ -144,14 +141,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showConfirmationStep() {
-        if (!selectedValues.service_details || !selectedValues.type_demande_id) return;
-
-        const typeDemandeSelect = document.getElementById('type_demande_id');
-        const typeDemandeText = typeDemandeSelect.options[typeDemandeSelect.selectedIndex].text;
+        if (!selectedValues.service_details) return;
 
         serviceSummary.innerHTML = `
             <p><strong>Catalogue de Service :</strong> ${selectedValues.service_details.label}</p>
-            <p><strong>Type de Demande :</strong> ${typeDemandeText}</p>
         `;
         showStep(2);
     }
@@ -207,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const payload = {
             service_id: selectedValues.service_id,
-            type_demande_id: selectedValues.type_demande_id,
+            type_paiement_id: selectedValues.type_paiement_id,
             client_nom: document.getElementById('client_nom').value,
             client_prenom: document.getElementById('client_prenom').value,
             telephone: document.getElementById('telephone').value
@@ -243,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetSubsequentSteps(fieldName) {
-        const order = ['categorie_activite', 'type_demande', 'service'];
+        const order = ['type_paiement', 'categorie_activite', 'service'];
         const index = order.indexOf(fieldName);
 
         for(let i = index + 1; i < order.length; i++) {
@@ -262,8 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
             firstSelect.value = '';
         }
         selectedValues = {
+            type_paiement_id: null,
             categorie_activite_id: null,
-            type_demande_id: null,
             service_id: null,
             service_details: null
         };

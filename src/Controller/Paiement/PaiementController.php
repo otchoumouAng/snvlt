@@ -1,20 +1,18 @@
 <?php
 
-namespace App\Controller\Api;
+namespace App\Controller\Paiement;
 
-use App\Entity\References\CatalogueServices;
-use App\Entity\References\Transactions;
-use App\Services\TresorPayService;
+use App\Entity\Paiement\CatalogueServices;
+use App\Entity\Paiement\Transaction;
+use App\Service\Paiement\TresorPayService;
+use App\Entity\Paiement\TypePaiement;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/api")
- */
-class TransactionController extends AbstractController
+class PaiementController extends AbstractController
 {
     private $em;
     private $tresorPayService;
@@ -26,7 +24,7 @@ class TransactionController extends AbstractController
     }
 
     /**
-     * @Route("/transactions", name="api_create_transaction", methods={"POST"})
+     * @Route("/paiement/transactions", name="api_create_transaction", methods={"POST"})
      */
     public function createTransaction(Request $request): JsonResponse
     {
@@ -40,10 +38,10 @@ class TransactionController extends AbstractController
         $clientNom = $data['client_nom'] ?? null;
         $clientPrenom = $data['client_prenom'] ?? null;
         $telephone = $data['telephone'] ?? null;
-        $typeDemandeId = $data['type_demande_id'] ?? null;
+        $typePaiementId = $data['type_paiement_id'] ?? null;
 
-        if (!$serviceId || !$clientNom || !$clientPrenom || !$typeDemandeId) {
-            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom, client_prenom et type_demande_id sont requis'], 400);
+        if (!$serviceId || !$clientNom || !$clientPrenom || !$typePaiementId) {
+            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom, client_prenom et type_paiement_id sont requis'], 400);
         }
 
         $service = $this->em->getRepository(CatalogueServices::class)->find($serviceId);
@@ -51,18 +49,18 @@ class TransactionController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Service non trouvé'], 404);
         }
 
-        $transaction = new Transactions();
+        $transaction = new Transaction();
         $transaction->setService($service);
         $transaction->setMontantFcfa($service->getMontantFcfa());
         $transaction->setClientNom($clientNom);
         $transaction->setClientPrenom($clientPrenom);
         $transaction->setTelephone($telephone);
 
-        $typeDemande = $this->em->getRepository(\App\Entity\References\TypeDemande::class)->find($typeDemandeId);
-        if (!$typeDemande) {
-            return $this->json(['success' => false, 'message' => 'Type de demande non trouvé'], 404);
+        $typePaiement = $this->em->getRepository(TypePaiement::class)->find($typePaiementId);
+        if (!$typePaiement) {
+            return $this->json(['success' => false, 'message' => 'Type de paiement non trouvé'], 404);
         }
-        $transaction->setTypeDemande($typeDemande);
+        $transaction->setTypePaiement($typePaiement);
 
         $transaction->setStatut('EN_ATTENTE_AVIS');
 

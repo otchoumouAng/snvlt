@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Entity\References;
+namespace App\Entity\Paiement;
 
-use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\References\TransactionsRepository;
+use App\Repository\Paiement\TransactionRepository;
+use App\Entity\Paiement\CatalogueServices;
+use App\Entity\Paiement\TypePaiement;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TransactionsRepository::class)]
+#[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'pay_trans_transactions', schema: 'metier')]
-#[ORM\HasLifecycleCallbacks]
-class Transactions
+class Transaction
 {
-    use AuditTrait;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -48,7 +46,7 @@ class Transactions
     private ?string $tresorpay_response_message = null;
 
     #[ORM\ManyToOne]
-    private ?TypeDemande $typeDemande = null;
+    private ?TypePaiement $typePaiement = null;
 
     public function getId(): ?int
     {
@@ -163,14 +161,14 @@ class Transactions
         return $this;
     }
 
-    public function getTypeDemande(): ?TypeDemande
+    public function getTypePaiement(): ?TypePaiement
     {
-        return $this->typeDemande;
+        return $this->typePaiement;
     }
 
-    public function setTypeDemande(?TypeDemande $typeDemande): static
+    public function setTypePaiement(?TypePaiement $typePaiement): static
     {
-        $this->typeDemande = $typeDemande;
+        $this->typePaiement = $typePaiement;
 
         return $this;
     }
