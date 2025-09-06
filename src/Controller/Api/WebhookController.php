@@ -17,13 +17,12 @@ class WebhookController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        // Basic validation
-        if (!isset($data['identifiant']) || !isset($data['statut'])) {
-            return $this->json(['success' => false, 'message' => 'Données invalides'], 400);
-        }
+        // Use 'numero_avis' as the identifier
+        $identifiant = $data['numero_avis'] ?? null;
 
-        $identifiant = $data['identifiant'];
-        $statut = $data['statut'];
+        if (!$identifiant) {
+            return $this->json(['success' => false, 'message' => 'Identifiant (numero_avis) manquant'], 400);
+        }
 
         $transaction = $em->getRepository(Transaction::class)->findOneBy(['identifiant' => $identifiant]);
 
@@ -31,12 +30,12 @@ class WebhookController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Transaction non trouvée'], 404);
         }
 
-        // Update transaction status based on webhook data
-        if ($statut === 'PAIEMENT_EFFECTUE') {
-            $transaction->setStatut('PAID');
-        } else {
-            $transaction->setStatut('FAILED');
-        }
+        // Assume this webhook is always a success confirmation
+        $transaction->setStatut('PAYE');
+
+        // Potentially store more info if fields existed
+        // $transaction->setPaymentReference($data['reference']);
+        // $transaction->setPaymentDate(new \DateTime($data['date_paiement']));
 
         $em->flush();
 
