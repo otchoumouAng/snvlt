@@ -32,10 +32,10 @@ class WebhookController extends AbstractController
 
         // Assume this webhook is always a success confirmation
         $transaction->setStatut('PAYE');
-
-        // Potentially store more info if fields existed
-        // $transaction->setPaymentReference($data['reference']);
-        // $transaction->setPaymentDate(new \DateTime($data['date_paiement']));
+        $transaction->setTresorpayReceiptReference($data['reference'] ?? null);
+        $transaction->setPaidAt(new \DateTime($data['date_paiement'] ?? 'now'));
+        $transaction->setPayerPhone($data['payment_phone'] ?? null);
+        $transaction->setPaidAmount($data['montant_paiement'] ?? null);
 
         $em->flush();
 
