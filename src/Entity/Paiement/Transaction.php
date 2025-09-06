@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 #[ORM\Table(name: 'pay_trans_transactions', schema: 'metier')]
+
 class Transaction
 {
     #[ORM\Id]
