@@ -78,8 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.querySelector('#type_service_id').value = details.type_service_id;
                 form.querySelector('#categorie_activite_id').value = details.categorie_activite_id;
                 form.querySelector('#type_demandeur_id').value = details.type_demandeur_id;
-                form.querySelector('#type_demande_id').value = details.type_demande_id;
-                form.querySelector('#regime_fiscal_id').value = details.regime_fiscal_id;
+                form.querySelector('#type_paiement_id').value = details.type_paiement_id;
 
                 form.querySelector('button[type="submit"]').textContent = 'Modifier';
 
