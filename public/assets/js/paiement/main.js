@@ -222,6 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>${result.message}</p>
                         <hr>
                         <p class="mb-0">Veuillez utiliser l'identifiant suivant pour effectuer le paiement : <strong>${result.identifiant_transaction}</strong></p>
+                        <a href="/paiement/transaction/${result.transaction_id}/receipt" class="btn btn-primary mt-3">Télécharger le Reçu</a>
                     </div>`;
                 resultContainer.style.display = 'block';
             } else {

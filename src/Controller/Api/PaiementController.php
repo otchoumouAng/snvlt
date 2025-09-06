@@ -101,6 +101,7 @@ class PaiementController extends AbstractController
                 'success' => true,
                 'message' => 'Avis de recette généré avec succès.',
                 'identifiant_transaction' => $identifiant,
+                'transaction_id' => $transaction->getId(),
                 'tresorpay_response' => $tresorPayResponse
             ]);
         } else {

@@ -10,9 +10,20 @@ use App\Repository\Administration\NotificationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
+use App\Service\Paiement\PdfService;
+use App\Entity\Paiement\Transaction;
 
 class PaiementWorkflowController extends AbstractController
 {
+    #[Route('/paiement/transaction/{id}/receipt', name: 'app_paiement_receipt')]
+    public function receipt(Transaction $transaction, PdfService $pdf)
+    {
+        $html = $this->renderView('paiement/receipt.html.twig', ['transaction' => $transaction]);
+        return new Response($pdf->generateBinaryPDF($html), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="recu.pdf"'
+        ]);
+    }
     /**
      * @Route("/paiement/new", name="app_paiement_workflow")
      */
