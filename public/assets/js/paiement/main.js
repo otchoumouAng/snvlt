@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return fetch(url).then(res => res.json());
         },
         getCategoriesActivite: () => fetch('/api/categories_activite').then(res => res.json()),
-        submitTransaction: (payload) => fetch('/paiement/transactions', {
+        submitTransaction: (payload) => fetch('/api/paiement/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!selectedValues.service_details) return;
 
         serviceSummary.innerHTML = `
-            <p><strong>Catalogue de Service :</strong> ${selectedValues.service_details.label}</p>
+            <p><strong>Catalogue de Service :</strong> ${selectedValues.service_details.label} ${selectedValues.service_details.montant} FCFA</p>
         `;
         showStep(2);
     }
