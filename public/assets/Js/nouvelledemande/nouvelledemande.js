@@ -278,7 +278,8 @@ class NouvelleDemandeApp {
                 await this.loadDemandeData(id);
             }
         } else {
-            this.setupModal(mode, null);
+            //this.setupModal(mode, null);
+            this.setupModalWithData(mode, {});
         }
         
     } catch (error) {
@@ -502,7 +503,7 @@ showDetailsPlaceholder() {
                 id: $('#demandeId').val() || null,
                 titre: $('#titre').val(),
                 description: $('#description').val(),
-                typeDocumentId: $('#typeDocument').val()
+                typeDocumentId: $('#typeDemande').val()
             };
             
             // Validation
