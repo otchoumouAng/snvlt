@@ -18,13 +18,14 @@ class ValidationDemandeApp {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
             columns: [
-                { data: 'id' },
-                { data: 'titre' },
-                { data: 'typeDocument' },
-                { data: 'societe' },
-                { data: 'dateCreation' },
+                { data: 'etape_id', title: 'ID Etape' },
+                { data: 'titre', title: 'Titre de la Demande' },
+                { data: 'description', title: 'Étape Actuelle' },
+                { data: 'societe', title: 'Société' },
+                { data: 'dateCreation', title: 'Date Demande' },
                 {
                     data: 'statut',
+                    title: 'Statut Demande',
                     render: (data, type, row) => {
                         return this.getStatusBadge(data);
                     }
@@ -47,7 +48,7 @@ class ValidationDemandeApp {
                 const data = this.dataTable.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
-                    this.displayDetails(data.id);
+                    this.displayDetails(data.id, data.etape_id);
                 }
             }
         });
@@ -59,8 +60,15 @@ class ValidationDemandeApp {
             }
         });
 
-        $(document).on('click', '#apply-validation-btn', () => this.applyValidation());
-        $(document).on('click', '#cancel-validation-btn', () => this.displayDetails(this.selectedDemandeId));
+        $(document).on('click', '#approve-step-btn', (e) => {
+            const etapeId = $(e.currentTarget).data('etape-id');
+            this.approveStep(etapeId);
+        });
+
+        $(document).on('click', '#reject-step-btn', (e) => {
+            const etapeId = $(e.currentTarget).data('etape-id');
+            this.rejectStep(etapeId);
+        });
     }
 
     async loadDemandes() {
@@ -77,68 +85,58 @@ class ValidationDemandeApp {
         }
     }
 
-    async displayDetails(demandeId) {
+    async displayDetails(demandeId, etapeId) {
         try {
-            // We'll need a new API endpoint for this
             const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
             const detailsContent = $('#details-content');
             const placeholder = $('#details-placeholder');
 
             placeholder.hide();
-            detailsContent.removeClass('visible');
 
-            let documentsHtml = '';
+            let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
             if (details.documents && details.documents.length > 0) {
-                details.documents.forEach((doc) => {
-                    documentsHtml += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <a href="${doc.url || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 80%;">${doc.nom}</a>
-                            <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-download-simple"></i></a>
-                        </li>`;
-                });
-            } else {
-                documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
+                documentsHtml = details.documents.map(doc => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <a href="${doc.path || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 80%;">${doc.nom}</a>
+                        <span class="badge bg-secondary">${doc.statut}</span>
+                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-eye"></i></a>
+                    </li>
+                `).join('');
+            }
+
+            let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
+            if (details.etapes_validation && details.etapes_validation.length > 0) {
+                etapesHtml = details.etapes_validation.map(etape => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center ${etape.id === etapeId ? 'active' : ''}">
+                        <span>${etape.ordre}. ${etape.nom}</span>
+                        <span class="badge bg-info">${etape.statut}</span>
+                    </li>
+                `).join('');
             }
 
             const contentHtml = `
                 <div class="mb-3">
                     <h5 class="fw-bold mb-1">${details.titre}</h5>
-                    <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
+                    <p class="text-muted mb-2">Société: ${details.societe}</p>
                     ${this.getStatusBadge(details.statut)}
                 </div>
 
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents</h6>
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
                 <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
 
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Action de validation</h6>
-                <div class="mb-3">
-                    <label for="validation-note" class="form-label">Note</label>
-                    <textarea class="form-control" id="validation-note" rows="3"></textarea>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Signature</label>
-                    <div id="signature-pad" class="border rounded" style="height: 150px;"></div>
-                     <button id="clear-signature" class="btn btn-sm btn-link">Effacer</button>
-                </div>
-                <div class="mb-3">
-                    <label for="validation-status" class="form-label">Changer le statut</label>
-                    <select class="form-select" id="validation-status">
-                        <option value="en_observation">En observation</option>
-                        <option value="valider">Valider</option>
-                        <option value="refuser">Refuser</option>
-                    </select>
-                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Circuit de Validation</h6>
+                <ul class="list-group list-group-flush document-list mb-4">${etapesHtml}</ul>
+
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Action</h6>
                 <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-secondary" id="cancel-validation-btn">Annuler</button>
-                    <button class="btn btn-primary" id="apply-validation-btn">Appliquer</button>
+                    <button class="btn btn-danger" id="reject-step-btn" data-etape-id="${etapeId}"><i class="ph ph-x-circle"></i> Rejeter</button>
+                    <button class="btn btn-success" id="approve-step-btn" data-etape-id="${etapeId}"><i class="ph ph-check-circle"></i> Approuver</button>
                 </div>
             `;
 
-            detailsContent.html(contentHtml);
-            this.initSignaturePad();
-            setTimeout(() => detailsContent.addClass('visible'), 10);
+            detailsContent.html(contentHtml).addClass('visible');
         } catch (error) {
-            this.notification.error('Erreur lors de l\'affichage des détails.');
+            this.notification.error("Erreur lors de l'affichage des détails.");
             console.error(error);
             this.showDetailsPlaceholder();
         }
@@ -151,36 +149,27 @@ class ValidationDemandeApp {
         placeholder.show();
     }
 
-    initSignaturePad() {
-        const signaturePadContainer = document.getElementById('signature-pad');
-        if (signaturePadContainer) {
-            // Ensure the container is empty before initializing
-            signaturePadContainer.innerHTML = '';
-
-            // Correctly instantiate the LemonadeJS component
-            this.signaturePad = lemonade.render(Signature, signaturePadContainer, {
-                width: signaturePadContainer.offsetWidth,
-                height: 150,
-                instructions: 'Signez ici',
-            });
-
-            $('#clear-signature').on('click', () => {
-                this.signaturePad.setValue([]);
-            });
+    async approveStep(etapeId) {
+        try {
+            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'approve' });
+            this.notification.success('Étape approuvée avec succès.');
+            this.loadDemandes();
+        } catch (error) {
+            this.notification.error("Erreur lors de l'approbation de l'étape.");
+            console.error(error);
         }
     }
 
-    async applyValidation() {
-        const note = $('#validation-note').val();
-        const statut = $('#validation-status').val();
-        const signature = this.signaturePad.getImage();
-
+    async rejectStep(etapeId) {
+        if (!confirm('Êtes-vous sûr de vouloir rejeter cette étape ? Cette action mettra fin au processus.')) {
+            return;
+        }
         try {
-            await this.apiService.applyValidation(this.selectedDemandeId, { note, statut, signature });
-            this.notification.success('Validation appliquée avec succès.');
+            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'reject' });
+            this.notification.success('Étape rejetée avec succès.');
             this.loadDemandes();
         } catch (error) {
-            this.notification.error('Erreur lors de l\'application de la validation.');
+            this.notification.error("Erreur lors du rejet de l'étape.");
             console.error(error);
         }
     }

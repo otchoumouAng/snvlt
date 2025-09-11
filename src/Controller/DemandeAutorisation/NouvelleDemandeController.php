@@ -18,6 +18,7 @@ use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
+use App\Service\NotificationService;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,7 +37,8 @@ class NouvelleDemandeController extends AbstractController
         private EntityManagerInterface $entityManager,
         private EtapeValidationRepository $etapeValidationRepository,
         private ModeleCommunicationRepository $modeleCommunicationRepository,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private NotificationService $notificationService
     ) {
     }
 
@@ -433,33 +435,10 @@ class NouvelleDemandeController extends AbstractController
 
             // Send notification for the first step
             if ($detail->getNumseq() === 1) {
-                $this->sendNotificationForStep($nouvelleDemande, $detail);
+                $this->notificationService->sendNotificationForStep($nouvelleDemande, $detail, $this->getUser());
             }
         }
 
         $this->entityManager->flush();
-    }
-
-    private function sendNotificationForStep(NouvelleDemande $demande, $detail): void
-    {
-        $usersToNotify = [];
-        if ($detail->getTypeService() === 'DIRECTION' && $detail->getCodeDirection()) {
-            $usersToNotify = $this->userRepository->findBy(['code_direction' => $detail->getCodeDirection()]);
-        } elseif ($detail->getTypeService() === 'SERVICE' && $detail->getCodeService()) {
-            $usersToNotify = $this->userRepository->findBy(['code_service' => $detail->getCodeService()]);
-        }
-
-        foreach ($usersToNotify as $user) {
-            $notification = new Notification();
-            $notification->setSujet('Nouvelle demande à traiter');
-            $notification->setDescription('Une nouvelle demande de type "' . $demande->getTypeDemande()->getDesignation() . '" a été créée et nécessite votre attention.');
-            $notification->setFromUser($this->getUser()->getUserIdentifier());
-            $notification->setToUser($user);
-            $notification->setCreatedAt(new \DateTimeImmutable());
-            $notification->setLu(false);
-            $notification->setRelatedToEntity('NouvelleDemande');
-            $notification->setRelatedToId($demande->getId());
-            $this->entityManager->persist($notification);
-        }
     }
 }

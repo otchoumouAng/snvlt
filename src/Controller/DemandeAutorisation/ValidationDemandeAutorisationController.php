@@ -2,13 +2,16 @@
 
 namespace App\Controller\DemandeAutorisation;
 
+use App\Entity\DemandeAutorisation\EtapeValidation;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
 use App\Entity\DemandeAutorisation\TypeDemandeDetail;
 use App\Entity\DemandeAutorisation\ValidationAction;
+use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
+use App\Service\NotificationService;
 use App\Repository\UserRepository;
 use App\Repository\Administration\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,9 +28,13 @@ class ValidationDemandeAutorisationController extends AbstractController
 {
     private $entityManager;
 
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private EtapeValidationRepository $etapeValidationRepository,
+        private NouvelleDemandeRepository $nouvelleDemandeRepository,
+        private TypeDemandeDetailRepository $typeDemandeDetailRepository,
+        private NotificationService $notificationService
+    ) {
     }
 
     /**
@@ -60,21 +67,37 @@ class ValidationDemandeAutorisationController extends AbstractController
     /**
      * @Route("/liste", name="app_validation_demande_autorisation_liste")
      */
-    public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    public function getListeDemandes(UserRepository $userRepository): JsonResponse
     {
+        $currentUser = $this->getUser();
+        if (!$currentUser) {
+            return new JsonResponse(['error' => 'User not authenticated'], 401);
+        }
 
-        $demandes = $nouvelleDemandeRepository->findBy(['statut' => 'Soumis']);
+        // Find steps that are 'en_attente' and for which the previous step is 'validé'
+        // This is a simplified logic. A more robust implementation would be needed.
+        // For now, we'll just fetch all steps assigned to the user's direction/service that are pending.
+
+        $userDirection = $currentUser->getCodeDirection();
+        $userService = $currentUser->getCodeService();
+
+        $pendingSteps = $this->etapeValidationRepository->findPendingStepsForUser($userDirection, $userService);
 
         $data = [];
-        foreach ($demandes as $demande) {
+        foreach ($pendingSteps as $etape) {
+            $demande = $etape->getDemande();
+            $operateur = $demande->getOperateur();
+            $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
+
             $data[] = [
                 'id' => $demande->getId(),
-                'titre' => $demande->getRaisonSocial(),
-                'description' => $demande->getDescription(),
+                'etape_id' => $etape->getId(),
+                'titre' => $demande->getTitre(),
+                'description' => $etape->getNom(), // Show the step name as description
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : '',
-                'societe' => $demande->getRaisonSocial()
+                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                'societe' => $societe
             ];
         }
 
@@ -84,82 +107,121 @@ class ValidationDemandeAutorisationController extends AbstractController
     /**
      * @Route("/details/{id}", name="app_validation_demande_autorisation_details")
      */
-    public function getDetailsDemande(int $id, NouvelleDemandeRepository $nouvelleDemandeRepository, TypeDemandeDetailRepository $typeDemandeDetailRepository): JsonResponse
+    public function getDetailsDemande(int $id): JsonResponse
     {
-        $demande = $nouvelleDemandeRepository->findWithDocuments($id);
+        $demande = $this->nouvelleDemandeRepository->find($id);
 
         if (!$demande) {
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
-        $requiredDocuments = $typeDemandeDetailRepository->findBy(['type_demande_id' => $demande->getTypeDemande()->getId()]);
-        $providedDocuments = $demande->getDocuments();
-
-        $documents = [];
-        foreach ($requiredDocuments as $requiredDoc) {
-            $providedDoc = null;
-            foreach ($providedDocuments as $pDoc) {
-                if ($pDoc->getTypeDocumentId() === $requiredDoc->getTypeDocument()->getId()) {
-                    $providedDoc = $pDoc;
-                    break;
-                }
-            }
-
-            $documents[] = [
-                'id' => $requiredDoc->getTypeDocument()->getId(),
-                'nom' => $requiredDoc->getTypeDocument()->getDesignation(),
-                'statut' => $providedDoc ? 'Fourni' : 'Manquant',
-                'url' => $providedDoc ? $this->generateUrl('app_document_download', ['id' => $providedDoc->getId()]) : null,
-                'dateAjout' => $providedDoc ? $providedDoc->getCreatedAt()->format('d/m/Y H:i') : null
+        // This logic is duplicated from NouvelleDemandeController, consider a shared service later
+        $uploadedDocuments = [];
+        foreach ($demande->getDemandeDocuments() as $demandeDocument) {
+            $doc = $demandeDocument->getDocument();
+            $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
+                'id' => $doc->getId(),
+                'nom' => $doc->getNom(),
+                'path' => '/uploads/documents/' . $doc->getPath(),
+                'statut' => $doc->getStatut(),
+                'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
         }
 
+        $requiredDocuments = [];
+        if ($demande->getTypeDemande()) {
+            $requiredDocumentDetails = $this->typeDemandeDetailRepository->findBy(['typeDemande' => $demande->getTypeDemande()]);
+            foreach ($requiredDocumentDetails as $detail) {
+                $typeDocument = $detail->getTypeDocument();
+                $typeDocId = $typeDocument->getId();
+
+                if (isset($uploadedDocuments[$typeDocId])) {
+                    $requiredDocuments[] = [
+                        'type_document_id' => $typeDocId,
+                        'nom' => $typeDocument->getDesignation(),
+                        'statut' => $uploadedDocuments[$typeDocId]['statut'],
+                        'document_id' => $uploadedDocuments[$typeDocId]['id'],
+                        'path' => $uploadedDocuments[$typeDocId]['path'],
+                        'dateAjout' => $uploadedDocuments[$typeDocId]['dateAjout'],
+                    ];
+                } else {
+                    $requiredDocuments[] = [
+                        'type_document_id' => $typeDocId,
+                        'nom' => $typeDocument->getDesignation(),
+                        'statut' => 'Non soumis',
+                        'document_id' => null,
+                        'path' => null,
+                        'dateAjout' => null
+                    ];
+                }
+            }
+        }
+
+        $etapes = $this->etapeValidationRepository->findBy(['demande' => $demande], ['ordre' => 'ASC']);
+        $etapesData = array_map(function ($etape) {
+            return [
+                'id' => $etape->getId(),
+                'nom' => $etape->getNom(),
+                'statut' => $etape->getStatut(),
+                'ordre' => $etape->getOrdre(),
+                'dateTraitement' => $etape->getDateTraitement() ? $etape->getDateTraitement()->format('d/m/Y H:i') : null,
+            ];
+        }, $etapes);
+
+        $operateur = $demande->getOperateur();
+        $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
+
         $data = [
             'id' => $demande->getId(),
-            'titre' => $demande->getRaisonSocial(),
+            'titre' => $demande->getTitre(),
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
-            'documents' => $documents,
-            'typeDocument' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : ''
+            'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+            'societe' => $societe,
+            'documents' => $requiredDocuments,
+            'etapes_validation' => $etapesData,
         ];
 
         return new JsonResponse($data);
     }
 
     /**
-     * @Route("/{id}/validate", name="app_validation_demande_autorisation_validate", methods={"POST"})
+     * @Route("/etape/{id}/validate", name="app_validation_demande_autorisation_etape_validate", methods={"POST"})
      */
-    public function validateDemande(int $id, Request $request, NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    public function validateStep(EtapeValidation $etape, Request $request): JsonResponse
     {
-        $demande = $nouvelleDemandeRepository->find($id);
-
-        if (!$demande) {
-            return new JsonResponse(['error' => 'Demande non trouvée'], 404);
-        }
-
         $data = json_decode($request->getContent(), true);
-        $statut = $data['statut'];
-        $note = $data['note'];
-        $signatureData = $data['signature'];
+        $decision = $data['decision'] ?? null; // 'approve' or 'reject'
 
-        // 1. Update demand status
-        $demande->setStatut($statut);
-
-        // 2. Save signature
-        $signaturePath = null;
-        if ($signatureData) {
-            $signaturePath = $this->saveSignature($signatureData, $demande->getId());
+        if (!in_array($decision, ['approve', 'reject'])) {
+            return new JsonResponse(['error' => 'Invalid decision'], 400);
         }
 
-        // 3. Create validation action
-        $validationAction = new ValidationAction();
-        $validationAction->setDemande($demande);
-        $validationAction->setValidator($this->getUser());
-        $validationAction->setStatut($statut);
-        $validationAction->setNote($note);
-        $validationAction->setSignaturePath($signaturePath);
+        $demande = $etape->getDemande();
 
-        $this->entityManager->persist($validationAction);
+        if ($decision === 'approve') {
+            $etape->setStatut('Validé');
+            $etape->setDateTraitement(new \DateTimeImmutable());
+
+            // Find next step
+            $nextEtape = $this->etapeValidationRepository->findOneBy([
+                'demande' => $demande,
+                'ordre' => $etape->getOrdre() + 1
+            ]);
+
+            if ($nextEtape) {
+                // Not the last step, notify next validators
+                $this->notificationService->sendNotificationForStep($demande, $nextEtape, $this->getUser());
+            } else {
+                // This was the last step, approve the whole request
+                $demande->setStatut('accepté');
+            }
+        } else { // 'reject'
+            $etape->setStatut('Rejeté');
+            $etape->setDateTraitement(new \DateTimeImmutable());
+            $demande->setStatut('rejeté');
+        }
+
         $this->entityManager->flush();
 
         return new JsonResponse(['success' => true]);
