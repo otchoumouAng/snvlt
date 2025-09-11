@@ -34,7 +34,7 @@ class NouvelleDemandeApp {
             columns: [
                 { data: 'id' },
                 { data: 'titre' },
-                { data: 'typeDocument' },
+                { data: 'typeDemande' },
                 { data: 'societe' },
                 { data: 'dateCreation' },
                 { 
@@ -383,15 +383,16 @@ setupModalWithData(mode, data) {
 
 // NOUVELLE FONCTION CENTRALE pour le panneau
 async displayDocumentPanel(demandeData) {
-    this.showLoader(); // Affiche le spinner
+    this.showLoader(); 
     $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
 
     try {
         const details = await this.apiService.getDemandeDetails(demandeData.id);
         const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
+        console.log(contentHtml)
 
-        $('#details-loader').hide();
-        $('#details-content').html(contentHtml).fadeIn(300);
+       
+        $('#details-content').html(contentHtml).show();
 
     } catch (error) {
         this.notification.error("Erreur lors du chargement des documents.");
@@ -402,7 +403,7 @@ async displayDocumentPanel(demandeData) {
 // NOUVELLE FONCTION pour construire le HTML du panneau
 // Fichier : nouvelledemande.js
 
-buildDocumentsHtml(details) {
+/*buildDocumentsHtml(details) {
     let documentsListHtml = '';
     if (details.documents && details.documents.length > 0) {
         documentsListHtml = details.documents.map(doc => `
@@ -444,16 +445,89 @@ buildDocumentsHtml(details) {
         <ul class="document-list">${documentsListHtml}</ul>
     `;
 }
+*/
+
+// Fichier : nouvelledemande.js
+
+buildDocumentsHtml(details) {
+    // Si la demande n'a pas de documents requis, on affiche un message.
+    if (!details.documents || details.documents.length === 0) {
+        return `<div class="text-center p-5 mt-3">
+                    <i class="ph-light ph-files" style="font-size: 3rem; color: #ced4da;"></i>
+                    <h6 class="mt-3">Aucun document requis</h6>
+                    <p class="text-muted small">Cette typologie de demande ne nécessite pas de document.</p>
+                </div>`;
+    }
+
+    // On construit la liste des documents à fournir
+    const documentsListHtml = details.documents.map(doc => {
+        const isProvided = doc.statut === 'fourni';
+        let statutHtml, traitementHtml = '', actionsHtml = '';
+
+        // 1. Définir le badge de STATUT (Fourni / Non Fourni)
+        if (isProvided) {
+            statutHtml = '<span class="status-badge-sm status-fourni">Fourni</span>';
+        } else {
+            statutHtml = '<span class="status-badge-sm status-non-fourni">Non Fourni</span>';
+        }
+
+        // 2. Définir le badge de TRAITEMENT (si le document est fourni)
+        if (isProvided) {
+            switch (doc.traitement) {
+                case 'accepté':
+                    traitementHtml = '<span class="status-badge-sm status-accepte">Accepté</span>';
+                    break;
+                case 'Réjeté':
+                    traitementHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
+                    break;
+                case 'En cours':
+                    traitementHtml = '<span class="status-badge-sm status-encours">En cours</span>';
+                    break;
+            }
+        }
+        
+        // 3. Définir les BOUTONS D'ACTION
+        if (isProvided) {
+            // Si fourni, on peut toujours le visualiser
+            actionsHtml += `<button class="action-btn view" title="Visualiser le document">
+                               <i class="ph-fill ph-eye"></i>
+                            </button>`;
+            
+            // Si rejeté, on ajoute le bouton pour re-charger
+            if (doc.traitement === 'Réjeté') {
+                actionsHtml += `<button class="action-btn re-upload" title="Charger un nouveau document">
+                                   <i class="ph-fill ph-upload-simple"></i>
+                                </button>`;
+            }
+        } else {
+            // Si non fourni, on affiche le bouton pour charger
+            actionsHtml += `<button class="action-btn upload" title="Charger le document">
+                               <i class="ph-fill ph-upload-simple"></i>
+                            </button>`;
+        }
+
+        // 4. Assembler le HTML final pour cet item
+        return `
+            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}">
+                <i class="ph-fill ph-file-text doc-icon"></i>
+                <div class="doc-info">${doc.nom}</div>
+                <div class="doc-status">${statutHtml}${traitementHtml}</div>
+                <div class="doc-actions">${actionsHtml}</div>
+            </li>
+        `;
+    }).join('');
+
+    // On retourne la liste complète
+    return `<ul class="document-requirements-list">${documentsListHtml}</ul>`;
+}
 
 // Fonctions de gestion des états du panneau
 showLoader() {
     $('#details-placeholder').hide();
     $('#details-content').hide();
-    $('#details-loader').show();
 }
 
 showDetailsPlaceholder() {
-    $('#details-loader').hide();
     $('#details-content').hide();
     $('#details-placeholder').show();
     $('#details-title-text').text('Documents');
@@ -621,23 +695,3 @@ showDetailsPlaceholder() {
     }
 }
 
-// Initialisation de l'application lorsque le document est prêt
-$(document).ready(function() {
-    // Vérifier que les dépendances sont chargées
-    if (typeof window.apiService === 'undefined') {
-        console.error('ApiService non chargé');
-        return;
-    }
-    
-    if (typeof window.notificationSystem === 'undefined') {
-        console.error('NotificationSystem non chargé');
-        return;
-    }
-    
-    // Initialiser l'application
-    const nouvelleDemandeApp = new NouvelleDemandeApp();
-    nouvelleDemandeApp.init();
-    
-    // Exposer l'instance globalement pour le débogage
-    window.nouvelleDemandeApp = nouvelleDemandeApp;
-});

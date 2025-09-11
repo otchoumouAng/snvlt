@@ -168,25 +168,10 @@
         color: #ced4da;
     }
 
-    /* Squelette de chargement */
-    #details-loader {
-        display: none;
-        padding: 1rem;
-    }
-    .skeleton {
-        background-color: #e0e0e0;
-        border-radius: 4px;
-        animation: pulse 1.5s infinite ease-in-out;
-    }
-    @keyframes pulse {
-        0% { opacity: 0.7; }
-        50% { opacity: 1; }
-        100% { opacity: 0.7; }
-    }
+    
 
     /* Liste de documents améliorée */
     #details-content {
-        opacity: 0;
         transition: opacity 0.4s ease;
     }
     #details-content.visible {
@@ -527,6 +512,104 @@
         animation: fadeIn 0.4s ease;
     }
 
+
+    /* --- NOUVELLE LISTE DE DOCUMENTS REQUIS --- */
+
+.document-requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espace vertical entre les documents */
+}
+
+.document-item-new {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background-color: var(--color-background); /* #f8f9fa */
+    border: 1px solid var(--color-border); /* #dee2e6 */
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+}
+
+.document-item-new:hover {
+    border-color: var(--color-primary); /* #0d6efd */
+    background-color: #fdfdff;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.document-item-new .doc-icon {
+    font-size: 1.5rem;
+    color: var(--color-text-secondary);
+    margin-right: 15px;
+}
+
+.document-item-new .doc-info {
+    flex-grow: 1;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.document-item-new .doc-status {
+    display: flex;
+    gap: 6px;
+    margin-right: 15px;
+}
+
+.status-badge-sm {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Couleurs des statuts */
+.status-fourni { background-color: #d1e7dd; color: #0f5132; }
+.status-non-fourni { background-color: #e9ecef; color: #495057; }
+.status-accepte { background-color: #cff4fc; color: #055160; }
+.status-rejete { background-color: #f8d7da; color: #842029; }
+.status-encours { background-color: #fff3cd; color: #664d03; }
+
+.document-item-new .doc-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    border-radius: 50%;
+    border: none;
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.action-btn.upload:hover {
+    color: #198754; /* Vert pour upload */
+    background-color: #d1e7dd;
+}
+
+.action-btn.re-upload:hover {
+    color: #dc3545; /* Rouge pour re-upload */
+    background-color: #f8d7da;
+}
+
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -591,11 +674,7 @@
                     <div id="details-content" class="details-content flex-grow-1" style="display: none;">
                         </div>
 
-                    <div id="details-loader" class="d-flex justify-content-center align-items-center flex-grow-1" style="display: none;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
+                    
                 </div>
             </div>
         </div>
