@@ -32,9 +32,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class NouvelleDemandeController extends AbstractController
 {
-    private $entityManager;
-    private $etapeValidationRepository;
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private EtapeValidationRepository $etapeValidationRepository,
