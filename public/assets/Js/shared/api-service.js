@@ -26,7 +26,7 @@ class ApiService {
             config.method = 'GET';
         }
 
-        if (config.body && typeof config.body === 'object') {
+        if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
             const contentTypeHeader = Object.keys(config.headers).find(k => k.toLowerCase() === 'content-type');
             const contentType = contentTypeHeader ? config.headers[contentTypeHeader].toLowerCase() : '';
 
@@ -36,8 +36,6 @@ class ApiService {
                     params.append(key, config.body[key]);
                 }
                 config.body = params.toString();
-            } else if (contentType.includes('multipart/form-data')) {
-                delete config.headers[contentTypeHeader];
             } else {
                 config.headers['Content-Type'] = 'application/json';
                 config.body = JSON.stringify(config.body);
