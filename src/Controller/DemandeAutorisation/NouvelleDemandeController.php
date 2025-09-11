@@ -108,7 +108,7 @@ class NouvelleDemandeController extends AbstractController
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
                 'path' => $doc->getPath(),
-                'statut' => 'fourni', // custom status
+                'statut' => $doc->getStatut(), // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
         }
@@ -126,7 +126,7 @@ class NouvelleDemandeController extends AbstractController
                     $requiredDocuments[] = [
                         'type_document_id' => $typeDocId,
                         'nom' => $typeDocument->getDesignation(),
-                        'statut' => 'fourni',
+                        'statut' => $uploadedDocuments[$typeDocId]['statut'],
                         'document_id' => $uploadedDocuments[$typeDocId]['id'],
                         'nom_fichier' => $uploadedDocuments[$typeDocId]['nom'],
                         'path' => $uploadedDocuments[$typeDocId]['path'],
@@ -137,7 +137,7 @@ class NouvelleDemandeController extends AbstractController
                     $requiredDocuments[] = [
                         'type_document_id' => $typeDocId,
                         'nom' => $typeDocument->getDesignation(),
-                        'statut' => 'manquant',
+                        'statut' => 'Non fourni',
                         'document_id' => null,
                         'nom_fichier' => null,
                         'path' => null,
@@ -224,6 +224,11 @@ class NouvelleDemandeController extends AbstractController
 
         if (!$file) {
             return new JsonResponse(['error' => 'Aucun fichier fourni'], 400);
+        }
+
+        // 1. Validation du type de fichier (PDF uniquement)
+        if ($file->getMimeType() !== 'application/pdf') {
+            return new JsonResponse(['error' => 'Le fichier doit être un PDF.'], 400);
         }
 
         if (!$typeDocumentId) {

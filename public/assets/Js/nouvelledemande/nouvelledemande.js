@@ -118,19 +118,24 @@ class NouvelleDemandeApp {
         });
 
         // Événements pour le panneau de documents
-        // Notez le sélecteur d'événement délégué pour les éléments créés dynamiquement
-        $('#details-panel').on('click', '#addDocumentBtnPanel', () => {
-            $('#pdf-upload-panel').click();
-        });
-        
-        $('#details-panel').on('change', '#pdf-upload-panel', (e) => {
-            this.handleFileUpload(e.target.files);
+        $('#details-panel').on('click', '.upload', (e) => {
+            const docTypeId = $(e.currentTarget).closest('.document-item-new').data('doc-type-id');
+            const fileInput = $('#pdf-upload-panel');
+            fileInput.attr('data-doc-type-id', docTypeId);
+            fileInput.click();
         });
 
-        $('#details-panel').on('click', '.remove-doc-btn', (e) => {
-            const documentId = $(e.currentTarget).closest('.list-group-item').data('doc-id');
-            this.removeDocument(documentId);
+        $('#details-panel').on('change', '#pdf-upload-panel', (e) => {
+            const docTypeId = $(e.currentTarget).attr('data-doc-type-id');
+            this.handleFileUpload(e.target.files, docTypeId);
         });
+
+        $('#details-panel').on('click', '.view', (e) => {
+            const docId = $(e.currentTarget).closest('.document-item-new').data('doc-id');
+            // For now, just log to console. To be implemented: view the document.
+            console.log(`Viewing document ${docId}`);
+        });
+
 
         // Utiliser la délégation d'événements pour les éléments chargés en AJAX
         $(document).on('click', '#back-to-list', (e) => {
@@ -222,64 +227,6 @@ class NouvelleDemandeApp {
         }
     }
 
-    displayDetails(details) {
-    const detailsContent = $('#details-content');
-    const placeholder = $('#details-placeholder');
-
-    placeholder.hide();
-    detailsContent.removeClass('visible');
-
-    // On construit la liste des documents, chacun avec son bouton de suppression
-    let documentsHtml = '';
-    if (details.documents && details.documents.length > 0) {
-        details.documents.forEach((doc) => {
-            documentsHtml += `
-                <li class="list-group-item d-flex justify-content-between align-items-center" data-doc-id="${doc.id}">
-                    <a href="${doc.url || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 70%;">${doc.nom}</a>
-                    <div class="d-flex align-items-center gap-2">
-                        ${NouvelDemandeApp.getDocumentStatusBadge(doc.statut)}
-                        <button class="btn btn-sm btn-light text-danger remove-doc-btn" title="Retirer le document">
-                            <i class="ph-fill ph-x"></i>
-                        </button>
-                    </div>
-                </li>`;
-        });
-    } else {
-        documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
-    }
-
-    // On construit le HTML complet du panneau
-    const contentHtml = `
-        <div class="mb-3">
-            <h5 class="fw-bold mb-1">${details.titre}</h5>
-            <p class="text-muted mb-2">${details.description || 'Aucune description'}</p>
-            ${NouvelleDemandeApp.getStatusBadge(details.statut)}
-            <div class="mt-2 small text-muted">Type: ${details.typeDocument}</div>
-        </div>
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="text-muted small fw-bold text-uppercase mb-0">Documents Requis</h6>
-            <button type="button" class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" id="addDocumentBtnPanel">
-                <i class="ph-fill ph-plus"></i> Ajouter
-            </button>
-            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
-        </div>
-
-        <ul class="list-group list-group-flush document-list">${documentsHtml}</ul>
-    `;
-
-    detailsContent.html(contentHtml);
-    setTimeout(() => detailsContent.addClass('visible'), 10);
-
-    // On attache les événements aux nouveaux boutons
-    $('#addDocumentBtnPanel').on('click', () => {
-        $('#pdf-upload-panel').click();
-    });
-
-    $('#pdf-upload-panel').on('change', (e) => {
-        this.handleFileUpload(e.target.files);
-    });
-}
 
     showDetailsPlaceholder() {
         const detailsContent = $('#details-content');
@@ -383,16 +330,19 @@ setupModalWithData(mode, data) {
 
 // NOUVELLE FONCTION CENTRALE pour le panneau
 async displayDocumentPanel(demandeData) {
-    this.showLoader(); 
+    this.showLoader();
     $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
 
     try {
         const details = await this.apiService.getDemandeDetails(demandeData.id);
         const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
-        console.log(contentHtml)
 
-       
-        $('#details-content').html(contentHtml).show();
+        // Add the hidden file input
+        const fullHtml = contentHtml + '<input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" />';
+
+        $('#details-content').html(fullHtml).show();
+        $('#details-placeholder').hide();
+
 
     } catch (error) {
         this.notification.error("Erreur lors du chargement des documents.");
@@ -461,57 +411,41 @@ buildDocumentsHtml(details) {
 
     // On construit la liste des documents à fournir
     const documentsListHtml = details.documents.map(doc => {
-        const isProvided = doc.statut === 'fourni';
-        let statutHtml, traitementHtml = '', actionsHtml = '';
+        let statutHtml = '';
+        let actionsHtml = '';
 
-        // 1. Définir le badge de STATUT (Fourni / Non Fourni)
-        if (isProvided) {
-            statutHtml = '<span class="status-badge-sm status-fourni">Fourni</span>';
-        } else {
-            statutHtml = '<span class="status-badge-sm status-non-fourni">Non Fourni</span>';
+        // Définir le badge de STATUT
+        switch (doc.statut) {
+            case 'Fourni':
+                statutHtml = '<span class="status-badge-sm status-fourni">Fourni</span>';
+                break;
+            case 'Accepté':
+                statutHtml = '<span class="status-badge-sm status-accepte">Accepté</span>';
+                break;
+            case 'Rejeté':
+                statutHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
+                break;
+            default:
+                statutHtml = '<span class="status-badge-sm status-non-fourni">Non Fourni</span>';
         }
 
-        // 2. Définir le badge de TRAITEMENT (si le document est fourni)
-        if (isProvided) {
-            switch (doc.traitement) {
-                case 'accepté':
-                    traitementHtml = '<span class="status-badge-sm status-accepte">Accepté</span>';
-                    break;
-                case 'Réjeté':
-                    traitementHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
-                    break;
-                case 'En cours':
-                    traitementHtml = '<span class="status-badge-sm status-encours">En cours</span>';
-                    break;
-            }
-        }
-        
-        // 3. Définir les BOUTONS D'ACTION
-        if (isProvided) {
-            // Si fourni, on peut toujours le visualiser
-            actionsHtml += `<button class="action-btn view" title="Visualiser le document">
+        // Définir les BOUTONS D'ACTION
+        if (doc.statut === 'Fourni' || doc.statut === 'Accepté') {
+            actionsHtml = `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
-                            </button>`;
-            
-            // Si rejeté, on ajoute le bouton pour re-charger
-            if (doc.traitement === 'Réjeté') {
-                actionsHtml += `<button class="action-btn re-upload" title="Charger un nouveau document">
-                                   <i class="ph-fill ph-upload-simple"></i>
-                                </button>`;
-            }
-        } else {
-            // Si non fourni, on affiche le bouton pour charger
-            actionsHtml += `<button class="action-btn upload" title="Charger le document">
+                           </button>`;
+        } else { // "Non fourni" ou "Rejeté"
+            actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
-                            </button>`;
+                           </button>`;
         }
 
-        // 4. Assembler le HTML final pour cet item
+        // Assembler le HTML final pour cet item
         return `
-            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}">
+            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}" data-doc-id="${doc.document_id}">
                 <i class="ph-fill ph-file-text doc-icon"></i>
                 <div class="doc-info">${doc.nom}</div>
-                <div class="doc-status">${statutHtml}${traitementHtml}</div>
+                <div class="doc-status">${statutHtml}</div>
                 <div class="doc-actions">${actionsHtml}</div>
             </li>
         `;
@@ -586,38 +520,39 @@ showDetailsPlaceholder() {
         }
     }
 
-    async handleFileUpload(files) {
-        if (!this.selectedDemandeId && !$('#demandeId').val()) {
-            this.notification.warning('Veuillez d\'abord enregistrer la demande');
+    async handleFileUpload(files, docTypeId) {
+        if (!this.selectedDemandeId) {
+            this.notification.warning('Veuillez sélectionner une demande');
             return;
         }
-        
-        const demandeId = this.selectedDemandeId || $('#demandeId').val();
-        
+
+        const demandeId = this.selectedDemandeId;
+
         for (const file of files) {
             if (file.type !== 'application/pdf') {
                 this.notification.warning('Seuls les fichiers PDF sont acceptés');
                 continue;
             }
-            
+
             if (file.size > 10 * 1024 * 1024) { // 10MB limit
                 this.notification.warning('Le fichier ne doit pas dépasser 10 Mo');
                 continue;
             }
-            
+
             const formData = new FormData();
             formData.append('document', file);
-            
+            formData.append('type_document_id', docTypeId);
+
             try {
                 await this.apiService.addDocument(demandeId, formData);
                 this.notification.success('Document ajouté avec succès');
-                
-                // Reload the data
-                if (this.currentMode) {
-                    this.loadDemandeData(demandeId);
-                } else {
-                    this.selectDemande(demandeId);
+
+                // Reload the document panel
+                const rowData = this.dataTable.row({ selected: true }).data();
+                if (rowData) {
+                    this.displayDocumentPanel(rowData);
                 }
+
             } catch (error) {
                 this.notification.error('Erreur lors de l\'ajout du document');
                 console.error(error);
