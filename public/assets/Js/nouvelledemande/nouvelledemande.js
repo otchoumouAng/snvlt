@@ -131,9 +131,12 @@ class NouvelleDemandeApp {
         });
 
         $('#details-panel').on('click', '.view', (e) => {
-            const docId = $(e.currentTarget).closest('.document-item-new').data('doc-id');
-            // For now, just log to console. To be implemented: view the document.
-            console.log(`Viewing document ${docId}`);
+            const docPath = $(e.currentTarget).closest('.document-item-new').data('doc-path');
+            if (docPath) {
+                window.open(docPath, '_blank');
+            } else {
+                this.notification.error('Chemin du document non trouvé.');
+            }
         });
 
 
@@ -333,6 +336,10 @@ async displayDocumentPanel(demandeData) {
     this.showLoader();
     $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
 
+    // Show spinner
+    $('#details-content').html('<div class="loader"></div>').show();
+    $('#details-placeholder').hide();
+
     try {
         const details = await this.apiService.getDemandeDetails(demandeData.id);
         const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
@@ -340,9 +347,8 @@ async displayDocumentPanel(demandeData) {
         // Add the hidden file input
         const fullHtml = contentHtml + '<input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" />';
 
-        $('#details-content').html(fullHtml).show();
-        $('#details-placeholder').hide();
-
+        // Replace spinner with content
+        $('#details-content').html(fullHtml);
 
     } catch (error) {
         this.notification.error("Erreur lors du chargement des documents.");
@@ -416,25 +422,28 @@ buildDocumentsHtml(details) {
 
         // Définir le badge de STATUT
         switch (doc.statut) {
-            case 'Fourni':
-                statutHtml = '<span class="status-badge-sm status-fourni">Fourni</span>';
+            case 'soumis':
+                statutHtml = '<span class="status-badge-sm status-fourni">Soumis</span>';
                 break;
-            case 'Accepté':
+            case 'accepté':
                 statutHtml = '<span class="status-badge-sm status-accepte">Accepté</span>';
                 break;
-            case 'Rejeté':
+            case 'rejeté':
                 statutHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
                 break;
+            case 'Non soumis':
+                statutHtml = '<span class="status-badge-sm status-non-fourni">Non soumis</span>';
+                break;
             default:
-                statutHtml = '<span class="status-badge-sm status-non-fourni">Non Fourni</span>';
+                statutHtml = '<span class="status-badge-sm status-non-fourni">Non soumis</span>';
         }
 
         // Définir les BOUTONS D'ACTION
-        if (doc.statut === 'Fourni' || doc.statut === 'Accepté') {
+        if (doc.statut === 'soumis' || doc.statut === 'accepté') {
             actionsHtml = `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
                            </button>`;
-        } else { // "Non fourni" ou "Rejeté"
+        } else { // "Non soumis" ou "rejeté"
             actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
                            </button>`;
@@ -442,7 +451,7 @@ buildDocumentsHtml(details) {
 
         // Assembler le HTML final pour cet item
         return `
-            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}" data-doc-id="${doc.document_id}">
+            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}" data-doc-id="${doc.document_id}" data-doc-path="${doc.path || ''}">
                 <i class="ph-fill ph-file-text doc-icon"></i>
                 <div class="doc-info">${doc.nom}</div>
                 <div class="doc-status">${statutHtml}</div>

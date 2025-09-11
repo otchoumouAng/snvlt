@@ -107,7 +107,7 @@ class NouvelleDemandeController extends AbstractController
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
-                'path' => $doc->getPath(),
+                'path' => '/uploads/documents/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
                 'statut' => $doc->getStatut(), // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
@@ -137,7 +137,7 @@ class NouvelleDemandeController extends AbstractController
                     $requiredDocuments[] = [
                         'type_document_id' => $typeDocId,
                         'nom' => $typeDocument->getDesignation(),
-                        'statut' => 'Non fourni',
+                        'statut' => 'Non soumis',
                         'document_id' => null,
                         'nom_fichier' => null,
                         'path' => null,
@@ -253,7 +253,7 @@ class NouvelleDemandeController extends AbstractController
         $document = new Document();
         $document->setNom($file->getClientOriginalName());
         $document->setPath($newFilename);
-        $document->setStatut('fourni');
+        $document->setStatut('soumis');
         $document->setTypeDocument($typeDocument);
         $document->setCreatedAt(new \DateTime());
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
