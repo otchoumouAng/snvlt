@@ -5,6 +5,7 @@ namespace App\Controller\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\DemandeDocument;
 use App\Entity\DemandeAutorisation\Document;
 use App\Entity\DemandeAutorisation\EtapeValidation;
+use App\Entity\Administration\Notification;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
 use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Repository\Administration\NotificationRepository;
@@ -14,6 +15,7 @@ use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use App\Repository\DemandeAutorisation\TypeDocumentRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeRepository;
+use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
@@ -33,10 +35,12 @@ class NouvelleDemandeController extends AbstractController
     private $entityManager;
     private $etapeValidationRepository;
 
-    public function __construct(EntityManagerInterface $entityManager, EtapeValidationRepository $etapeValidationRepository)
-    {
-        $this->entityManager = $entityManager;
-        $this->etapeValidationRepository = $etapeValidationRepository;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private EtapeValidationRepository $etapeValidationRepository,
+        private ModeleCommunicationRepository $modeleCommunicationRepository,
+        private UserRepository $userRepository
+    ) {
     }
 
     /**
@@ -75,6 +79,9 @@ class NouvelleDemandeController extends AbstractController
 
         $data = [];
         foreach ($demandes as $demande) {
+            $operateur = $demande->getOperateur();
+            $societe = $operateur ? ($operateur->getExploitant() ? $operateur->getExploitant()->getRaisonSocialeExploitant() : $operateur->getNom() . ' ' . $operateur->getPrenom()) : 'N/A';
+
             $data[] = [
                 'id' => $demande->getId(),
                 'titre' => $demande->getTitre(),
@@ -82,7 +89,7 @@ class NouvelleDemandeController extends AbstractController
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                 'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-                'societe' => $demande->getRaisonSocial()
+                'societe' => $societe
             ];
         }
 
@@ -181,12 +188,7 @@ class NouvelleDemandeController extends AbstractController
                 $demande = new NouvelleDemande();
                 $demande->setCreatedAt(new \DateTime());
                 $demande->setCreatedBy($user->getUserIdentifier());
-                $demande->setOperateurId($user->getId()); // Assuming the user is the operator
-                if ($user->getExploitant()) {
-                    $demande->setRaisonSocial($user->getExploitant()->getRaisonSocialeExploitant());
-                } else {
-                    $demande->setRaisonSocial($user->getNom() . " " . $user->getPrenom());
-                }
+                $demande->setOperateur($user);
                 $demande->setCodeSuivie(strtoupper(uniqid('SN-')));
             }
 
@@ -199,8 +201,14 @@ class NouvelleDemandeController extends AbstractController
                 $demande->setTypeDemande($typeDemande);
             }
 
+            $isNew = empty($data['id']);
+
             $this->entityManager->persist($demande);
             $this->entityManager->flush();
+
+            if ($isNew) {
+                $this->createValidationCircuit($demande);
+            }
 
             return new JsonResponse(['success' => true, 'id' => $demande->getId()]);
         } catch (\Exception $e) {
@@ -390,5 +398,71 @@ class NouvelleDemandeController extends AbstractController
         // C'est la première étape non complétée, elle est donc active.
         $etapeActiveTrouvee = true;
         return ['active', true];
+    }
+
+    private function createValidationCircuit(NouvelleDemande $nouvelleDemande): void
+    {
+        $typeDemande = $nouvelleDemande->getTypeDemande();
+        if (!$typeDemande) {
+            return;
+        }
+
+        $modele = $this->modeleCommunicationRepository->findOneBy([
+            'typeDemande' => $typeDemande,
+            'statut' => 'ACTIF'
+        ]);
+
+        if (!$modele) {
+            return;
+        }
+
+        $detailsModele = $modele->getDetailsModeles();
+
+        foreach ($detailsModele as $detail) {
+            $etapeValidation = new EtapeValidation();
+            $etapeValidation->setDemande($nouvelleDemande);
+            $etapeValidation->setOrdre($detail->getNumseq());
+
+            $nomEtape = 'Étape inconnue';
+            if ($detail->getTypeService() === 'DIRECTION' && $detail->getCodeDirection()) {
+                $nomEtape = $detail->getCodeDirection()->getDenomination();
+            } elseif ($detail->getTypeService() === 'SERVICE' && $detail->getCodeService()) {
+                $nomEtape = $detail->getCodeService()->getLibelleService();
+            }
+            $etapeValidation->setNom($nomEtape);
+
+            $etapeValidation->setStatut('en_attente');
+            $this->entityManager->persist($etapeValidation);
+
+            // Send notification for the first step
+            if ($detail->getNumseq() === 1) {
+                $this->sendNotificationForStep($nouvelleDemande, $detail);
+            }
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function sendNotificationForStep(NouvelleDemande $demande, $detail): void
+    {
+        $usersToNotify = [];
+        if ($detail->getTypeService() === 'DIRECTION' && $detail->getCodeDirection()) {
+            $usersToNotify = $this->userRepository->findBy(['code_direction' => $detail->getCodeDirection()]);
+        } elseif ($detail->getTypeService() === 'SERVICE' && $detail->getCodeService()) {
+            $usersToNotify = $this->userRepository->findBy(['code_service' => $detail->getCodeService()]);
+        }
+
+        foreach ($usersToNotify as $user) {
+            $notification = new Notification();
+            $notification->setSujet('Nouvelle demande à traiter');
+            $notification->setDescription('Une nouvelle demande de type "' . $demande->getTypeDemande()->getDesignation() . '" a été créée et nécessite votre attention.');
+            $notification->setFromUser($this->getUser()->getUserIdentifier());
+            $notification->setToUser($user);
+            $notification->setCreatedAt(new \DateTime());
+            $notification->setLu(false);
+            $notification->setRelatedToEntity('NouvelleDemande');
+            $notification->setRelatedToId($demande->getId());
+            $this->entityManager->persist($notification);
+        }
     }
 }

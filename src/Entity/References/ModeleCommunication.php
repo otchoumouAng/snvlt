@@ -44,8 +44,8 @@ class ModeleCommunication
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $updated_by = null;
 
-    #[ORM\ManyToOne(inversedBy: 'modeleCommunications')]
-    private ?TypeModeleCommunication $code_type_modele_communication = null;
+    #[ORM\ManyToOne(targetEntity: \App\Entity\DemandeAutorisation\TypeDemande::class, inversedBy: 'modeleCommunications')]
+    private ?\App\Entity\DemandeAutorisation\TypeDemande $typeDemande = null;
 
     public function __construct()
     {
@@ -190,14 +190,14 @@ class ModeleCommunication
         return $this;
     }
 
-    public function getCodeTypeModeleCommunication(): ?TypeModeleCommunication
+    public function getTypeDemande(): ?\App\Entity\DemandeAutorisation\TypeDemande
     {
-        return $this->code_type_modele_communication;
+        return $this->typeDemande;
     }
 
-    public function setCodeTypeModeleCommunication(?TypeModeleCommunication $code_type_modele_communication): static
+    public function setTypeDemande(?\App\Entity\DemandeAutorisation\TypeDemande $typeDemande): static
     {
-        $this->code_type_modele_communication = $code_type_modele_communication;
+        $this->typeDemande = $typeDemande;
 
         return $this;
     }

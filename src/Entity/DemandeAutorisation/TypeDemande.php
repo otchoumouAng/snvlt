@@ -12,6 +12,8 @@ namespace App\Entity\DemandeAutorisation;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\DemandeAutorisation\TypeDemandeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeDemandeRepository::class)]
@@ -29,6 +31,14 @@ class TypeDemande
     #[ORM\Column(length: 255)]
     private ?string $designation = null;
 
+    #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: \App\Entity\References\ModeleCommunication::class)]
+    private Collection $modeleCommunications;
+
+    public function __construct()
+    {
+        $this->modeleCommunications = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -42,6 +52,36 @@ class TypeDemande
     public function setDesignation(string $designation): static
     {
         $this->designation = $designation;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, \App\Entity\References\ModeleCommunication>
+     */
+    public function getModeleCommunications(): Collection
+    {
+        return $this->modeleCommunications;
+    }
+
+    public function addModeleCommunication(\App\Entity\References\ModeleCommunication $modeleCommunication): static
+    {
+        if (!$this->modeleCommunications->contains($modeleCommunication)) {
+            $this->modeleCommunications->add($modeleCommunication);
+            $modeleCommunication->setTypeDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeModeleCommunication(\App\Entity\References\ModeleCommunication $modeleCommunication): static
+    {
+        if ($this->modeleCommunications->removeElement($modeleCommunication)) {
+            // set the owning side to null (unless already changed)
+            if ($modeleCommunication->getTypeDemande() === $this) {
+                $modeleCommunication->setTypeDemande(null);
+            }
+        }
+
         return $this;
     }
 }

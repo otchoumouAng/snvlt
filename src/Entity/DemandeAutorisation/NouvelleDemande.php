@@ -10,7 +10,8 @@
 
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
-use App\Repository\DemandeAutorisation\NouvelleDemandeRepository; 
+use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,11 +28,9 @@ class NouvelleDemande
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(name: "raison_social", length: 255)]
-    private ?string $raisonSocial = null;
-
-    #[ORM\Column(name: "operateur_id")]
-    private ?int $operateurId = null;
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: "operateur_id", referencedColumnName: "id", nullable: false)]
+    private ?User $operateur = null;
 
     #[ORM\Column(name: "code_suivie", length: 20)]
     private ?string $codeSuivie = null;
@@ -66,25 +65,14 @@ class NouvelleDemande
         return $this->id;
     }
 
-    public function getRaisonSocial(): ?string
+    public function getOperateur(): ?User
     {
-        return $this->raisonSocial;
+        return $this->operateur;
     }
 
-    public function setRaisonSocial(string $raisonSocial): static
+    public function setOperateur(?User $operateur): static
     {
-        $this->raisonSocial = $raisonSocial;
-        return $this;
-    }
-
-    public function getOperateurId(): ?int
-    {
-        return $this->operateurId;
-    }
-
-    public function setOperateurId(int $operateurId): static
-    {
-        $this->operateurId = $operateurId;
+        $this->operateur = $operateur;
         return $this;
     }
 
