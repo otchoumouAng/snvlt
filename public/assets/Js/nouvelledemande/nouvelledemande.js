@@ -278,7 +278,8 @@ class NouvelleDemandeApp {
                 await this.loadDemandeData(id);
             }
         } else {
-            this.setupModal(mode, null);
+            //this.setupModal(mode, null);
+            this.setupModalWithData(mode, {});
         }
         
     } catch (error) {
@@ -502,11 +503,12 @@ showDetailsPlaceholder() {
                 id: $('#demandeId').val() || null,
                 titre: $('#titre').val(),
                 description: $('#description').val(),
-                typeDocumentId: $('#typeDocument').val()
+                typeDemandeId: $('#typeDemande').val()
+                //typeDocumentId: $('#typeDocument').val()
             };
             
             // Validation
-            if (!formData.titre || !formData.typeDocumentId) {
+            if (!formData.titre || !formData.typeDemandeId) {
                 this.notification.warning('Veuillez remplir tous les champs obligatoires');
                 return;
             }
