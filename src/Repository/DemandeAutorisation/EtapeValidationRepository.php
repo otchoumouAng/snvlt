@@ -3,6 +3,8 @@
 namespace App\Repository\DemandeAutorisation;
 
 use App\Entity\DemandeAutorisation\EtapeValidation;
+use App\Entity\References\Direction;
+use App\Entity\References\ServiceMinef;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -37,5 +39,34 @@ class EtapeValidationRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * @return EtapeValidation[]
+     */
+    public function findPendingStepsForUser(?Direction $direction, ?ServiceMinef $service): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->where('e.statut = :statut')
+            ->setParameter('statut', 'en_attente');
+
+        if ($direction) {
+            $qb->andWhere('e.nom = :nom')
+                ->setParameter('nom', $direction->getDenomination());
+        } elseif ($service) {
+            $qb->andWhere('e.nom = :nom')
+                ->setParameter('nom', $service->getLibelleService());
+        } else {
+            // If user has no direction or service, they see nothing
+            return [];
+        }
+
+        // This is the complex part: only show steps where the previous step is validated.
+        // For now, we keep it simple as discussed. A more advanced query would be needed here.
+        // e.g., check if order is 1, OR if the step with (e.ordre - 1) for the same demande has status 'validé'.
+
+        return $qb->orderBy('e.id', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 }
