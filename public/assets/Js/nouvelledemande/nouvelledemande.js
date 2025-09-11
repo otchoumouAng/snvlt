@@ -140,6 +140,15 @@ class NouvelleDemandeApp {
         });
 
 
+        $('#details-panel').on('click', '#refresh-demande-btn', () => {
+            if (this.selectedDemandeId) {
+                const rowData = this.dataTable.row({ selected: true }).data();
+                if (rowData) {
+                    this.displayDocumentPanel(rowData);
+                }
+            }
+        });
+
         // Utiliser la délégation d'événements pour les éléments chargés en AJAX
         $(document).on('click', '#back-to-list', (e) => {
             e.preventDefault();
@@ -334,7 +343,14 @@ setupModalWithData(mode, data) {
 // NOUVELLE FONCTION CENTRALE pour le panneau
 async displayDocumentPanel(demandeData) {
     this.showLoader();
-    $('#details-title-text').html(`Documents pour : <span class="fw-normal">${demandeData.titre}</span>`);
+    const titleHtml = `
+        <div class="d-flex justify-content-between align-items-center">
+            <span>Documents pour : <span class="fw-normal">${demandeData.titre}</span></span>
+            <button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn">
+                <i class="ph-fill ph-arrows-clockwise"></i> Actualiser ma demande
+            </button>
+        </div>`;
+    $('#details-title-text').html(titleHtml);
 
     // Show spinner
     $('#details-content').html('<div class="loader"></div>').show();
@@ -608,17 +624,16 @@ showDetailsPlaceholder() {
 
     static getStatusBadge(status) {
         switch (status) {
-            case 'approved': 
-            case 'approuvée':
-                return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i> Approuvée</span>';
-            case 'pending': 
-            case 'en_attente':
-                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En attente</span>';
-            case 'rejected': 
-            case 'rejetée':
-                return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejetée</span>';
-            default: 
-                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> ' + status + '</span>';
+            case 'créé':
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
+            case 'en cours':
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
+            case 'rejeté':
+                return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejeté</span>';
+            case 'accepté':
+                return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i> Accepté</span>';
+            default:
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-question"></i> ' + status + '</span>';
         }
     }
 

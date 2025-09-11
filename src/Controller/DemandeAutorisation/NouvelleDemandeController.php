@@ -192,7 +192,7 @@ class NouvelleDemandeController extends AbstractController
 
             $demande->setTitre($data['titre']);
             $demande->setDescription($data['description']);
-            $demande->setStatut($data['statut'] ?? 'en_attente');
+            $demande->setStatut($data['statut'] ?? 'créé');
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
