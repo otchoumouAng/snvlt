@@ -77,7 +77,7 @@ class NouvelleDemandeController extends AbstractController
         $data = [];
         foreach ($demandes as $demande) {
             $operateur = $demande->getOperateur();
-            $societe = $operateur ? ($operateur->getExploitant() ? $operateur->getExploitant()->getRaisonSocialeExploitant() : $operateur->getNom() . ' ' . $operateur->getPrenom()) : 'N/A';
+            $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
             $data[] = [
                 'id' => $demande->getId(),
@@ -180,10 +180,11 @@ class NouvelleDemandeController extends AbstractController
                 if (!$demande) {
                     throw new \Exception('Demande non trouvée');
                 }
+                $demande->setUpdatedAt(new \DateTimeImmutable());
+                $demande->setUpdatedBy($user->getUserIdentifier());
             } else {
                 // Création
                 $demande = new NouvelleDemande();
-                $demande->setCreatedAt(new \DateTime());
                 $demande->setCreatedBy($user->getUserIdentifier());
                 $demande->setOperateur($user);
                 $demande->setCodeSuivie(strtoupper(uniqid('SN-')));
@@ -260,7 +261,6 @@ class NouvelleDemandeController extends AbstractController
         $document->setPath($newFilename);
         $document->setStatut('soumis');
         $document->setTypeDocument($typeDocument);
-        $document->setCreatedAt(new \DateTime());
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
 
         $demandeDocument = new DemandeDocument();
@@ -455,7 +455,7 @@ class NouvelleDemandeController extends AbstractController
             $notification->setDescription('Une nouvelle demande de type "' . $demande->getTypeDemande()->getDesignation() . '" a été créée et nécessite votre attention.');
             $notification->setFromUser($this->getUser()->getUserIdentifier());
             $notification->setToUser($user);
-            $notification->setCreatedAt(new \DateTime());
+            $notification->setCreatedAt(new \DateTimeImmutable());
             $notification->setLu(false);
             $notification->setRelatedToEntity('NouvelleDemande');
             $notification->setRelatedToId($demande->getId());
