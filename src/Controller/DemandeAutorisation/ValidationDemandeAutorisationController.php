@@ -26,8 +26,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ValidationDemandeAutorisationController extends AbstractController
 {
-    private $entityManager;
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private EtapeValidationRepository $etapeValidationRepository,
