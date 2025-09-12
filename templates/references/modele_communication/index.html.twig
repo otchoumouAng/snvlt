@@ -48,20 +48,18 @@
                         {% endif %}
                         <td class="" style="font-size: 18px;font-weight: bold;"><a class="text-dark editBtn" href="{{ path('app_modele_com.edit', {'id_modele': modele.id })}}" id="{{ modele.id }}">{{ modele.libelleModele }}</a></td>
 
-                            {% if(modele.codeTypeModeleCommunication) %}
-                                {% if(modele.codeTypeModeleCommunication.id == 1) %}
-                                        <td><span class="badge alert-primary text-dark p-2 fw-bold" style="font-weight: bold;font-size: 16px;">{{ modele.codeTypeModeleCommunication.libelle }}</span></td>
-                                    {% elseif (modele.codeTypeModeleCommunication.id == 2)%}
-                                        <td><span class="badge alert-info text-dark p-2 fw-bold" style="font-weight: bold;font-size: 16px;">{{ modele.codeTypeModeleCommunication.libelle }}</span></td>
-                                    {% else %}
-                                        <td><span class="badge alert-warning text-dark p-2 fw-bold" style="font-weight: bold;font-size: 16px;">{{ modele.codeTypeModeleCommunication.libelle }}</span></td>
-                                    {% endif %}
+                            {% if modele.typeDemande %}
+                                <td><span class="badge alert-primary text-dark p-2 fw-bold" style="font-weight: bold;font-size: 16px;">{{ modele.typeDemande.designation }}</span></td>
                             {% else %}
                                 <td><span class="badge alert-danger text-dark p-2 fw-bold" style="font-weight: bold;font-size: 16px;">-</span></td>
                             {% endif %}
 
                             <td><span class="badge bg-success text-white p-2 fw-bold" style="font-weight: bold;font-size: 18px;">{{ modele.statut }}</span></td>
-                        <td><a href="{{ path('app_modele_com.change_status', {id_modele: modele.id , id_type_modele: modele.codeTypeModeleCommunication.id}) }}" ><img src="{{ asset('assets/icons/security.png') }}" height="24" alt="security_profile" title="{% trans %}Change Status{% endtrans %}"></a></td>
+                        <td>
+                            {% if modele.typeDemande %}
+                                <a href="{{ path('app_modele_com.change_status', {id_modele: modele.id , id_type_modele: modele.typeDemande.id}) }}" ><img src="{{ asset('assets/icons/security.png') }}" height="24" alt="security_profile" title="{% trans %}Change Status{% endtrans %}"></a>
+                            {% endif %}
+                        </td>
                         </tr>
                     {% endfor %}
                     </tbody>
