@@ -361,7 +361,7 @@ async displayDocumentPanel(demandeData) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'En cours') {
+    } else if (status === 'en_attente') {
         buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
@@ -613,10 +613,6 @@ showDetailsPlaceholder() {
     }
 
     async submitDemande() {
-        if (!confirm("Êtes-vous sûr de vouloir soumettre cette demande pour validation ?")) {
-            this.notification.info('Soumission annulée.', 2000);
-            return;
-        }
         try {
             const result = await this.apiService.submitDemande(this.selectedDemandeId);
             if (result.success) {
@@ -672,7 +668,7 @@ showDetailsPlaceholder() {
         switch (status) {
             case 'créé':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
-            case 'En cours':
+            case 'en_attente':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
             case 'rejeté':
                 return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejeté</span>';
