@@ -48,6 +48,7 @@ class ModeleCommunicationController extends AbstractController
         NotificationRepository $notification,
         ModeleCommunicationRepository $communicationRepository): Response
     {
+        //dd($communicationRepository->findAll());
         if(!$request->getSession()->has('user_session')){
             return $this->redirectToRoute('app_login');
         } else {
