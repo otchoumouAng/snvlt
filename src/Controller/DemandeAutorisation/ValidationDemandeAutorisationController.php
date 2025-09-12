@@ -248,7 +248,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         } else { // 'reject'
             $etape->setStatut('Rejeté');
             $etape->setDateTraitement(new \DateTimeImmutable());
-            $etape->setCommentaire($comment);
+            $etape->setDetails($comment);
             $demande->setStatut('rejeté');
         }
 

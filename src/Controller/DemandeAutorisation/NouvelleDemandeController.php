@@ -194,7 +194,7 @@ class NouvelleDemandeController extends AbstractController
 
             $demande->setTitre($data['titre']);
             $demande->setDescription($data['description']);
-            $demande->setStatut($data['statut'] ?? 'Brouillon');
+            $demande->setStatut($data['statut'] ?? 'créé');
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
@@ -337,7 +337,7 @@ class NouvelleDemandeController extends AbstractController
                 'date' => $etape->getDateTraitement(),
                 'statut' => $etape->getStatut(),
                 'status' => $status,
-                'commentaire' => $etape->getCommentaire(),
+                'details' => $etape->getDetails(),
             ];
         }
 
@@ -382,7 +382,7 @@ class NouvelleDemandeController extends AbstractController
                 foreach ($etapes as $etape) {
                     $etape->setStatut('en_attente');
                     $etape->setDateTraitement(null);
-                    $etape->setCommentaire(null);
+                    $etape->setDetails(null);
                     $this->entityManager->persist($etape);
                 }
 

@@ -63,12 +63,10 @@ class NouvelleDemandeApp {
                 const data = this.dataTable.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
-                    const status = data.statut;
-
-                    // Enable/disable buttons based on status
-                    $('#editBtn').prop('disabled', status !== 'Brouillon');
-                    $('#submitBtn').prop('disabled', !['Brouillon', 'rejeté'].includes(status));
-                    $('#trackBtn').prop('disabled', ['Brouillon'].includes(status));
+                    // This logic will be moved to the new button handler
+                    // For now, just enable the buttons
+                    $('#editBtn').prop('disabled', false);
+                    $('#trackBtn').prop('disabled', false);
 
                     this.displayDocumentPanel(data);
                 }
@@ -116,12 +114,6 @@ class NouvelleDemandeApp {
             }
         });
 
-        $('#submitBtn').on('click', () => {
-            if (this.selectedDemandeId) {
-                this.submitDemande();
-            }
-        });
-
         // La soumission du formulaire dans le modal ne change pas
         $(document).on('submit', '#demandeForm', (e) => {
             e.preventDefault();
@@ -151,11 +143,16 @@ class NouvelleDemandeApp {
         });
 
 
-        $('#details-panel').on('click', '#refresh-demande-btn', () => {
+        $('#details-panel').on('click', '#refresh-demande-btn', (e) => {
             if (this.selectedDemandeId) {
-                const rowData = this.dataTable.row({ selected: true }).data();
-                if (rowData) {
-                    this.displayDocumentPanel(rowData);
+                const action = $(e.currentTarget).data('action');
+                if (action === 'submit') {
+                    this.submitDemande();
+                } else if (action === 'refresh') {
+                    const rowData = this.dataTable.row({ selected: true }).data();
+                    if (rowData) {
+                        this.displayDocumentPanel(rowData);
+                    }
                 }
             }
         });
@@ -355,12 +352,28 @@ setupModalWithData(mode, data) {
 // NOUVELLE FONCTION CENTRALE pour le panneau
 async displayDocumentPanel(demandeData) {
     this.showLoader();
+
+    const status = demandeData.statut;
+    let buttonHtml = '';
+
+    if (status === 'créé' || status === 'rejeté') {
+        buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
+                        <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
+                      </button>`;
+    } else if (status === 'En cours') {
+        buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
+                        <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
+                      </button>`;
+    } else { // 'accepté' or other statuses
+        buttonHtml = `<button class="btn btn-sm btn-outline-secondary" id="refresh-demande-btn" data-action="none" disabled>
+                        <i class="ph-fill ph-check-circle"></i> Demande acceptée
+                      </button>`;
+    }
+
     const titleHtml = `
         <div class="d-flex justify-content-between align-items-center">
             <span>Documents pour : <span class="fw-normal">${demandeData.titre}</span></span>
-            <button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn">
-                <i class="ph-fill ph-arrows-clockwise"></i> Actualiser ma demande
-            </button>
+            ${buttonHtml}
         </div>`;
     $('#details-title-text').html(titleHtml);
 
@@ -598,6 +611,24 @@ showDetailsPlaceholder() {
         }
     }
 
+    async submitDemande() {
+        if (!confirm("Êtes-vous sûr de vouloir soumettre cette demande pour validation ?")) {
+            return;
+        }
+        try {
+            const result = await this.apiService.submitDemande(this.selectedDemandeId);
+            if (result.success) {
+                this.notification.success(result.message || 'Demande soumise avec succès.');
+                this.loadDemandes();
+            } else {
+                this.notification.error(result.error || 'Une erreur est survenue.');
+            }
+        } catch (error) {
+            this.notification.error('Erreur lors de la soumission: ' + error.message);
+            console.error(error);
+        }
+    }
+
     async removeDocument(documentId) {
         if (!this.selectedDemandeId && !$('#demandeId').val()) {
             this.notification.error('Aucune demande sélectionnée');
@@ -626,24 +657,6 @@ showDetailsPlaceholder() {
         }
     }
 
-    async submitDemande() {
-        if (!confirm("Êtes-vous sûr de vouloir soumettre cette demande pour validation ?")) {
-            return;
-        }
-        try {
-            const result = await this.apiService.submitDemande(this.selectedDemandeId);
-            if (result.success) {
-                this.notification.success(result.message || 'Demande soumise avec succès.');
-                this.loadDemandes();
-            } else {
-                this.notification.error(result.error || 'Une erreur est survenue.');
-            }
-        } catch (error) {
-            this.notification.error('Erreur lors de la soumission: ' + error.message);
-            console.error(error);
-        }
-    }
-
     cleanupModal() {
         if (this.modal) {
             this.modal.dispose();
@@ -655,8 +668,8 @@ showDetailsPlaceholder() {
 
     static getStatusBadge(status) {
         switch (status) {
-            case 'Brouillon':
-                return '<span class="status-badge" style="background-color: #e9ecef; color: #495057;"><i class="ph-fill ph-pencil-simple"></i> Brouillon</span>';
+            case 'créé':
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
             case 'En cours':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
             case 'rejeté':
