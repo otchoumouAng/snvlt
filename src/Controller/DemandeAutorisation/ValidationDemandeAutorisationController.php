@@ -6,9 +6,11 @@ use App\Entity\DemandeAutorisation\EtapeValidation;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
 use App\Entity\DemandeAutorisation\TypeDemandeDetail;
 use App\Entity\DemandeAutorisation\ValidationAction;
+use App\Entity\References\DetailsModele;
 use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
+use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Service\NotificationService;
@@ -31,7 +33,8 @@ class ValidationDemandeAutorisationController extends AbstractController
         private EtapeValidationRepository $etapeValidationRepository,
         private NouvelleDemandeRepository $nouvelleDemandeRepository,
         private TypeDemandeDetailRepository $typeDemandeDetailRepository,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private ModeleCommunicationRepository $modeleCommunicationRepository
     ) {
     }
 
@@ -208,8 +211,31 @@ class ValidationDemandeAutorisationController extends AbstractController
             ]);
 
             if ($nextEtape) {
-                // Not the last step, notify next validators
-                $this->notificationService->sendNotificationForStep($demande, $nextEtape, $this->getUser());
+                // Not the last step, find the corresponding circuit detail to notify next validators
+                $typeDemande = $demande->getTypeDemande();
+                $nextDetail = null;
+                if ($typeDemande) {
+                    $modele = $this->modeleCommunicationRepository->findOneBy([
+                        'typeDemande' => $typeDemande,
+                        'statut' => 'ACTIF'
+                    ]);
+
+                    if ($modele) {
+                        foreach ($modele->getDetailsModeles() as $detail) {
+                            if ($detail->getNumseq() === $nextEtape->getOrdre()) {
+                                $nextDetail = $detail;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if ($nextDetail) {
+                    $this->notificationService->sendNotificationForStep($demande, $nextDetail, $this->getUser());
+                }
+                // If $nextDetail is not found, we might want to log an error or handle it somehow
+                // For now, it will just not send a notification.
+
             } else {
                 // This was the last step, approve the whole request
                 $demande->setStatut('accepté');
