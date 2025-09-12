@@ -193,9 +193,14 @@ class ValidationDemandeAutorisationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $decision = $data['decision'] ?? null; // 'approve' or 'reject'
+        $comment = $data['comment'] ?? null;
 
         if (!in_array($decision, ['approve', 'reject'])) {
             return new JsonResponse(['error' => 'Invalid decision'], 400);
+        }
+
+        if ($decision === 'reject' && empty($comment)) {
+            return new JsonResponse(['error' => 'Un commentaire est requis pour le rejet.'], 400);
         }
 
         $demande = $etape->getDemande();
@@ -243,6 +248,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         } else { // 'reject'
             $etape->setStatut('Rejeté');
             $etape->setDateTraitement(new \DateTimeImmutable());
+            $etape->setCommentaire($comment);
             $demande->setStatut('rejeté');
         }
 

@@ -59,27 +59,32 @@ class NouvelleDemandeApp {
 
         
         this.dataTable.on('select', (e, dt, type, indexes) => {
-        if (type === 'row') {
-            const data = this.dataTable.row(indexes).data();
-            if (data) {
-                this.selectedDemandeId = data.id;
-                $('#editBtn').prop('disabled', false);
-                $('#trackBtn').prop('disabled', false);
-                // On charge les documents dans le panneau de droite
-                this.displayDocumentPanel(data); 
-            }
-        }
-    });
+            if (type === 'row') {
+                const data = this.dataTable.row(indexes).data();
+                if (data) {
+                    this.selectedDemandeId = data.id;
+                    const status = data.statut;
 
-    // ÉVÉNEMENT : Désélection
-    this.dataTable.on('deselect', (e, dt, type, indexes) => {
-        if (type === 'row') {
-            this.selectedDemandeId = null;
-            $('#editBtn').prop('disabled', true);
-            $('#trackBtn').prop('disabled', true);
-            this.showDetailsPlaceholder(); // Retour à l'état initial
-        }
-    });
+                    // Enable/disable buttons based on status
+                    $('#editBtn').prop('disabled', status !== 'Brouillon');
+                    $('#submitBtn').prop('disabled', !['Brouillon', 'rejeté'].includes(status));
+                    $('#trackBtn').prop('disabled', ['Brouillon'].includes(status));
+
+                    this.displayDocumentPanel(data);
+                }
+            }
+        });
+
+        // ÉVÉNEMENT : Désélection
+        this.dataTable.on('deselect', (e, dt, type, indexes) => {
+            if (type === 'row') {
+                this.selectedDemandeId = null;
+                $('#editBtn').prop('disabled', true);
+                $('#trackBtn').prop('disabled', true);
+                $('#submitBtn').prop('disabled', true);
+                this.showDetailsPlaceholder();
+            }
+        });
 
     // SUPPRESSION du double-clic pour le modal 'read'
     this.dataTable.off('dblclick', 'tbody tr');
@@ -108,6 +113,12 @@ class NouvelleDemandeApp {
         $('#trackBtn').on('click', () => {
             if (this.selectedDemandeId) {
                 this.showTrackingPortal(this.selectedDemandeId);
+            }
+        });
+
+        $('#submitBtn').on('click', () => {
+            if (this.selectedDemandeId) {
+                this.submitDemande();
             }
         });
 
@@ -615,6 +626,24 @@ showDetailsPlaceholder() {
         }
     }
 
+    async submitDemande() {
+        if (!confirm("Êtes-vous sûr de vouloir soumettre cette demande pour validation ?")) {
+            return;
+        }
+        try {
+            const result = await this.apiService.submitDemande(this.selectedDemandeId);
+            if (result.success) {
+                this.notification.success(result.message || 'Demande soumise avec succès.');
+                this.loadDemandes();
+            } else {
+                this.notification.error(result.error || 'Une erreur est survenue.');
+            }
+        } catch (error) {
+            this.notification.error('Erreur lors de la soumission: ' + error.message);
+            console.error(error);
+        }
+    }
+
     cleanupModal() {
         if (this.modal) {
             this.modal.dispose();
@@ -626,9 +655,9 @@ showDetailsPlaceholder() {
 
     static getStatusBadge(status) {
         switch (status) {
-            case 'créé':
-                return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
-            case 'en cours':
+            case 'Brouillon':
+                return '<span class="status-badge" style="background-color: #e9ecef; color: #495057;"><i class="ph-fill ph-pencil-simple"></i> Brouillon</span>';
+            case 'En cours':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
             case 'rejeté':
                 return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejeté</span>';

@@ -129,6 +129,11 @@ class ApiService {
         return this.post(`/admin/nouvelle_demande/${demandeId}/remove_document`, { document_id: documentId });
     }
 
+    submitDemande(demandeId) {
+        this.cache.clear();
+        return this.post(`/admin/nouvelle_demande/${demandeId}/submit`, {});
+    }
+
     getTrackingView(demandeId) {
         // Cette route doit être créée côté backend. Elle retourne du HTML.
         return this.get(`/admin/nouvelle_demande/suivi/${demandeId}`);

@@ -194,21 +194,15 @@ class NouvelleDemandeController extends AbstractController
 
             $demande->setTitre($data['titre']);
             $demande->setDescription($data['description']);
-            $demande->setStatut($data['statut'] ?? 'créé');
+            $demande->setStatut($data['statut'] ?? 'Brouillon');
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
                 $demande->setTypeDemande($typeDemande);
             }
 
-            $isNew = empty($data['id']);
-
             $this->entityManager->persist($demande);
             $this->entityManager->flush();
-
-            if ($isNew) {
-                $this->createValidationCircuit($demande);
-            }
 
             return new JsonResponse(['success' => true, 'id' => $demande->getId()]);
         } catch (\Exception $e) {
@@ -341,7 +335,9 @@ class NouvelleDemandeController extends AbstractController
                 'id' => $etape->getId(),
                 'nom' => $etape->getNom(),
                 'date' => $etape->getDateTraitement(),
+                'statut' => $etape->getStatut(),
                 'status' => $status,
+                'commentaire' => $etape->getCommentaire(),
             ];
         }
 
@@ -367,6 +363,61 @@ class NouvelleDemandeController extends AbstractController
             'etape' => $etape,
         ]);
     }
+
+    /**
+     * @Route("/{id}/submit", name="app_nouvelle_demande_submit", methods={"POST"})
+     */
+    public function submitForValidation(NouvelleDemande $demande): JsonResponse
+    {
+        try {
+            $demande->setStatut('En cours');
+
+            $etapes = $demande->getEtapesValidation();
+
+            if ($etapes->isEmpty()) {
+                // First submission
+                $this->createValidationCircuit($demande);
+            } else {
+                // Re-submission
+                foreach ($etapes as $etape) {
+                    $etape->setStatut('en_attente');
+                    $etape->setDateTraitement(null);
+                    $etape->setCommentaire(null);
+                    $this->entityManager->persist($etape);
+                }
+
+                // Notify first validator again
+                $typeDemande = $demande->getTypeDemande();
+                if ($typeDemande) {
+                    $modele = $this->modeleCommunicationRepository->findOneBy(['typeDemande' => $typeDemande, 'statut' => 'ACTIF']);
+                    if ($modele) {
+                        $firstDetail = $this->findDetailBySequence($modele, 1);
+                        if ($firstDetail) {
+                            $this->notificationService->sendNotificationForStep($demande, $firstDetail, $this->getUser());
+                        }
+                    }
+                }
+            }
+
+            $this->entityManager->persist($demande);
+            $this->entityManager->flush();
+
+            return new JsonResponse(['success' => true, 'message' => 'Demande soumise pour validation.']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    private function findDetailBySequence(\App\Entity\References\ModeleCommunication $modele, int $sequence): ?\App\Entity\References\DetailsModele
+    {
+        foreach ($modele->getDetailsModeles() as $detail) {
+            if ($detail->getNumseq() === $sequence) {
+                return $detail;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Détermine le statut d'une étape pour l'affichage du stepper.

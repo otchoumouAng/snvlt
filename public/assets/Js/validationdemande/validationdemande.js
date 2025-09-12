@@ -65,9 +65,22 @@ class ValidationDemandeApp {
             this.approveStep(etapeId);
         });
 
-        $(document).on('click', '#reject-step-btn', (e) => {
+        $(document).on('click', '#reject-step-btn', () => {
+            $('#validation-actions').hide();
+            $('#rejection-form').slideDown();
+        });
+
+        $(document).on('click', '#cancel-rejection-btn', () => {
+            $('#rejection-form').slideUp(() => {
+                $('#validation-actions').show();
+                $('#rejection-comment').val('');
+            });
+        });
+
+        $(document).on('click', '#confirm-rejection-btn', (e) => {
             const etapeId = $(e.currentTarget).data('etape-id');
-            this.rejectStep(etapeId);
+            const comment = $('#rejection-comment').val();
+            this.rejectStep(etapeId, comment);
         });
     }
 
@@ -127,10 +140,21 @@ class ValidationDemandeApp {
                 <h6 class="text-muted small fw-bold text-uppercase mb-2">Circuit de Validation</h6>
                 <ul class="list-group list-group-flush document-list mb-4">${etapesHtml}</ul>
 
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Action</h6>
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-danger" id="reject-step-btn" data-etape-id="${etapeId}"><i class="ph ph-x-circle"></i> Rejeter</button>
-                    <button class="btn btn-success" id="approve-step-btn" data-etape-id="${etapeId}"><i class="ph ph-check-circle"></i> Approuver</button>
+                <div id="validation-actions">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Action</h6>
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-danger" id="reject-step-btn" data-etape-id="${etapeId}"><i class="ph ph-x-circle"></i> Rejeter</button>
+                        <button class="btn btn-success" id="approve-step-btn" data-etape-id="${etapeId}"><i class="ph ph-check-circle"></i> Approuver</button>
+                    </div>
+                </div>
+
+                <div id="rejection-form" class="mt-3" style="display: none;">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Motif du Rejet</h6>
+                    <textarea id="rejection-comment" class="form-control" rows="3" placeholder="Veuillez fournir un commentaire..."></textarea>
+                    <div class="d-flex justify-content-end gap-2 mt-2">
+                        <button class="btn btn-secondary btn-sm" id="cancel-rejection-btn">Annuler</button>
+                        <button class="btn btn-danger btn-sm" id="confirm-rejection-btn" data-etape-id="${etapeId}">Confirmer le Rejet</button>
+                    </div>
                 </div>
             `;
 
@@ -160,16 +184,21 @@ class ValidationDemandeApp {
         }
     }
 
-    async rejectStep(etapeId) {
-        if (!confirm('Êtes-vous sûr de vouloir rejeter cette étape ? Cette action mettra fin au processus.')) {
+    async rejectStep(etapeId, comment) {
+        if (!comment) {
+            this.notification.warning('Le commentaire de rejet est obligatoire.');
             return;
         }
+
         try {
-            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'reject' });
+            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, {
+                decision: 'reject',
+                comment: comment
+            });
             this.notification.success('Étape rejetée avec succès.');
             this.loadDemandes();
         } catch (error) {
-            this.notification.error("Erreur lors du rejet de l'étape.");
+            this.notification.error(error.message || "Erreur lors du rejet de l'étape.");
             console.error(error);
         }
     }

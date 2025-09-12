@@ -21,12 +21,15 @@
         <ol class="stepper">
             {% for etape in etapes %}
                 <li 
-                    class="stepper-item {{ etape.status }}" 
+                    class="stepper-item {{ etape.status }} {% if etape.statut == 'Rejeté' %}rejected{% endif %}"
                     data-step-id="{{ etape.id }}"
+                    data-commentaire="{{ etape.commentaire|e('html_attr') }}"
                 >
                     <div class="circle">
-                        {% if etape.status == 'completed' %}
+                        {% if etape.status == 'completed' and etape.statut != 'Rejeté' %}
                             ✓
+                        {% elseif etape.statut == 'Rejeté' %}
+                            ✗
                         {% endif %}
                     </div>
                     <h3 class="stepper-title">{{ etape.nom }}</h3>
@@ -134,6 +137,18 @@
     box-shadow: 0 0 15px rgba(46, 204, 113, 0.7);
 }
 
+.stepper-item.rejected .circle {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+    color: white;
+    transform: scale(1.2);
+    animation: bounce 0.6s;
+}
+.stepper-item.rejected .stepper-title {
+    color: #c0392b;
+}
+
+
 .stepper-item.active .circle {
     border-color: #2196f3;
     color: #2196f3;
@@ -202,10 +217,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // Affichage détails au clic
     items.forEach(item => {
         item.addEventListener("click", () => {
-            if (item.classList.contains("completed") || item.classList.contains("active")) {
+            const isRejected = item.classList.contains("rejected");
+            const isCompleted = item.classList.contains("completed");
+
+            if (isCompleted || item.classList.contains("active")) {
+                let commentHtml = '';
+                if (isRejected) {
+                    const comment = item.dataset.commentaire;
+                    if (comment) {
+                        commentHtml = `
+                            <div style="margin-top: 15px; padding: 10px; border-radius: 5px; background-color: #f8d7da; border: 1px solid #f5c2c7;">
+                                <h5 style="color: #842029; margin-bottom: 5px;">Motif du Rejet :</h5>
+                                <p style="margin: 0;">${comment}</p>
+                            </div>
+                        `;
+                    }
+                }
+
                 document.getElementById("step-details-content").innerHTML =
                     `<h4 style="color:#2196f3">🔎 Étape: ${item.querySelector(".stepper-title").innerText}</h4>
-                     <p>Date: ${item.querySelector(".stepper-date")?.innerText || "—"}</p>`;
+                     <p>Date: ${item.querySelector(".stepper-date")?.innerText || "—"}</p>
+                     ${commentHtml}`;
+
+                $('#step-details-placeholder').hide();
+                $('#step-details-content').show();
             }
         });
     });
