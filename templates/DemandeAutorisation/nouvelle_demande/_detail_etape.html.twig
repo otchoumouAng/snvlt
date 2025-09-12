@@ -5,8 +5,12 @@
         <div class="col-md-6">
             <div class="detail-item">
                 <span class="detail-label">Statut :</span>
-                <span class="badge bg-success">{{ etape.statut|capitalize }}</span>
+                <span class="badge {{ etape.statut|trim|lower == 'rejeté' ? 'bg-danger text-white' : 'bg-success' }}">
+                    {{ etape.statut|capitalize }}
+                </span>
             </div>
+            
+
         </div>
         <div class="col-md-6">
             <div class="detail-item">
