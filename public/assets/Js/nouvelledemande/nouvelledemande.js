@@ -143,7 +143,8 @@ class NouvelleDemandeApp {
         });
 
 
-        $('#details-panel').on('click', '#refresh-demande-btn', (e) => {
+        // Use document for delegated event since the button is in the header, outside the panel
+        $(document).on('click', '#refresh-demande-btn', (e) => {
             if (this.selectedDemandeId) {
                 const action = $(e.currentTarget).data('action');
                 if (action === 'submit') {
@@ -613,6 +614,7 @@ showDetailsPlaceholder() {
 
     async submitDemande() {
         if (!confirm("Êtes-vous sûr de vouloir soumettre cette demande pour validation ?")) {
+            this.notification.info('Soumission annulée.', 2000);
             return;
         }
         try {
