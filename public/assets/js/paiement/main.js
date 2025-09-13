@@ -23,10 +23,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const api = {
         getServices: (typePaiementId, categoryId, typeDemandeurId) => {
-            let url = `/api/services_by_type_and_category?type_paiement_id=${typePaiementId}&categorie_id=${categoryId}`;
-            if (typeDemandeurId) {
-                url += `&type_demandeur_id=${typeDemandeurId}`;
+            const params = new URLSearchParams();
+            if (typePaiementId) {
+                params.append('type_paiement_id', typePaiementId);
             }
+            if (categoryId) {
+                params.append('categorie_id', categoryId);
+            }
+            if (typeDemandeurId) {
+                params.append('type_demandeur_id', typeDemandeurId);
+            }
+
+            const url = `/api/services_by_type_and_category?${params.toString()}`;
             return fetch(url).then(res => res.json());
         },
         getCategoriesActivite: () => fetch('/api/categories_activite').then(res => res.json()),
@@ -293,8 +301,10 @@ document.addEventListener('DOMContentLoaded', function() {
             firstSelect.value = '';
         }
         selectedValues = {
+            demande_id: null,
             type_paiement_id: null,
             categorie_activite_id: null,
+            type_demandeur_id: null,
             service_id: null,
             service_details: null
         };
