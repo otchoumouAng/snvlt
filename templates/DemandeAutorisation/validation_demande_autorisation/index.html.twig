@@ -14,85 +14,459 @@
 
 <!-- Custom CSS -->
 <style>
-    /* Fichier : index.html.twig */
+    /* --- FONDATIONS & DESIGN SYSTEM --- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* ... votre CSS existant ... */
+    :root {
+        --font-family-base: 'Inter', sans-serif;
+        --color-primary: #0d6efd;
+        --color-primary-light: #e7f1ff;
+        --color-text-primary: #212529;
+        --color-text-secondary: #6c757d;
+        --color-background: #f8f9fa;
+        --color-surface: #ffffff;
+        --color-border: #dee2e6;
+        
+        --status-approved-bg: #d1e7dd;
+        --status-approved-text: #0f5132;
+        --status-pending-bg: #fff3cd;
+        --status-pending-text: #664d03;
+        --status-rejected-bg: #f8d7da;
+        --status-rejected-text: #842029;
 
-/* --- CSS POUR DATATABLES RESPONSIVE --- */
-table.dataTable td.dtr-control {
-    position: relative;
-    cursor: pointer;
-}
-
-table.dataTable td.dtr-control::before {
-    content: "+";
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    line-height: 18px;
-    text-align: center;
-    font-weight: bold;
-    color: white;
-    background-color: #0d6efd; /* Bleu Bootstrap par défaut, à ajuster si besoin */
-    border-radius: 50%;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease-in-out;
-}
-
-table.dataTable tr.parent td.dtr-control::before {
-    content: "-";
-    background-color: #dc3545; /* Rouge Bootstrap pour la fermeture */
-}
-
-    /* Styles précédents conservés */
-    .pro-card { border: none; border-radius: 12px; box-shadow: 0 8px 10px rgba(0, 0, 0, 0.05); background-color: #ffffff; }
-    .pro-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 1rem; }
-    .pro-card-title { font-weight: 600; font-size: 1.1rem; color: #212529; display: flex; align-items: center; gap: 0.5rem; }
-    .pro-card-title i { font-size: 1.5rem; color: #495057; }
-    .search-wrapper { position: relative; flex-grow: 1; }
-    .search-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #adb5bd; font-size: 1.1rem; }
-    .search-input { padding-left: 38px; border-radius: 8px; border: 1px solid #dee2e6; transition: border-color .2s ease, box-shadow .2s ease; }
-    .search-input:focus { border-color: #80bdff; box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25); }
-    .request-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-    .request-list-item { display: flex; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #e9ecef; cursor: pointer; transition: background-color .2s ease; }
-    .request-list-item:last-child { border-bottom: none; }
-    .request-list-item:hover { background-color: #f8f9fa; }
-    .request-list-item.active { background-color: #e7f1ff; border-left: 4px solid #0d6efd; padding-left: calc(1.5rem - 4px); }
-    .item-icon { width: 40px; height: 40px; border-radius: 8px; display: grid; place-items: center; margin-right: 1rem; color: #fff; font-size: 1.2rem; flex-shrink: 0; }
-    .status-badge { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.6rem; border-radius: 50px; font-weight: 500; font-size: 0.75rem; }
-    .status-badge i { font-size: 1rem; }
-    .status-approved { background-color: #d1e7dd; color: #0f5132; }
-    .status-pending { background-color: #fff3cd; color: #664d03; }
-    .status-rejected { background-color: #f8d7da; color: #842029; }
-    .details-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: #6c757d; }
-    .details-placeholder i { font-size: 4rem; color: #ced4da; }
-    .details-content { opacity: 0; transition: opacity 0.4s ease; }
-    .details-content.visible { opacity: 1; }
-    .document-list .list-group-item { border-left: 0; border-right: 0; padding-left: 0; padding-right: 0; }
-    .document-list .badge { font-size: 0.8rem; }
-    .remove-doc-btn { opacity: 0; transition: opacity .2s ease; }
-    .list-group-item:hover .remove-doc-btn { opacity: 1; }
-
-    /* DataTable Styles */
-    .dataTables_wrapper { padding: 0 1.5rem; }
-    .dataTables_length, .dataTables_filter { margin-bottom: 1rem; }
-    .dataTables_filter input { margin-left: 0.5rem; }
-    table.dataTable { border-collapse: collapse !important; margin: 0 !important; }
-    table.dataTable thead th { border-bottom: 2px solid #dee2e6; }
-    table.dataTable tbody tr { cursor: pointer; }
-    table.dataTable tbody tr:hover { background-color: #f8f9fa; }
-    table.dataTable tbody tr.selected { background-color: #e7f1ff; }
-
-    /* Style pour la ligne sélectionnée */
-    table.dataTable tbody tr.selected {
-        background-color: #e7f1ff !important;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.07);
+        --border-radius: 12px;
     }
 
+    body {
+        background-color: var(--color-background);
+        font-family: var(--font-family-base);
+        color: var(--color-text-primary);
+    }
+
+    /* --- CARTE PRINCIPALE (PRO-CARD) --- */
+    .pro-card {
+        background-color: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pro-card-header {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .pro-card-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--color-text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .pro-card-title i {
+        font-size: 1.5rem;
+    }
+
+    .pro-card .card-body {
+        padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+        flex-grow: 1;
+    }
+
+    /* --- DATATABLE AMÉLIORÉE --- */
+    .dataTables_wrapper {
+        padding: 0 !important;
+    }
+
+    table.dataTable {
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important; /* Espace entre les lignes */
+        margin-top: -8px !important;
+    }
+
+    /* En-tête du tableau */
+    table.dataTable thead th {
+        border-bottom: 1px solid var(--color-border) !important;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        padding: 0.75rem 1rem !important;
+    }
+
+    /* Lignes du tableau */
+    table.dataTable tbody tr {
+        background-color: transparent;
+        transition: all 0.3s ease;
+    }
+
+    table.dataTable tbody td {
+        background-color: var(--color-surface);
+        padding: 1rem !important;
+        border: none !important;
+        border-bottom: 1px solid var(--color-background) !important;
+        color: var(--color-text-primary);
+        font-weight: 500;
+    }
+    table.dataTable tbody td:first-child {
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+    table.dataTable tbody td:last-child {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    /* Effets de survol et de sélection */
+    table.dataTable tbody tr {
+        transform: translateY(0);
+        transition: all 0.3s ease;
+    }
+    
+    table.dataTable tbody tr:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        cursor: pointer;
+    }
+    
     table.dataTable tbody tr.selected td {
-        background-color: #e7f1ff !important;
+        background-color: var(--color-primary-light) !important;
+        box-shadow: 0 0 0 2px var(--color-primary);
+    }
+
+    /* Statuts Badges modernes */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.8rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    .status-badge:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .status-badge i { 
+        font-size: 0.9rem; 
+    }
+    
+    .status-approved { 
+        background: linear-gradient(135deg, var(--status-approved-bg) 0%, #b8dfd2 100%);
+        color: var(--status-approved-text);
+        border: 1px solid rgba(15, 81, 50, 0.2);
+    }
+    
+    .status-pending { 
+        background: linear-gradient(135deg, var(--status-pending-bg) 0%, #ffeaa7 100%);
+        color: var(--status-pending-text);
+        border: 1px solid rgba(102, 77, 3, 0.2);
+    }
+    
+    .status-rejected { 
+        background: linear-gradient(135deg, var(--status-rejected-bg) 0%, #f5c6cb 100%);
+        color: var(--status-rejected-text);
+        border: 1px solid rgba(132, 32, 41, 0.2);
+    }
+
+    /* --- PANNEAU DE DROITE (DÉTAILS DE VALIDATION) --- */
+    .details-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        text-align: center;
+        color: var(--color-text-secondary);
+        border: 2px dashed var(--color-border);
+        border-radius: var(--border-radius);
+        background-color: #fcfcfc;
+    }
+    .details-placeholder i {
+        font-size: 3rem;
+        color: #ced4da;
+    }
+
+    /* Contenu des détails */
+    #details-content {
+        transition: opacity 0.4s ease;
+    }
+    #details-content.visible {
+        opacity: 1;
+    }
+
+    /* Liste de documents améliorée */
+    .document-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .document-list .list-group-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background-color: var(--color-background);
+        border-radius: 8px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .document-list .list-group-item:hover {
+        background-color: #f0f0f0;
+        border-color: var(--color-border);
+        transform: translateX(5px);
+    }
+
+    .document-list .badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    /* --- CONTRÔLES DATATABLES (RECHERCHE, ETC.) --- */
+    .dataTables_top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 0.5rem 0;
+    }
+
+    /* Sélecteur d'entrées */
+    .dataTables_length label {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .dataTables_length select {
+        margin: 0 0.5rem;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background-color: var(--color-surface);
+        font-weight: 500;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+    }
+
+    /* Champ de recherche */
+    .dataTables_filter label {
+        position: relative;
+        font-size: 0; /* Masque le texte "Search:" */
+    }
+
+    .dataTables_filter label::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        opacity: 0.8;
+    }
+
+    .dataTables_filter input[type="search"] {
+        padding: 0.6rem 0.75rem 0.6rem 2.75rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background-color: var(--color-surface);
+        transition: all 0.3s ease;
+        min-width: 250px;
+    }
+    .dataTables_filter input[type="search"]:focus {
+        outline: none;
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-light);
+        background-color: var(--color-surface);
+    }
+
+    /* --- BOUTONS D'ACTION AMÉLIORÉS --- */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .btn i {
+        font-size: 1.2rem;
+    }
+
+    .btn-primary {
+        background-color: var(--color-primary);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        background-color: #0b5ed7;
+    }
+
+    .btn-outline-primary {
+        background-color: transparent;
+        border-color: var(--color-border);
+        color: var(--color-text-primary);
+    }
+    .btn-outline-primary:hover {
+        background-color: var(--color-primary-light);
+        border-color: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    .btn:disabled {
+        transform: none;
+        box-shadow: none;
+        background-color: var(--color-background);
+        color: #adb5bd;
+        border-color: var(--color-border);
+        cursor: not-allowed;
+        opacity: 1;
+    }
+
+    /* --- DATATABLES RESPONSIVE AVEC ICÔNE MODERNE --- */
+    table.dataTable > tbody > tr > td.dtr-control {
+        position: relative;
+        padding-left: 2.5rem !important;
+    }
+
+    table.dataTable > tbody > tr > td.dtr-control:before {
+        content: "";
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 20px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%230d6efd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='8' x2='12' y2='16'%3E%3C/line%3E%3Cline x1='8' y1='12' x2='16' y2='12'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 20px;
+        transition: all 0.3s ease;
+    }
+
+    table.dataTable > tbody > tr.parent > td.dtr-control:before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23dc3545' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='8' y1='12' x2='16' y2='12'%3E%3C/line%3E%3C/svg%3E");
+        transform: translateY(-50%) rotate(45deg);
+    }
+
+    table.dataTable > tbody > tr > td.dtr-control:hover:before {
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    /* --- ANIMATIONS WOW --- */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-20px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .wow-fadeIn {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .wow-pulse {
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    .wow-slideIn {
+        animation: slideIn 0.4s ease-out;
+    }
+
+    /* Appliquer les animations aux éléments de la table */
+    table.dataTable tbody tr {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    table.dataTable tbody tr:nth-child(odd) {
+        animation-duration: 0.4s;
+    }
+
+    table.dataTable tbody tr:nth-child(even) {
+        animation-duration: 0.6s;
+    }
+
+    /* --- STYLES SPÉCIFIQUES POUR LA VALIDATION --- */
+    #validation-actions {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--color-border);
+    }
+
+    #rejection-form {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        border: 1px solid var(--color-border);
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Styles pour les badges de statut dans le panneau de détails */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 50px;
+        font-weight: 600;
+    }
+
+    .badge.bg-secondary {
+        background-color: var(--color-text-secondary) !important;
+    }
+
+    .badge.bg-info {
+        background-color: var(--color-primary-light) !important;
+        color: var(--color-primary) !important;
+    }
+
+    /* Styles pour la liste des étapes de validation */
+    .list-group-item.active {
+        background-color: var(--color-primary-light) !important;
+        color: var(--color-primary) !important;
+        border-left: 4px solid var(--color-primary) !important;
+        animation: pulse 0.5s ease-in-out;
+    }
+
+    /* Masquer les colonnes supplémentaires par défaut */
+    .col-hidden {
+        display: none;
     }
 </style>
 
@@ -100,7 +474,7 @@ table.dataTable tr.parent td.dtr-control::before {
     <div class="row g-4">
         <!-- Left Column: DataTable -->
         <div class="col-lg-7">
-            <div class="card pro-card h-100">
+            <div class="card pro-card h-100 wow-fadeIn">
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
@@ -112,12 +486,12 @@ table.dataTable tr.parent td.dtr-control::before {
                     <table id="demandesTable" class="table table-hover" style="width:100%">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>Titre</th>
-                                <th>Type</th>
+                                <th class="col-hidden">ID Etape</th>
+                                <th>Type de Demande</th>
                                 <th>Société</th>
-                                <th>Date</th>
-                                <th>Statut</th>
+                                <th class="col-hidden">Étape Actuelle</th>
+                                <th class="col-hidden">Date Demande</th>
+                                <th>Statut Demande</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -129,7 +503,7 @@ table.dataTable tr.parent td.dtr-control::before {
 
         <!-- Right Column: Details Panel -->
         <div class="col-lg-5">
-            <div class="card pro-card h-100">
+            <div class="card pro-card h-100 wow-slideIn">
                 <div class="pro-card-header">
                      <div class="pro-card-title">
                         <i class="ph-fill ph-folder-open"></i>
@@ -162,6 +536,14 @@ $(document).ready(function() {
     // Initialize the module
     const validationDemandeApp = new ValidationDemandeApp();
     validationDemandeApp.init();
+    
+    // Ajouter un effet de pulse à la sélection
+    $(document).on('click', '#demandesTable tbody tr', function() {
+        $(this).addClass('wow-pulse');
+        setTimeout(() => {
+            $(this).removeClass('wow-pulse');
+        }, 500);
+    });
 });
 </script>
 
