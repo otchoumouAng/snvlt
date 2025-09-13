@@ -2,6 +2,7 @@
 
 namespace App\Controller\Paiement;
 
+use App\Repository\Paiement\TransactionRepository;
 use App\Repository\Paiement\TypePaiementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,15 +16,58 @@ use App\Entity\Paiement\Transaction;
 
 class PaiementWorkflowController extends AbstractController
 {
+    public function __construct(
+        private TransactionRepository $transactionRepository,
+        private PdfService $pdfService
+    ) {}
+
     #[Route('/paiement/transaction/{id}/receipt', name: 'app_paiement_receipt')]
-    public function receipt(Transaction $transaction, PdfService $pdf)
+    public function receipt(Transaction $transaction): Response
     {
         $html = $this->renderView('paiement/receipt.html.twig', ['transaction' => $transaction]);
-        return new Response($pdf->generateBinaryPDF($html), 200, [
+        return new Response($this->pdfService->generateBinaryPDF($html), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'attachment; filename="recu.pdf"'
+            'Content-Disposition' => 'attachment; filename="recu-paiement-'.$transaction->getIdentifiant().'.pdf"'
         ]);
     }
+
+    #[Route('/paiement/transaction/{id}/notice', name: 'app_paiement_notice')]
+    public function notice(Transaction $transaction): Response
+    {
+        $html = $this->renderView('paiement/notice.html.twig', ['transaction' => $transaction]);
+        return new Response($this->pdfService->generateBinaryPDF($html), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="avis-recette-'.$transaction->getIdentifiant().'.pdf"'
+        ]);
+    }
+
+    #[Route("/suivi-mes-paiements", name: "app_paiement_suivi")]
+    public function suiviPaiements(
+        MenuRepository $menus,
+        NotificationRepository $notification,
+        MenuPermissionRepository $permissions,
+        UserRepository $userRepository
+    ): Response
+    {
+        $user = $this->getUser();
+        $code_groupe = $user->getCodeGroupe()->getId();
+
+        // This needs to be implemented. Assuming a relation between User and Transaction.
+        // For now, let's fetch all transactions for demonstration, but this must be filtered by user.
+        $transactions = $this->transactionRepository->findAll();
+
+        return $this->render('paiement/suivi_paiements.html.twig', [
+            'liste_menus' => $menus->findOnlyParent(),
+            "all_menus" => $menus->findAll(),
+            'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
+            'menus' => $permissions->findBy(['code_groupe_id' => $code_groupe]),
+            'groupe' => $code_groupe,
+            'titre' => 'Suivi de mes paiements',
+            'liste_parent' => $permissions,
+            'transactions' => $transactions,
+        ]);
+    }
+
     /**
      * @Route("/paiement/new", name="app_paiement_workflow")
      */

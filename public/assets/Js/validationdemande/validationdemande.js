@@ -4,7 +4,6 @@ class ValidationDemandeApp {
         this.notification = window.notificationSystem;
         this.selectedDemandeId = null;
         this.dataTable = null;
-        this.selectedRow = null;
     }
 
     init() {
@@ -43,7 +42,7 @@ class ValidationDemandeApp {
         });
     }
 
-   /* bindEvents() {
+    bindEvents() {
         this.dataTable.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
                 const data = this.dataTable.row(indexes).data();
@@ -83,53 +82,6 @@ class ValidationDemandeApp {
             const comment = $('#rejection-comment').val();
             this.rejectStep(etapeId, comment);
         });
-    }*/
-
-    bindEvents() {
-        // MODIFIÉ : Gestionnaire de sélection de ligne
-        this.dataTable.on('select', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                const row = this.dataTable.row(indexes); // On récupère l'objet ligne
-                const data = row.data();
-                if (data) {
-                    this.selectedDemandeId = data.id;
-                    this.selectedRow = row; // On stocke l'objet ligne
-                    this.displayDetails(data.id, data.etape_id);
-                }
-            }
-        });
-
-        // MODIFIÉ : Gestionnaire de désélection de ligne
-        this.dataTable.on('deselect', (e, dt, type, indexes) => {
-            if (type === 'row') {
-                this.selectedDemandeId = null;
-                this.selectedRow = null; // On réinitialise la référence
-                this.showDetailsPlaceholder();
-            }
-        });
-
-        $(document).on('click', '#approve-step-btn', (e) => {
-            const etapeId = $(e.currentTarget).data('etape-id');
-            this.approveStep(etapeId);
-        });
-
-        $(document).on('click', '#reject-step-btn', () => {
-            $('#validation-actions').hide();
-            $('#rejection-form').slideDown();
-        });
-
-        $(document).on('click', '#cancel-rejection-btn', () => {
-            $('#rejection-form').slideUp(() => {
-                $('#validation-actions').show();
-                $('#rejection-comment').val('');
-            });
-        });
-
-        $(document).on('click', '#confirm-rejection-btn', (e) => {
-            const etapeId = $(e.currentTarget).data('etape-id');
-            const comment = $('#rejection-comment').val();
-            this.rejectStep(etapeId, comment);
-        });
     }
 
     async loadDemandes() {
@@ -139,7 +91,6 @@ class ValidationDemandeApp {
             const demandes = await this.apiService.getDemandesForValidation();
             this.dataTable.clear().rows.add(demandes).draw();
             this.selectedDemandeId = null;
-            this.selectedRow = null;
             this.showDetailsPlaceholder();
         } catch (error) {
             this.notification.error('Erreur lors du chargement des demandes');
@@ -157,36 +108,13 @@ class ValidationDemandeApp {
 
             let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
             if (details.documents && details.documents.length > 0) {
-
-
-            documentsHtml = details.documents.map(doc => {
-                let badgeHtml;
-
-                if (doc.statut === "soumis") {
-                    badgeHtml = `<span class="badge bg-success text-white">
-                                    <i class="ph ph-check"></i> ${doc.statut}
-                                 </span>`;
-                } else {
-                    badgeHtml = `<span class="badge bg-danger text-white">
-                                    <i class="ph ph-x"></i> ${doc.statut}
-                                 </span>`;
-                }
-
-                return `
+                documentsHtml = details.documents.map(doc => `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="${doc.path || '#'}" 
-                           target="_blank" 
-                           class="text-decoration-none text-dark text-truncate" 
-                           style="max-width: 80%;">
-                           ${doc.nom}
-                        </a>
-                        ${badgeHtml}
-                        ${doc.path ? `<a href="${doc.path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-eye"></i></a>` : ''}
+                        <a href="${doc.path || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 80%;">${doc.nom}</a>
+                        <span class="badge bg-secondary">${doc.statut}</span>
+                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-eye"></i></a>
                     </li>
-                `;
-            }).join('');
-
-
+                `).join('');
             }
 
             let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
@@ -245,49 +173,11 @@ class ValidationDemandeApp {
         placeholder.show();
     }
 
-    /*async approveStep(etapeId) {
-        try {
-            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'approve' });
-            this.notification.success('Dossier approuvé avec succès.');
-            this.loadDemandes();
-        } catch (error) {
-            this.notification.error("Erreur lors de l'approbation de l'étape.");
-            console.error(error);
-        }
-    }
-
-    async rejectStep(etapeId, comment) {
-        if (!comment) {
-            this.notification.warning('Le commentaire de rejet est obligatoire.');
-            return;
-        }
-
-        try {
-            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, {
-                decision: 'reject',
-                comment: comment
-            });
-            this.notification.success('Dossier rejetée.');
-            this.loadDemandes();
-        } catch (error) {
-            this.notification.error(error.message || "Erreur lors du rejet de l'étape.");
-            console.error(error);
-        }
-    }*/
-
-
     async approveStep(etapeId) {
         try {
             await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'approve' });
-            this.notification.success('Dossier approuvé avec succès.');
-
-            // MODIFIÉ : Mise à jour ciblée
-            if (this.selectedRow) {
-                this.selectedRow.remove().draw(false); // Supprime la ligne sans recharger
-                this.showDetailsPlaceholder();
-                this.selectedRow = null;
-                this.selectedDemandeId = null;
-            }
+            this.notification.success('Étape approuvée avec succès.');
+            this.loadDemandes();
         } catch (error) {
             this.notification.error("Erreur lors de l'approbation de l'étape.");
             console.error(error);
@@ -305,21 +195,13 @@ class ValidationDemandeApp {
                 decision: 'reject',
                 comment: comment
             });
-            this.notification.success('Dossier rejeté avec succès.');
-            
-            // MODIFIÉ : Mise à jour ciblée
-            if (this.selectedRow) {
-                this.selectedRow.remove().draw(false); // Supprime la ligne sans recharger
-                this.showDetailsPlaceholder();
-                this.selectedRow = null;
-                this.selectedDemandeId = null;
-            }
+            this.notification.success('Étape rejetée avec succès.');
+            this.loadDemandes();
         } catch (error) {
             this.notification.error(error.message || "Erreur lors du rejet de l'étape.");
             console.error(error);
         }
     }
-    
 
     getStatusBadge(status) {
         switch (status) {

@@ -32,8 +32,10 @@ class NouvelleDemandeApp {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
             columns: [
+                { data: 'id' },
                 { data: 'titre' },
                 { data: 'typeDemande' },
+                { data: 'societe' },
                 { data: 'dateCreation' },
                 { 
                     data: 'statut',
@@ -71,6 +73,10 @@ class NouvelleDemandeApp {
             }
         });
 
+        $(document).on('click', '#pay-fees-btn', () => {
+            window.location.href = '/paiement/new';
+        });
+
         // ÉVÉNEMENT : Désélection
         this.dataTable.on('deselect', (e, dt, type, indexes) => {
             if (type === 'row') {
@@ -85,6 +91,15 @@ class NouvelleDemandeApp {
     // SUPPRESSION du double-clic pour le modal 'read'
     this.dataTable.off('dblclick', 'tbody tr');
 
+
+        // Event for double-click remains the same
+        /*this.dataTable.on('dblclick', 'tbody tr', (e) => {
+            const row = this.dataTable.row(e.currentTarget);
+            const data = row.data();
+            if (data) {
+                this.openModal(data.id, 'read');
+            }
+        });*/
 
     }
 
@@ -350,14 +365,16 @@ async displayDocumentPanel(demandeData) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'en cours') {
-        buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="none" disabled> 
-                        <i class="ph-fill ph-arrows-clockwise"></i> Demande En Cours
+    } else if (status === 'en_attente') {
+        buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
+                        <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
-    } else { // 'accepté' or other statuses
-        buttonHtml = `<button class="btn btn-sm btn-outline-secondary" id="refresh-demande-btn" data-action="none" disabled>
-                        <i class="ph-fill ph-check-circle"></i> Demande acceptée
+    } else if (status === 'accepté') {
+        buttonHtml = `<button class="btn btn-sm btn-primary" id="pay-fees-btn" data-action="pay">
+                        <i class="ph-fill ph-credit-card"></i> Payer les frais
                       </button>`;
+    } else {
+        buttonHtml = ``; // No button for other statuses
     }
 
     const titleHtml = `
@@ -387,6 +404,54 @@ async displayDocumentPanel(demandeData) {
     }
 }
 
+// NOUVELLE FONCTION pour construire le HTML du panneau
+// Fichier : nouvelledemande.js
+
+/*buildDocumentsHtml(details) {
+    let documentsListHtml = '';
+    if (details.documents && details.documents.length > 0) {
+        documentsListHtml = details.documents.map(doc => `
+            <li class="document-item" data-doc-id="${doc.id}">
+                <i class="ph-fill ph-file-pdf icon"></i>
+                <div class="info">
+                    <div class="name">${doc.nom}</div>
+                    <div class="meta">PDF Document</div>
+                </div>
+                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
+                <div class="actions ms-3">
+                    <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+                        <i class="ph-fill ph-download-simple"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer">
+                        <i class="ph-fill ph-trash-simple"></i>
+                    </button>
+                </div>
+            </li>
+        `).join('');
+    } else {
+        return `
+            <div class="text-center p-5 mt-3">
+                <i class="ph-light ph-file-magnifying-glass" style="font-size: 3rem; color: #ced4da;"></i>
+                <h6 class="mt-3">Aucun Document</h6>
+                <p class="text-muted small">Cette demande n'a pas encore de document attaché.</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="text-muted small fw-bold text-uppercase mb-0">Fichiers Attachés</h6>
+            <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
+                <i class="ph-fill ph-plus-circle"></i> Ajouter
+            </button>
+            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
+        </div>
+        <ul class="document-list">${documentsListHtml}</ul>
+    `;
+}
+*/
+
+// Fichier : nouvelledemande.js
 
 buildDocumentsHtml(details) {
     // Si la demande n'a pas de documents requis, on affiche un message.
@@ -609,7 +674,7 @@ showDetailsPlaceholder() {
         switch (status) {
             case 'créé':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
-            case 'en cours':
+            case 'en_attente':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
             case 'rejeté':
                 return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejeté</span>';

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Avis de Recette</title>
+    <style>
+        body { font-family: sans-serif; }
+        .container { width: 80%; margin: auto; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .content { margin-top: 20px; }
+        .footer { text-align: center; margin-top: 50px; font-size: 12px; color: #777; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Avis de Recette</h1>
+        </div>
+
+        <div class="content">
+            <p><strong>Identifiant de la transaction :</strong> {{ transaction.identifiant }}</p>
+            <p><strong>Date de création :</strong> {{ transaction.createdAt|date('d/m/Y H:i') }}</p>
+            <p><strong>Nom du client :</strong> {{ transaction.clientNom }} {{ transaction.clientPrenom }}</p>
+            <p><strong>Téléphone :</strong> {{ transaction.telephone }}</p>
+
+            <hr>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Montant à payer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
+                        <td>{{ transaction.montantFcfa | number_format(0, ',', ' ') }} FCFA</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="margin-top: 30px;">
+                Veuillez utiliser cet avis de recette pour effectuer votre paiement sur la plateforme indiquée.
+            </p>
+        </div>
+
+        <div class="footer">
+            Généré par la plateforme SNVLT.
+        </div>
+    </div>
+</body>
+</html>

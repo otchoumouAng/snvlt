@@ -1,0 +1,71 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    {% trans %}SNVLT{% endtrans %} - {% trans %}Suivi de mes paiements{% endtrans %}
+{% endblock %}
+
+{% block menu %}
+    {% include 'base/menu.html.twig' %}
+{% endblock %}
+
+{% block page_content %}
+<div class="container-fluid px-4 py-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title fw-bold"><i class="ph-fill ph-credit-card"></i> Suivi de mes paiements</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead>
+                        <tr>
+                            <th>Avis de recette</th>
+                            <th>Service</th>
+                            <th>Montant payé</th>
+                            <th>Numéro de paiement</th>
+                            <th>Reference Paiement</th>
+                            <th>Date de paiement</th>
+                            <th>Statut</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.identifiant }}</td>
+                                <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
+                                <td>{{ transaction.paidAmount ? (transaction.paidAmount | number_format(0, ',', ' ') ~ ' FCFA') : 'N/A' }}</td>
+                                <td>{{ transaction.payerPhone }}</td>
+                                <td>{{ transaction.tresorpayReceiptReference }}</td>
+                                <td>{{ transaction.paidAt ? transaction.paidAt|date('d/m/Y H:i') : 'N/A' }}</td>
+                                <td>
+                                    <span class="badge
+                                        {% if transaction.statut == 'PAYE' %} bg-success-subtle text-success-emphasis
+                                        {% elseif transaction.statut == 'EN_ATTENTE' %} bg-warning-subtle text-warning-emphasis
+                                        {% else %} bg-danger-subtle text-danger-emphasis {% endif %}">
+                                        {{ transaction.statut }}
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <a href="{{ path('app_paiement_notice', {'id': transaction.id}) }}" class="btn btn-sm btn-outline-secondary" title="Télécharger l'avis de recette">
+                                        <i class="ph ph-download-simple"></i> Avis
+                                    </a>
+                                    {% if transaction.statut == 'PAYE' %}
+                                        <a href="{{ path('app_paiement_receipt', {'id': transaction.id}) }}" class="btn btn-sm btn-primary" title="Télécharger le reçu">
+                                            <i class="ph ph-receipt"></i> Reçu
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">Aucune transaction trouvée.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
