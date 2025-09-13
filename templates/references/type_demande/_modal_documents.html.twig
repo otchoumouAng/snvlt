@@ -1,0 +1,40 @@
+<div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentsModalLabel">Gérer les Documents Requis pour : <span id="typeDemandeName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="typeDocumentSelect" class="form-label">Ajouter un type de document</label>
+                    <div class="input-group">
+                        <select class="form-select" id="typeDocumentSelect">
+                            <option selected>Choisir...</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <button class="btn btn-primary" type="button" id="addDocumentBtn">+</button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6>Documents Actuellement Requis</h6>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nom du Document</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="associatedDocumentsTableBody">
+                        <!-- Rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>

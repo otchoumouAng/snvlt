@@ -13,6 +13,7 @@ namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\DemandeAutorisation\TypeDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TypeDocumentRepository::class)]
 #[ORM\Table(name: "aut_type_document", schema: "metier")]
@@ -25,9 +26,11 @@ class TypeDocument
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['document:list', 'demande:details'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['document:list', 'demande:details'])]
     private ?string $designation = null;
 
     public function getId(): ?int

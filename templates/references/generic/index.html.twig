@@ -80,4 +80,8 @@
 
     <script src="{{ asset('assets/js/references/generic/notification.js') }}"></script>
     <script src="{{ asset('assets/js/references/generic/main.js') }}"></script>
+
+    {% if entityName == 'categories_activite' %}
+        {% include 'references/type_demande/_modal_documents.html.twig' %}
+    {% endif %}
 {% endblock %}

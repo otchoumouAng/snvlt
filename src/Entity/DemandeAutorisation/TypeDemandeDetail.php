@@ -11,6 +11,7 @@ namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TypeDemandeDetailRepository::class)]
 #[ORM\Table(name: "aut_type_demande_detail", schema: "metier")]
@@ -19,6 +20,7 @@ class TypeDemandeDetail
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['demande:details'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne]
@@ -27,6 +29,7 @@ class TypeDemandeDetail
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: "type_document_id", referencedColumnName: "id", nullable: false)]
+    #[Groups(['demande:details'])]
     private ?TypeDocument $typeDocument = null;
 
     public function getId(): ?int
