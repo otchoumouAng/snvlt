@@ -14,6 +14,39 @@
 
 <!-- Custom CSS -->
 <style>
+    /* Fichier : index.html.twig */
+
+/* ... votre CSS existant ... */
+
+/* --- CSS POUR DATATABLES RESPONSIVE --- */
+table.dataTable td.dtr-control {
+    position: relative;
+    cursor: pointer;
+}
+
+table.dataTable td.dtr-control::before {
+    content: "+";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    background-color: #0d6efd; /* Bleu Bootstrap par défaut, à ajuster si besoin */
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+table.dataTable tr.parent td.dtr-control::before {
+    content: "-";
+    background-color: #dc3545; /* Rouge Bootstrap pour la fermeture */
+}
+
     /* Styles précédents conservés */
     .pro-card { border: none; border-radius: 12px; box-shadow: 0 8px 10px rgba(0, 0, 0, 0.05); background-color: #ffffff; }
     .pro-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e9ecef; display: flex; align-items: center; gap: 1rem; }
@@ -75,6 +108,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0 d-flex flex-column">
+                    <div class="table-responsive p-3"> 
                     <table id="demandesTable" class="table table-hover" style="width:100%">
                         <thead>
                             <tr>
@@ -88,6 +122,7 @@
                         </thead>
                         <tbody></tbody>
                     </table>
+                </div>
                 </div>
             </div>
         </div>

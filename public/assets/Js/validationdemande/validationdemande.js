@@ -12,7 +12,7 @@ class ValidationDemandeApp {
         this.loadDemandes();
     }
 
-    initDataTable() {
+   /* initDataTable() {
         this.dataTable = new DataTable('#demandesTable', {
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
@@ -40,7 +40,60 @@ class ValidationDemandeApp {
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });
-    }
+    }*/
+
+    initDataTable() {
+    this.dataTable = new DataTable('#demandesTable', {
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+        },
+        columns: [
+            { data: 'etape_id', title: 'ID Etape' },
+            { data: 'titre', title: 'Titre de la Demande' },
+            { data: 'description', title: 'Étape Actuelle' },
+            { data: 'societe', title: 'Société' },
+            { data: 'dateCreation', title: 'Date Demande' },
+            {
+                data: 'statut',
+                title: 'Statut Demande',
+                render: (data, type, row) => {
+                    return this.getStatusBadge(data);
+                }
+            }
+        ],
+        
+        responsive: true, // Votre ligne est correcte
+
+        // --- AJOUTER CETTE SECTION ---
+        columnDefs: [
+            {
+                // Applique la classe pour l'icône de contrôle à la première colonne
+                className: 'dtr-control',
+                orderable: false,
+                targets: 0
+            },
+            { 
+                // Priorité 1 (la plus haute) pour la colonne de contrôle
+                responsivePriority: 1, 
+                targets: 0 
+            },
+            { 
+                // Priorité 2 pour le statut, qui restera visible plus longtemps
+                responsivePriority: 2, 
+                targets: -1 // Cible la dernière colonne
+            }
+        ],
+        // --- FIN DE L'AJOUT ---
+
+        select: {
+            style: 'single',
+            info: false
+        },
+        order: [[4, 'desc']], // L'ordre se base sur la colonne "Date Demande"
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50]
+    });
+}
 
     bindEvents() {
         this.dataTable.on('select', (e, dt, type, indexes) => {

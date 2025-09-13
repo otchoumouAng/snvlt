@@ -82,6 +82,9 @@ class NouvelleDemandeController extends AbstractController
         $data = [];
         foreach ($demandes as $demande) {
             $operateur = $demande->getOperateur();
+
+            //dd($operateur);
+            
             $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
             $data[] = [

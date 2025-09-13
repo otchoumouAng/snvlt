@@ -52,7 +52,22 @@ class NouvelleDemandeApp {
                 info: false
             },
             responsive: true,
-            order: [[4, 'desc']],
+            columnDefs: [
+            { 
+                responsivePriority: 1, 
+                targets: 0  // Priorité maximale sur la première colonne (ID)
+            },
+            { 
+                responsivePriority: 2, 
+                targets: -1 // La dernière colonne (Statut) est la 2e plus importante
+            },
+            {
+                className: 'dtr-control', // Applique la classe pour l'icône
+                orderable: false,
+                targets: 0 // Cible la première colonne (ID)
+            }
+        ],
+            order: [[3, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });
