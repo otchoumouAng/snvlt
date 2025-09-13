@@ -159,7 +159,6 @@ class ModeleCommunicationController extends AbstractController
             int $id_type_modele,
             ModeleCommunication $modeleCommunication = null,
             ModeleCommunicationRepository $modeleCommunicationRepository,
-            TypeModeleCommunicationRepository $typeModeleCommunicationRepository,
             UserRepository $userRepository,
             EntityManagerInterface $entityManager,
             User $user = null,
@@ -173,9 +172,7 @@ class ModeleCommunicationController extends AbstractController
             } else {
                 if ($this->isGranted('ROLE_MINEF') or $this->isGranted('ROLE_ADMIN')) {
                     if ($id_type_modele){
-                        $modeleType = $typeModeleCommunicationRepository->find($id_type_modele);
-
-                        $liste_modeles = $modeleCommunicationRepository->findBy(['code_type_modele_communication'=>$modeleType]);
+                        $liste_modeles = $modeleCommunicationRepository->findBy(['typeDemande' => $id_type_modele]);
                         // Réinitialisation  et enregistrement de tous les modeles avec Statut = ""
                         foreach ($liste_modeles as $modele)
                         {
