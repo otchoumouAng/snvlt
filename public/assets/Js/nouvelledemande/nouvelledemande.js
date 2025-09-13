@@ -74,7 +74,11 @@ class NouvelleDemandeApp {
         });
 
         $(document).on('click', '#pay-fees-btn', () => {
-            window.location.href = '/paiement/new';
+            if (this.selectedDemandeId) {
+                window.location.href = `/paiement/new?demandeId=${this.selectedDemandeId}`;
+            } else {
+                this.notification.error("Veuillez d'abord sélectionner une demande.");
+            }
         });
 
         // ÉVÉNEMENT : Désélection

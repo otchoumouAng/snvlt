@@ -163,16 +163,40 @@
                 <div id="selection-step" class="step-content active" data-step="1">
                     <h4 class="card-title">Étape 1: Sélection du Service</h4>
                     <div class="row" id="filters-container">
-                        <div class="col-md-4 mb-3">
-                            <label for="type_paiement_id" class="form-label fw-bold">1. Type de Paiement</label>
-                            <select id="type_paiement_id" name="type_paiement_id" class="form-select">
-                                <option value="">Sélectionner...</option>
-                                {% for option in type_paiements %}
-                                    <option value="{{ option.id }}">{{ option.libelle }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <!-- Les selects pour Service et Type de Demande seront ajoutés ici par JS -->
+                        {% if demande %}
+                            <input type="hidden" id="demande_id" value="{{ demande.id }}">
+                            <input type="hidden" id="type_paiement_id" value="{{ demande.typePaiement.id }}">
+                            <input type="hidden" id="categorie_activite_id" value="{{ demande.typeDemande.id }}">
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Type de Paiement</label>
+                                <p class="form-control-plaintext ps-2">{{ demande.typePaiement.libelle }}</p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Catégorie d'Activité</label>
+                                <p class="form-control-plaintext ps-2">{{ demande.typeDemande.designation }}</p>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="type_demandeur_id" class="form-label fw-bold">1. Type de Demandeur</label>
+                                <select id="type_demandeur_id" name="type_demandeur_id" class="form-select">
+                                    <option value="">Sélectionner...</option>
+                                    {% for option in types_demandeur %}
+                                        <option value="{{ option.id }}">{{ option.getLibelle() }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% else %}
+                            <div class="col-md-4 mb-3">
+                                <label for="type_paiement_id" class="form-label fw-bold">1. Type de Paiement</label>
+                                <select id="type_paiement_id" name="type_paiement_id" class="form-select">
+                                    <option value="">Sélectionner...</option>
+                                    {% for option in type_paiements %}
+                                        <option value="{{ option.id }}">{{ option.libelle }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        {% endif %}
+                        <!-- Les selects pour Service, Catégorie et Type de Demandeur seront ajoutés ici par JS -->
                     </div>
                 </div>
 

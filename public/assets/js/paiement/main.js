@@ -9,18 +9,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const stepper = document.querySelector('.stepper');
     const steps = document.querySelectorAll('.step');
     const stepContents = document.querySelectorAll('.step-content');
+    const demandeIdInput = document.getElementById('demande_id');
 
     let currentStep = 1;
     let selectedValues = {
+        demande_id: null,
         type_paiement_id: null,
         categorie_activite_id: null,
+        type_demandeur_id: null,
         service_id: null,
         service_details: null
     };
 
     const api = {
-        getServices: (typePaiementId, categoryId) => {
+        getServices: (typePaiementId, categoryId, typeDemandeurId) => {
             let url = `/api/services_by_type_and_category?type_paiement_id=${typePaiementId}&categorie_id=${categoryId}`;
+            if (typeDemandeurId) {
+                url += `&type_demandeur_id=${typeDemandeurId}`;
+            }
             return fetch(url).then(res => res.json());
         },
         getCategoriesActivite: () => fetch('/api/categories_activite').then(res => res.json()),
@@ -30,6 +36,15 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify(payload)
         }).then(res => res.json())
     };
+
+    function initializeForm() {
+        if (demandeIdInput) {
+            // New workflow: Pre-filled from a Demande
+            selectedValues.demande_id = demandeIdInput.value;
+            selectedValues.type_paiement_id = document.getElementById('type_paiement_id').value;
+            selectedValues.categorie_activite_id = document.getElementById('categorie_activite_id').value;
+        }
+    }
 
     // --- Event Listeners ---
 
@@ -45,11 +60,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!select.value) return;
 
-        if (fieldName === 'type_paiement') {
-            loadCategoriesActivite();
-        } else if (fieldName === 'categorie_activite') {
-            loadServices(selectedValues.type_paiement_id, select.value);
-        } else if (fieldName === 'service') {
+        if (demandeIdInput) {
+            // New workflow logic
+            if (fieldName === 'type_demandeur') {
+                loadServices(selectedValues.type_paiement_id, selectedValues.categorie_activite_id, select.value);
+            }
+        } else {
+            // Original workflow logic
+            if (fieldName === 'type_paiement') {
+                loadCategoriesActivite();
+            } else if (fieldName === 'categorie_activite') {
+                loadServices(selectedValues.type_paiement_id, select.value, null);
+            }
+        }
+
+        if (fieldName === 'service') {
             const selectedOption = select.options[select.selectedIndex];
             selectedValues.service_details = {
                 label: selectedOption.text,
@@ -62,12 +87,23 @@ document.addEventListener('DOMContentLoaded', function() {
     btnConfirm.addEventListener('click', () => showStep(3));
 
     btnReset.addEventListener('click', () => {
-        resetAll();
+        if (demandeIdInput) {
+            // In the new workflow, reset only goes back to selecting the demandeur
+            const typeDemandeurSelect = document.getElementById('type_demandeur_id');
+            if (typeDemandeurSelect) {
+                typeDemandeurSelect.value = '';
+            }
+            resetSubsequentSteps('type_demandeur');
+        } else {
+            resetAll();
+        }
     });
 
     btnSubmit.addEventListener('click', handleSubmit);
 
     // --- Logic Functions ---
+
+    initializeForm();
 
     async function loadCategoriesActivite() {
         try {
@@ -82,11 +118,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function loadServices(typePaiementId, categoryId) {
+    async function loadServices(typePaiementId, categoryId, typeDemandeurId) {
         try {
-            const services = await api.getServices(typePaiementId, categoryId);
+            const services = await api.getServices(typePaiementId, categoryId, typeDemandeurId);
             if (services.length > 0) {
-                createSelect('service', '3. Catalogue de Service', services);
+                createSelect('service', '2. Catalogue de Service', services);
             } else {
                 Notification.warning('Aucun service disponible pour cette sélection.');
             }
@@ -199,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const payload = {
+            demande_id: selectedValues.demande_id,
             service_id: selectedValues.service_id,
             type_paiement_id: selectedValues.type_paiement_id,
             client_nom: document.getElementById('client_nom').value,

@@ -4,7 +4,10 @@ namespace App\Controller\Paiement;
 
 use App\Repository\Paiement\TransactionRepository;
 use App\Repository\Paiement\TypePaiementRepository;
+use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Repository\References\TypesDemandeurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\Administration\NotificationRepository;
@@ -73,7 +76,10 @@ class PaiementWorkflowController extends AbstractController
      * @Route("/paiement/new", name="app_paiement_workflow")
      */
     public function index(
+        Request $request,
         TypePaiementRepository $typePaiementRepository,
+        NouvelleDemandeRepository $nouvelleDemandeRepository,
+        TypesDemandeurRepository $typesDemandeurRepository,
         MenuRepository $menus,
         NotificationRepository $notification,
         MenuPermissionRepository $permissions,
@@ -82,6 +88,12 @@ class PaiementWorkflowController extends AbstractController
     {
         $user = $userRepository->find($this->getUser());
         $code_groupe = $user->getCodeGroupe()->getId();
+
+        $demandeId = $request->query->get('demandeId');
+        $demande = null;
+        if ($demandeId) {
+            $demande = $nouvelleDemandeRepository->find($demandeId);
+        }
 
         $userInfo = [
             'nom' => $user->getNomUtilisateur(),
@@ -98,7 +110,9 @@ class PaiementWorkflowController extends AbstractController
             'titre' => 'Initier une Transaction',
             'liste_parent' => $permissions,
             'type_paiements' => $typePaiementRepository->findAll(),
+            'types_demandeur' => $typesDemandeurRepository->findAll(),
             'user_info' => $userInfo,
+            'demande' => $demande,
         ]);
     }
 }

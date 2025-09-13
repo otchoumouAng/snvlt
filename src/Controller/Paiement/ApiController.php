@@ -29,13 +29,18 @@ class ApiController extends AbstractController
     #[Route('/services_by_type_and_category', name: 'api_get_services_by_type_and_category', methods: ['GET'])]
     public function getServicesByTypeAndCategory(Request $request, CatalogueServicesRepository $repo): JsonResponse
     {
-        $typePaiementId = $request->query->get('type_paiement_id');
-        $categoryId = $request->query->get('categorie_id');
+        $criteria = [];
+        if ($request->query->get('type_paiement_id')) {
+            $criteria['typePaiement'] = $request->query->get('type_paiement_id');
+        }
+        if ($request->query->get('categorie_id')) {
+            $criteria['categorie_activite'] = $request->query->get('categorie_id');
+        }
+        if ($request->query->get('type_demandeur_id')) {
+            $criteria['type_demandeur'] = $request->query->get('type_demandeur_id');
+        }
 
-        $services = $repo->findBy([
-            'typePaiement' => $typePaiementId,
-            'categorie_activite' => $categoryId,
-        ]);
+        $services = $repo->findBy($criteria);
 
         $data = [];
         foreach ($services as $service) {
