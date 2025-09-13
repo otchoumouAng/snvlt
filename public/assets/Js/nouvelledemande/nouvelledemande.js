@@ -365,7 +365,7 @@ async displayDocumentPanel(demandeData) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'en_attente') {
+    } else if (status === 'pending') {
         buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
@@ -673,7 +673,7 @@ showDetailsPlaceholder() {
         switch (status) {
             case 'créé':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-file-plus"></i> Créé</span>';
-            case 'en_attente':
+            case 'pending':
                 return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En cours</span>';
             case 'rejeté':
                 return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejeté</span>';

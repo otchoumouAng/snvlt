@@ -64,6 +64,12 @@ class TypeDemande
         return $this->designation;
     }
 
+    public function setLibelle(string $libelle): static
+    {
+        $this->setDesignation($libelle);
+        return $this;
+    }
+
     /**
      * @return Collection<int, \App\Entity\References\ModeleCommunication>
      */
