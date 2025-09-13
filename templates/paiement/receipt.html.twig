@@ -33,17 +33,17 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Avis de Recette</h1>
+            <h1>Reçu de paiement</h1>
         </div>
         <div class="content">
-            <p><strong>Identifiant de la transaction :</strong> {{ transaction.identifiant }}</p>
-            <p><strong>Date :</strong> {{ "now"|date("d/m/Y H:i:s") }}</p>
+            <p><strong>Identifiant de la transaction :</strong> {{ transaction.tresorpayReceiptReference }}</p>
+            <p><strong>Date :</strong> {{transaction.paidAt()|date("d/m/Y H:i:s") }}</p>
             <hr>
             <p><strong>Nom du client :</strong> {{ transaction.clientNom }} {{ transaction.clientPrenom }}</p>
             <p><strong>Téléphone :</strong> {{ transaction.telephone }}</p>
             <hr>
             <p><strong>Service :</strong> {{ transaction.service.designation }}</p>
-            <p><strong>Montant :</strong> {{ transaction.montantFcfa|number_format(0, ',', ' ') }} FCFA</p>
+            <p><strong>Montant :</strong> {{ transaction.paidAmount|number_format(0, ',', ' ') }} FCFA</p>
         </div>
         <div class="footer">
             <p>Merci d'avoir utilisé nos services.</p>
