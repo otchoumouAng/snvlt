@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\Administration\NotificationRepository;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
@@ -78,6 +79,7 @@ class PaiementWorkflowController extends AbstractController
      */
     public function index(
         Request $request,
+        UrlGeneratorInterface $urlGenerator,
         TypePaiementRepository $typePaiementRepository,
         NouvelleDemandeRepository $nouvelleDemandeRepository,
         TypesDemandeurRepository $typesDemandeurRepository,
@@ -117,6 +119,7 @@ class PaiementWorkflowController extends AbstractController
             'types_demandeur' => $typesDemandeurRepository->findAll(),
             'user_info' => $userInfo,
             'demande' => $demande,
+            'suivi_url' => $urlGenerator->generate('app_paiement_suivi'),
         ]);
     }
 }

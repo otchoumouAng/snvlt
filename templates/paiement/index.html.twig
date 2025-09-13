@@ -157,7 +157,8 @@
             <div id="transaction-workflow"
                  data-user-nom="{{ user_info.nom|e('html_attr') }}"
                  data-user-prenom="{{ user_info.prenom|e('html_attr') }}"
-                 data-user-telephone="{{ user_info.telephone|e('html_attr') }}">
+                 data-user-telephone="{{ user_info.telephone|e('html_attr') }}"
+                 data-suivi-url="{{ suivi_url }}">
 
                 <!-- Étape 1: Sélection -->
                 <div id="selection-step" class="step-content active" data-step="1">
