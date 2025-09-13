@@ -124,10 +124,25 @@ class GenericReferenceController extends AbstractController
                 return $this->json(['success' => false, 'message' => 'Le libellé est requis'], 400);
             }
 
-            $item = $id ? $em->getRepository($entityClass)->find($id) : new $entityClass();
-
-            if (!$item) {
-                return $this->json(['success' => false, 'message' => 'Élément non trouvé'], 404);
+            if ($id) {
+                $item = $em->getRepository($entityClass)->find($id);
+                if (!$item) {
+                    return $this->json(['success' => false, 'message' => 'Élément non trouvé'], 404);
+                }
+                if (method_exists($item, 'setUpdatedAt')) {
+                    $item->setUpdatedAt(new \DateTime());
+                }
+                 if (method_exists($item, 'setUpdatedBy')) {
+                    $item->setUpdatedBy($this->getUser()->getUserIdentifier());
+                }
+            } else {
+                $item = new $entityClass();
+                if (method_exists($item, 'setCreatedAt')) {
+                    $item->setCreatedAt(new \DateTime());
+                }
+                if (method_exists($item, 'setCreatedBy')) {
+                    $item->setCreatedBy($this->getUser()->getUserIdentifier());
+                }
             }
 
             $item->setLibelle($libelle);

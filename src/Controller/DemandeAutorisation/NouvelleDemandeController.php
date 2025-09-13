@@ -377,7 +377,7 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
-            $demande->setStatut('pending');
+            $demande->setStatut('en cours');
 
             $etapes = $demande->getEtapesValidation();
 
