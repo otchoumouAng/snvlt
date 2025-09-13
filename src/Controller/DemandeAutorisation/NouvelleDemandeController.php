@@ -74,7 +74,9 @@ class NouvelleDemandeController extends AbstractController
      */
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
     {
-        $demandes = $nouvelleDemandeRepository->findAll();
+        //$demandes = $nouvelleDemandeRepository->findAll();
+        $demandes = $nouvelleDemandeRepository->findBy([], ['id' => 'DESC']);
+
 
         $data = [];
         foreach ($demandes as $demande) {
@@ -370,7 +372,7 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
-            $demande->setStatut('en_attente');
+            $demande->setStatut('en cours');
 
             $etapes = $demande->getEtapesValidation();
 
