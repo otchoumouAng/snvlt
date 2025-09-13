@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const api = {
-        getServices: (typePaiementId, categoryId, typeDemandeurId) => {
+        getServices: (typePaiementId, typeDemandeId, typeDemandeurId) => {
             const params = new URLSearchParams();
             if (typePaiementId) params.append('type_paiement_id', typePaiementId);
-            if (categoryId) params.append('type_demande_id', categoryId);
+            if (typeDemandeId) params.append('type_demande_id', typeDemandeId);
             if (typeDemandeurId) params.append('type_demandeur_id', typeDemandeurId);
 
             const url = `/api/services_by_type_and_category?${params.toString()}`;
@@ -120,9 +120,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function loadServices(typePaiementId, categoryId, typeDemandeurId) {
+    async function loadServices(typePaiementId, typeDemandeId, typeDemandeurId) {
         try {
-            const services = await api.getServices(typePaiementId, categoryId, typeDemandeurId);
+            const services = await api.getServices(typePaiementId, typeDemandeId, typeDemandeurId);
             if (services.length > 0) {
                 const label = demandeIdInput ? '2. Catalogue de Service' : '3. Catalogue de Service';
                 createSelect('service', label, services);
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedValues = {
             demande_id: null,
             type_paiement_id: null,
-            categorie_activite_id: null,
+            type_demande_id: null,
             type_demandeur_id: null,
             service_id: null,
             service_details: null

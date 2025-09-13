@@ -9,6 +9,7 @@ use App\Repository\References\TypesDemandeurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\Administration\NotificationRepository;
 use App\Repository\MenuPermissionRepository;
@@ -93,6 +94,9 @@ class PaiementWorkflowController extends AbstractController
         $demande = null;
         if ($demandeId) {
             $demande = $nouvelleDemandeRepository->find($demandeId);
+            if (!$demande || $demande->getOperateur() !== $user) {
+                throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à accéder à cette demande.');
+            }
         }
 
         $userInfo = [
