@@ -6,7 +6,7 @@
         <div class="tracking-title">
             <h1>Suivi de la Demande</h1>
             <p>
-                Demande #<span id="tracking-demande-id">{{ demande.id }}</span> - {{ demande.titre }}
+                Demande #<span id="tracking-demande-id">{{ demande.id }}</span> - {{ demande.typePaiement ? demande.typePaiement.libelle : 'N/A' }}
             </p>
         </div>
     </div>
