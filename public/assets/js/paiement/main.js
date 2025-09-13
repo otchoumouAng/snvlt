@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let selectedValues = {
         demande_id: null,
         type_paiement_id: null,
-        categorie_activite_id: null,
+        type_demande_id: null,
         type_demandeur_id: null,
         service_id: null,
         service_details: null
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
         getServices: (typePaiementId, categoryId, typeDemandeurId) => {
             const params = new URLSearchParams();
             if (typePaiementId) params.append('type_paiement_id', typePaiementId);
-            if (categoryId) params.append('categorie_id', categoryId);
+            if (categoryId) params.append('type_demande_id', categoryId);
             if (typeDemandeurId) params.append('type_demandeur_id', typeDemandeurId);
 
             const url = `/api/services_by_type_and_category?${params.toString()}`;
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // New workflow: Pre-filled from a Demande
             selectedValues.demande_id = demandeIdInput.value;
             selectedValues.type_paiement_id = document.getElementById('type_paiement_id').value;
-            selectedValues.categorie_activite_id = document.getElementById('categorie_activite_id').value;
+            selectedValues.type_demande_id = document.getElementById('type_demande_id').value;
         }
     }
 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (demandeIdInput) {
             // New workflow logic
             if (fieldName === 'type_demandeur') {
-                loadServices(selectedValues.type_paiement_id, selectedValues.categorie_activite_id, select.value);
+                loadServices(selectedValues.type_paiement_id, selectedValues.type_demande_id, select.value);
             }
         } else {
             // Original workflow logic
