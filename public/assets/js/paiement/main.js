@@ -24,15 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const api = {
         getServices: (typePaiementId, categoryId, typeDemandeurId) => {
             const params = new URLSearchParams();
-            if (typePaiementId) {
-                params.append('type_paiement_id', typePaiementId);
-            }
-            if (categoryId) {
-                params.append('categorie_id', categoryId);
-            }
-            if (typeDemandeurId) {
-                params.append('type_demandeur_id', typeDemandeurId);
-            }
+            if (typePaiementId) params.append('type_paiement_id', typePaiementId);
+            if (categoryId) params.append('categorie_id', categoryId);
+            if (typeDemandeurId) params.append('type_demandeur_id', typeDemandeurId);
 
             const url = `/api/services_by_type_and_category?${params.toString()}`;
             return fetch(url).then(res => res.json());
@@ -130,7 +124,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const services = await api.getServices(typePaiementId, categoryId, typeDemandeurId);
             if (services.length > 0) {
-                createSelect('service', '2. Catalogue de Service', services);
+                const label = demandeIdInput ? '2. Catalogue de Service' : '3. Catalogue de Service';
+                createSelect('service', label, services);
             } else {
                 Notification.warning('Aucun service disponible pour cette sélection.');
             }
@@ -282,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function resetSubsequentSteps(fieldName) {
-        const order = ['type_paiement', 'categorie_activite', 'service'];
+        const order = ['type_paiement', 'categorie_activite', 'type_demandeur', 'service'];
         const index = order.indexOf(fieldName);
 
         for(let i = index + 1; i < order.length; i++) {
