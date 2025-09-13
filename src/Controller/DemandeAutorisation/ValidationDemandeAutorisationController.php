@@ -93,7 +93,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             $data[] = [
                 'id' => $demande->getId(),
                 'etape_id' => $etape->getId(),
-                'titre' => $demande->getTitre(),
+                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
                 'description' => $etape->getNom(), // Show the step name as description
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
@@ -174,7 +174,7 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         $data = [
             'id' => $demande->getId(),
-            'titre' => $demande->getTitre(),
+            'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
             'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
