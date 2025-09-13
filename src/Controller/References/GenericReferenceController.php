@@ -130,7 +130,7 @@ class GenericReferenceController extends AbstractController
                     return $this->json(['success' => false, 'message' => 'Élément non trouvé'], 404);
                 }
                 if (method_exists($item, 'setUpdatedAt')) {
-                    $item->setUpdatedAt(new \DateTime());
+                    $item->setUpdatedAt(new \DateTimeImmutable());
                 }
                  if (method_exists($item, 'setUpdatedBy')) {
                     $item->setUpdatedBy($this->getUser()->getUserIdentifier());
@@ -138,7 +138,7 @@ class GenericReferenceController extends AbstractController
             } else {
                 $item = new $entityClass();
                 if (method_exists($item, 'setCreatedAt')) {
-                    $item->setCreatedAt(new \DateTime());
+                    $item->setCreatedAt(new \DateTimeImmutable());
                 }
                 if (method_exists($item, 'setCreatedBy')) {
                     $item->setCreatedBy($this->getUser()->getUserIdentifier());
