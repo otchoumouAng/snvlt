@@ -15,6 +15,7 @@ use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TypeDemandeRepository::class)]
 #[ORM\Table(name: "aut_type_demande", schema: "metier")]
@@ -37,10 +38,15 @@ class TypeDemande
     #[ORM\OneToMany(mappedBy: 'categorie_activite', targetEntity: \App\Entity\Paiement\CatalogueServices::class)]
     private Collection $catalogueServices;
 
+    #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: TypeDemandeDetail::class, orphanRemoval: true)]
+    #[Groups(['demande:details'])]
+    private Collection $typeDemandeDetails;
+
     public function __construct()
     {
         $this->modeleCommunications = new ArrayCollection();
         $this->catalogueServices = new ArrayCollection();
+        $this->typeDemandeDetails = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -124,6 +130,36 @@ class TypeDemande
             // set the owning side to null (unless already changed)
             if ($catalogueService->getCategorieActivite() === $this) {
                 $catalogueService->setCategorieActivite(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TypeDemandeDetail>
+     */
+    public function getTypeDemandeDetails(): Collection
+    {
+        return $this->typeDemandeDetails;
+    }
+
+    public function addTypeDemandeDetail(TypeDemandeDetail $typeDemandeDetail): static
+    {
+        if (!$this->typeDemandeDetails->contains($typeDemandeDetail)) {
+            $this->typeDemandeDetails->add($typeDemandeDetail);
+            $typeDemandeDetail->setTypeDemande($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTypeDemandeDetail(TypeDemandeDetail $typeDemandeDetail): static
+    {
+        if ($this->typeDemandeDetails->removeElement($typeDemandeDetail)) {
+            // set the owning side to null (unless already changed)
+            if ($typeDemandeDetail->getTypeDemande() === $this) {
+                $typeDemandeDetail->setTypeDemande(null);
             }
         }
 
