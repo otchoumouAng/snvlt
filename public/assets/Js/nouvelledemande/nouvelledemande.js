@@ -313,9 +313,9 @@ setupModalWithData(mode, data) {
     
     // Remplir le formulaire avec les données
     form.find('#demandeId').val(data.id);
-    form.find('#titre').val(data.titre);
+    form.find('#typePaiement').val(data.typePaiementId); // Updated
     form.find('#description').val(data.description);
-    form.find('#typeDocument').val(data.typeDocumentId);
+    form.find('#typeDemande').val(data.typeDemandeId); // Corrected from typeDocument
     
     // Set mode-specific configurations
     switch(mode) {
@@ -532,14 +532,13 @@ showDetailsPlaceholder() {
         try {
             const formData = {
                 id: $('#demandeId').val() || null,
-                titre: $('#titre').val(),
+                typePaiementId: $('#typePaiement').val(),
                 description: $('#description').val(),
                 typeDemandeId: $('#typeDemande').val()
-                //typeDocumentId: $('#typeDocument').val()
             };
             
             // Validation
-            if (!formData.titre || !formData.typeDemandeId) {
+            if (!formData.typePaiementId || !formData.typeDemandeId) {
                 this.notification.warning('Veuillez remplir tous les champs obligatoires');
                 return;
             }

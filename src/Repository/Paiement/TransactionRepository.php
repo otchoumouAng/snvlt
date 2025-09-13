@@ -20,4 +20,18 @@ class TransactionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Transaction::class);
     }
+
+    /**
+     * @return Transaction[] Returns an array of Transaction objects
+     */
+    public function findByUserIdentifier(string $telephone): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.telephone = :telephone')
+            ->setParameter('telephone', $telephone)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

@@ -5,7 +5,7 @@ namespace App\Entity\Paiement;
 
 use App\Repository\Paiement\CatalogueServicesRepository;
 use App\Entity\References\TypesService;
-use App\Entity\Paiement\CategoriesActivite;
+use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Entity\References\TypesDemandeur;
 use Doctrine\DBAL\Types\Types;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
@@ -38,9 +38,9 @@ class CatalogueServices
     #[ORM\JoinColumn(nullable: false)]
     private ?TypesService $type_service = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: TypeDemande::class, inversedBy: "catalogueServices")]
     #[ORM\JoinColumn(nullable: false)]
-    private ?CategoriesActivite $categorie_activite = null;
+    private ?TypeDemande $categorie_activite = null;
 
     #[ORM\ManyToOne]
     private ?TypesDemandeur $type_demandeur = null;
@@ -115,12 +115,12 @@ class CatalogueServices
         return $this;
     }
 
-    public function getCategorieActivite(): ?CategoriesActivite
+    public function getCategorieActivite(): ?TypeDemande
     {
         return $this->categorie_activite;
     }
 
-    public function setCategorieActivite(?CategoriesActivite $categorie_activite): static
+    public function setCategorieActivite(?TypeDemande $categorie_activite): static
     {
         $this->categorie_activite = $categorie_activite;
 

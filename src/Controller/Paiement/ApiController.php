@@ -2,7 +2,7 @@
 
 namespace App\Controller\Paiement;
 
-use App\Repository\Paiement\CategoriesActiviteRepository;
+use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use App\Repository\Paiement\CatalogueServicesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class ApiController extends AbstractController
 {
     #[Route('/categories_activite', name: 'api_get_categories_activite', methods: ['GET'])]
-    public function getCategoriesActivite(CategoriesActiviteRepository $repo): JsonResponse
+    public function getCategoriesActivite(TypeDemandeRepository $repo): JsonResponse
     {
         $categories = $repo->findAll();
         $data = [];

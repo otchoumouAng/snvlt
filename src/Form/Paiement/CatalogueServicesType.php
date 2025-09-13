@@ -5,7 +5,7 @@ namespace App\Form\Paiement;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\TypePaiement;
 use App\Entity\References\TypesService;
-use App\Entity\Paiement\CategoriesActivite;
+use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Entity\References\TypesDemandeur;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
@@ -26,8 +26,8 @@ class CatalogueServicesType extends AbstractType
 'choice_label' => 'id',
             ])
             ->add('categorie_activite', EntityType::class, [
-                'class' => CategoriesActivite::class,
-'choice_label' => 'id',
+                'class' => TypeDemande::class,
+'choice_label' => 'designation',
             ])
             ->add('type_demandeur', EntityType::class, [
                 'class' => TypesDemandeur::class,

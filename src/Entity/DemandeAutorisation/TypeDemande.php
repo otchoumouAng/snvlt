@@ -34,9 +34,13 @@ class TypeDemande
     #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: \App\Entity\References\ModeleCommunication::class)]
     private Collection $modeleCommunications;
 
+    #[ORM\OneToMany(mappedBy: 'categorie_activite', targetEntity: \App\Entity\Paiement\CatalogueServices::class)]
+    private Collection $catalogueServices;
+
     public function __construct()
     {
         $this->modeleCommunications = new ArrayCollection();
+        $this->catalogueServices = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -53,6 +57,11 @@ class TypeDemande
     {
         $this->designation = $designation;
         return $this;
+    }
+
+    public function getLibelle(): ?string
+    {
+        return $this->designation;
     }
 
     /**
@@ -79,6 +88,36 @@ class TypeDemande
             // set the owning side to null (unless already changed)
             if ($modeleCommunication->getTypeDemande() === $this) {
                 $modeleCommunication->setTypeDemande(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, \App\Entity\Paiement\CatalogueServices>
+     */
+    public function getCatalogueServices(): Collection
+    {
+        return $this->catalogueServices;
+    }
+
+    public function addCatalogueService(\App\Entity\Paiement\CatalogueServices $catalogueService): static
+    {
+        if (!$this->catalogueServices->contains($catalogueService)) {
+            $this->catalogueServices->add($catalogueService);
+            $catalogueService->setCategorieActivite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCatalogueService(\App\Entity\Paiement\CatalogueServices $catalogueService): static
+    {
+        if ($this->catalogueServices->removeElement($catalogueService)) {
+            // set the owning side to null (unless already changed)
+            if ($catalogueService->getCategorieActivite() === $this) {
+                $catalogueService->setCategorieActivite(null);
             }
         }
 

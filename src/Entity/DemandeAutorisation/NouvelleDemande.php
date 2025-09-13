@@ -11,6 +11,7 @@
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Entity\Paiement\TypePaiement;
 use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -39,14 +40,15 @@ class NouvelleDemande
     private ?string $statut = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $titre = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
     private ?string $description = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: "type_demande_id", referencedColumnName: "id", nullable: false)]
     private ?TypeDemande $typeDemande = null;
+
+    #[ORM\ManyToOne(targetEntity: TypePaiement::class, inversedBy: 'nouvelleDemandes')]
+    #[ORM\JoinColumn(name: "type_paiement_id", referencedColumnName: "id", nullable: true)]
+    private ?TypePaiement $typePaiement = null;
 
     #[ORM\OneToMany(mappedBy: 'demande', targetEntity: EtapeValidation::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $etapesValidation;
@@ -98,17 +100,6 @@ class NouvelleDemande
         return $this;
     }
 
-    public function getTitre(): ?string
-    {
-        return $this->titre;
-    }
-
-    public function setTitre(?string $titre): static
-    {
-        $this->titre = $titre;
-        return $this;
-    }
-
     public function getDescription(): ?string
     {
         return $this->description;
@@ -128,6 +119,17 @@ class NouvelleDemande
     public function setTypeDemande(?TypeDemande $typeDemande): static
     {
         $this->typeDemande = $typeDemande;
+        return $this;
+    }
+
+    public function getTypePaiement(): ?TypePaiement
+    {
+        return $this->typePaiement;
+    }
+
+    public function setTypePaiement(?TypePaiement $typePaiement): static
+    {
+        $this->typePaiement = $typePaiement;
         return $this;
     }
 

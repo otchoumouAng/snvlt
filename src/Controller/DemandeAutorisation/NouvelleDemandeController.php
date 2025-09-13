@@ -8,8 +8,10 @@ use App\Entity\DemandeAutorisation\EtapeValidation;
 use App\Entity\Administration\Notification;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
 use App\Entity\DemandeAutorisation\TypeDemande;
+use App\Entity\Paiement\TypePaiement;
 use App\Repository\Administration\NotificationRepository;
 use App\Repository\DemandeAutorisation\DemandeDocumentRepository;
+use App\Repository\Paiement\TypePaiementRepository;
 use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
@@ -45,7 +47,7 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/", name="app_nouvelle_demande")
      */
-    public function index(MenuRepository $menus, MenuPermissionRepository $permissions, Request $request, UserRepository $userRepository, NotificationRepository $notification, TypeDemandeRepository $typeDemandeRepository): Response
+    public function index(MenuRepository $menus, MenuPermissionRepository $permissions, Request $request, UserRepository $userRepository, NotificationRepository $notification, TypeDemandeRepository $typeDemandeRepository, TypePaiementRepository $typePaiementRepository): Response
     {
         if (!$request->getSession()->has('user_session')) {
             return $this->redirectToRoute('app_login');
@@ -62,7 +64,8 @@ class NouvelleDemandeController extends AbstractController
                 'menus' => $permissions->findBy(['code_groupe_id' => $code_groupe]),
                 'groupe' => $code_groupe,
                 'liste_parent' => $permissions,
-                'typesDemande' => $typeDemandeRepository->findAll()
+                'typesDemande' => $typeDemandeRepository->findAll(),
+                'typesPaiement' => $typePaiementRepository->findAll()
             ]);
         } else {
             return $this->redirectToRoute('app_no_permission_user_active');
@@ -83,7 +86,7 @@ class NouvelleDemandeController extends AbstractController
 
             $data[] = [
                 'id' => $demande->getId(),
-                'titre' => $demande->getTitre(),
+                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
                 'description' => $demande->getDescription(),
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
@@ -156,7 +159,7 @@ class NouvelleDemandeController extends AbstractController
 
         $data = [
             'id' => $demande->getId(),
-            'titre' => $demande->getTitre(),
+            'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
             'description' => $demande->getDescription(),
             'statut' => $demande->getStatut(),
             'documents' => $requiredDocuments,
@@ -192,13 +195,17 @@ class NouvelleDemandeController extends AbstractController
                 $demande->setCodeSuivie(strtoupper(uniqid('SN-')));
             }
 
-            $demande->setTitre($data['titre']);
             $demande->setDescription($data['description']);
             $demande->setStatut($data['statut'] ?? 'créé');
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
                 $demande->setTypeDemande($typeDemande);
+            }
+
+            if (isset($data['typePaiementId'])) {
+                $typePaiement = $this->entityManager->getReference(TypePaiement::class, $data['typePaiementId']);
+                $demande->setTypePaiement($typePaiement);
             }
 
             $this->entityManager->persist($demande);

@@ -52,9 +52,10 @@ class PaiementWorkflowController extends AbstractController
         $user = $this->getUser();
         $code_groupe = $user->getCodeGroupe()->getId();
 
-        // This needs to be implemented. Assuming a relation between User and Transaction.
-        // For now, let's fetch all transactions for demonstration, but this must be filtered by user.
-        $transactions = $this->transactionRepository->findAll();
+        $transactions = [];
+        if ($user->getMobile()) {
+            $transactions = $this->transactionRepository->findByUserIdentifier($user->getMobile());
+        }
 
         return $this->render('paiement/suivi_paiements.html.twig', [
             'liste_menus' => $menus->findOnlyParent(),

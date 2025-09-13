@@ -5,7 +5,7 @@ namespace App\Controller\Paiement;
 use App\Entity\Paiement\TypePaiement;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\References\TypesService;
-use App\Entity\Paiement\CategoriesActivite;
+use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Entity\References\TypesDemandeur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -36,7 +36,7 @@ class CatalogueServicesController extends AbstractController
         // Data for form dropdowns
         $formData = [
             'types_service' => $em->getRepository(TypesService::class)->findAll(),
-            'categories_activite' => $em->getRepository(CategoriesActivite::class)->findAll(),
+            'categories_activite' => $em->getRepository(TypeDemande::class)->findAll(),
             'types_demandeur' => $em->getRepository(TypesDemandeur::class)->findAll(),
             'type_paiements' => $em->getRepository(TypePaiement::class)->findAll(),
             'catalogue_service' => null
@@ -111,7 +111,7 @@ class CatalogueServicesController extends AbstractController
             if (!$typeService) return $this->json(['success' => false, 'message' => 'Type de service invalide'], 400);
             $catalogueService->setTypeService($typeService);
 
-            $categorieActivite = $em->getRepository(CategoriesActivite::class)->find($data['categorie_activite_id']);
+            $categorieActivite = $em->getRepository(TypeDemande::class)->find($data['categorie_activite_id']);
             if (!$categorieActivite) return $this->json(['success' => false, 'message' => 'Catégorie d\'activité invalide'], 400);
             $catalogueService->setCategorieActivite($categorieActivite);
 

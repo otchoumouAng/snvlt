@@ -15,9 +15,14 @@
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="titre" class="form-label">Titre de la demande *</label>
-                            <input type="text" class="form-control" id="titre" name="titre" required 
+                            <label for="typePaiement" class="form-label">Type de Paiement *</label>
+                            <select class="form-select" id="typePaiement" name="typePaiementId" required
                                 {% if mode == 'read' %}disabled{% endif %}>
+                                <option value="" selected disabled>Sélectionner un type...</option>
+                                {% for type in typesPaiement %}
+                                    <option value="{{ type.id }}">{{ type.libelle }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label for="typeDemande" class="form-label">Type de Demande *</label>
