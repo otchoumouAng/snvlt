@@ -2,7 +2,7 @@
 {% for notification in mes_notifs %}
     {% set i = i + 1 %}
 <div class="dropdown-divider"></div>
-<a class="dropdown-item preview-item notif_id" href="{{ path(notification.reference, {'id_notification': notification.id }) }}" id="{{ notification.id }}">
+<a class="dropdown-item preview-item notif_id" href="{% if notification.reference %}{{ path(notification.reference, {'id_notification': notification.id }) }}{% else %}{{ path('app_notifs') }}{% endif %}" id="{{ notification.id }}">
     <div class="preview-thumbnail">
         <div class="preview-icon bg-success">
             <i class="mdi mdi-calendar"></i>
