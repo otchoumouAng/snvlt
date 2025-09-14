@@ -83,4 +83,9 @@
 
     <script src="{{ asset('assets/js/references/generic/notification.js') }}"></script>
     <script src="{{ asset('assets/js/references/generic/main.js') }}"></script>
+
+    {% if entityName == 'app_types_demande' %}
+        {% include 'references/demande_autorisation/modal_documents.html.twig' %}
+        <script src="{{ asset('assets/js/references/demande_autorisation/documents_modal.js') }}"></script>
+    {% endif %}
 {% endblock %}

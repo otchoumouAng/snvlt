@@ -61,6 +61,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleDelete(id);
             }
         });
+
+        if (entityName === 'app_types_demande') {
+            $('#genericTable tbody').on('dblclick', 'tr', function () {
+                const rowData = table.row(this).data();
+                if (rowData && typeof window.openDocumentsModal === 'function') {
+                    window.openDocumentsModal(rowData.id, rowData.libelle);
+                }
+            });
+        }
     }
 
     function showForm(id, mode) {
