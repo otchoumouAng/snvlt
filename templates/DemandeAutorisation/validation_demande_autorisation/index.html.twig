@@ -19,8 +19,10 @@
 
     :root {
         --font-family-base: 'Inter', sans-serif;
-        --color-primary: #0d6efd;
-        --color-primary-light: #e7f1ff;
+        --color-primary: #006400; /* Vert foncé au lieu de bleu */
+        --color-primary-light: #e6f4e6; /* Vert très clair */
+        --color-primary-lighter: #f2f9f2; /* Vert extrêmement clair */
+        --color-primary-dark: #004d00; /* Vert plus foncé */
         --color-text-primary: #212529;
         --color-text-secondary: #6c757d;
         --color-background: #f8f9fa;
@@ -35,7 +37,7 @@
         --status-rejected-text: #842029;
 
         --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-        --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.07);
+        --shadow-md: 0 4px 6px -1px rgba(0,100,0,0.07), 0 2px 4px -2px rgba(0,100,0,0.07); /* Ombre verte */
         --border-radius: 12px;
     }
 
@@ -73,6 +75,7 @@
     }
     .pro-card-title i {
         font-size: 1.5rem;
+        color: var(--color-primary); /* Utilisation du vert */
     }
 
     .pro-card .card-body {
@@ -137,7 +140,7 @@
     }
     
     table.dataTable tbody tr.selected td {
-        background-color: var(--color-primary-light) !important;
+        background-color: var(--color-primary-lighter) !important;
         box-shadow: 0 0 0 2px var(--color-primary);
     }
 
@@ -353,18 +356,18 @@
     .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-md);
-        background-color: #0b5ed7;
+        background-color: var(--color-primary-dark);
     }
 
     .btn-outline-primary {
         background-color: transparent;
-        border-color: var(--color-border);
-        color: var(--color-text-primary);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
     }
     .btn-outline-primary:hover {
         background-color: var(--color-primary-light);
         border-color: var(--color-primary-light);
-        color: var(--color-primary);
+        color: var(--color-primary-dark);
     }
 
     .btn:disabled {
@@ -382,6 +385,17 @@
     table.dataTable > tbody > tr > td.dtr-control {
         text-align: center;
         padding-left: 1rem !important;
+    }
+
+    /* Style de l'icône de contrôle avec la nouvelle couleur */
+    table.dataTable > tbody > tr > td.dtr-control:before {
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+    }
+
+    table.dataTable > tbody > tr.parent > td.dtr-control:before {
+        background-color: var(--color-primary);
+        color: white;
     }
 
     /* --- ANIMATIONS WOW --- */
