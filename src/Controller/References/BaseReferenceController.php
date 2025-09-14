@@ -2,59 +2,37 @@
 
 namespace App\Controller\References;
 
+use App\Repository\Administration\NotificationRepository;
+use App\Repository\MenuPermissionRepository;
+use App\Repository\MenuRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\Administration\NotificationRepository;
-use App\Repository\MenuPermissionRepository;
-use App\Repository\MenuRepository;
-use App\Repository\UserRepository;
 
-/**
- * @Route("/admin/reference")
- */
-class GenericReferenceController extends AbstractController
+abstract class BaseReferenceController extends AbstractController
 {
-    private const ENTITY_MAP = [];
+    protected string $entityClass;
+    protected string $entityName;
+    protected string $title;
 
-    private function getEntityClass(string $entityName): ?string
+    protected function getTitle(): string
     {
-        return self::ENTITY_MAP[$entityName] ?? null;
+        return $this->title;
     }
 
-    private function getTitle(string $entityName): string
+    public function index(MenuRepository $menus, NotificationRepository $notification, MenuPermissionRepository $permissions, UserRepository $userRepository): Response
     {
-        $titles = [
-            'types_service' => 'Types de Service',
-            'types_demande' => 'Types de Demande',
-            'types_demandeur' => 'Types de Demandeur',
-            'types_paiement' => 'Type de paiement',
-        ];
-        return $titles[$entityName] ?? 'Gestion de Référence';
-    }
-
-
-    /**
-     * @Route("/{entityName}/index", name="app_generic_reference_index")
-     */
-    public function index(string $entityName, MenuRepository $menus, NotificationRepository $notification, MenuPermissionRepository $permissions, UserRepository $userRepository): Response
-    {
-        $entityClass = $this->getEntityClass($entityName);
-        if (!$entityClass) {
-            throw $this->createNotFoundException('Type de référence non valide');
-        }
-
         $user = $userRepository->find($this->getUser());
         $code_groupe = $user->getCodeGroupe()->getId();
 
         $form = $this->renderView('references/generic/form.html.twig', [
             'mode' => 'new',
             'entity' => null,
-            'entityName' => $entityName,
-            'title' => $this->getTitle($entityName)
+            'entityName' => $this->entityName,
+            'title' => $this->getTitle()
         ]);
 
         return $this->render('references/generic/index.html.twig', [
@@ -63,25 +41,20 @@ class GenericReferenceController extends AbstractController
             'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
             'menus' => $permissions->findBy(['code_groupe_id' => $code_groupe]),
             'groupe' => $code_groupe,
-            'titre' => $this->getTitle($entityName),
+            'titre' => $this->getTitle(),
             'liste_parent' => $permissions,
             'preloaded_form' => $form,
-            'entityName' => $entityName
+            'entityName' => $this->entityName,
+            'data_url' => $this->generateUrl($this->entityName . '_data'),
+            'save_url' => $this->generateUrl($this->entityName . '_save'),
+            'delete_url' => $this->generateUrl($this->entityName . '_delete', ['id' => 0]),
         ]);
     }
 
-    /**
-     * @Route("/{entityName}/data", name="app_generic_reference_data", methods={"GET"})
-     */
-    public function getData(string $entityName, EntityManagerInterface $em): JsonResponse
+    public function getData(EntityManagerInterface $em): JsonResponse
     {
-        $entityClass = $this->getEntityClass($entityName);
-        if (!$entityClass) {
-            return $this->json(['data' => []]);
-        }
-
         try {
-            $items = $em->getRepository($entityClass)->findAll();
+            $items = $em->getRepository($this->entityClass)->findAll();
 
             $data = [];
             foreach ($items as $item) {
@@ -98,16 +71,8 @@ class GenericReferenceController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/{entityName}/save", name="app_generic_reference_save", methods={"POST"})
-     */
-    public function save(string $entityName, Request $request, EntityManagerInterface $em): JsonResponse
+    public function save(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $entityClass = $this->getEntityClass($entityName);
-        if (!$entityClass) {
-            return $this->json(['success' => false, 'message' => 'Type de référence non valide'], 400);
-        }
-
         try {
             $data = json_decode($request->getContent(), true);
             if ($data === null) return $this->json(['success' => false, 'message' => 'JSON invalide'], 400);
@@ -120,7 +85,7 @@ class GenericReferenceController extends AbstractController
             }
 
             if ($id) {
-                $item = $em->getRepository($entityClass)->find($id);
+                $item = $em->getRepository($this->entityClass)->find($id);
                 if (!$item) {
                     return $this->json(['success' => false, 'message' => 'Élément non trouvé'], 404);
                 }
@@ -131,7 +96,7 @@ class GenericReferenceController extends AbstractController
                     $item->setUpdatedBy($this->getUser()->getUserIdentifier());
                 }
             } else {
-                $item = new $entityClass();
+                $item = new $this->entityClass();
                 if (method_exists($item, 'setCreatedAt')) {
                     $item->setCreatedAt(new \DateTimeImmutable());
                 }
@@ -149,6 +114,23 @@ class GenericReferenceController extends AbstractController
                 'success' => true,
                 'message' => 'Enregistré avec succès',
             ]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function delete(int $id, EntityManagerInterface $em): JsonResponse
+    {
+        try {
+            $item = $em->getRepository($this->entityClass)->find($id);
+            if (!$item) {
+                return $this->json(['success' => false, 'message' => 'Élément non trouvé'], 404);
+            }
+
+            $em->remove($item);
+            $em->flush();
+
+            return $this->json(['success' => true, 'message' => 'Supprimé avec succès']);
         } catch (\Exception $e) {
             return $this->json(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()], 500);
         }

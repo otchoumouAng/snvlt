@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // These are set in the Twig template
-    if (typeof entityName === 'undefined' || typeof entityTitle === 'undefined') {
-        console.error('entityName or entityTitle is not defined. Make sure to set them in your Twig template.');
+    if (typeof data_url === 'undefined' || typeof save_url === 'undefined' || typeof delete_url === 'undefined' || typeof entityTitle === 'undefined') {
+        console.error('data_url, save_url, delete_url or entityTitle is not defined. Make sure to set them in your Twig template.');
         return;
     }
 
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
             processing: true,
             serverSide: false,
             ajax: {
-                url: `/admin/reference/${entityName}/data`,
+                url: data_url,
                 dataSrc: 'data',
                 error: function(xhr, error, thrown) {
                     console.error('DataTables AJAX error:', error, thrown);
@@ -37,7 +37,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     searchable: false,
                     width: '100px',
                     render: function(data, type, row) {
-                        return `<button class="btn btn-sm btn-light btn-edit" data-id="${row.id}"><i class="mdi mdi-pencil"></i></button>`;
+                        return `
+                            <button class="btn btn-sm btn-light btn-edit" data-id="${row.id}"><i class="mdi mdi-pencil"></i></button>
+                            <button class="btn btn-sm btn-danger btn-delete" data-id="${row.id}"><i class="mdi mdi-delete"></i></button>
+                        `;
                     }
                 }
             ],
@@ -50,6 +53,13 @@ document.addEventListener('DOMContentLoaded', function() {
         $('#genericTable tbody').on('click', '.btn-edit', function() {
             const id = $(this).data('id');
             showForm(id, 'edit');
+        });
+
+        $('#genericTable tbody').on('click', '.btn-delete', function() {
+            const id = $(this).data('id');
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
+                handleDelete(id);
+            }
         });
     }
 
@@ -85,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const data = Object.fromEntries(new FormData(form).entries());
 
         try {
-            const response = await fetch(`/admin/reference/${entityName}/save`, {
+            const response = await fetch(save_url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -102,6 +112,26 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             Notification.error("Erreur critique lors de l'enregistrement.");
             console.error("Save Error:", error);
+        }
+    }
+
+    async function handleDelete(id) {
+        try {
+            const response = await fetch(delete_url.replace('0', id), {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                Notification.success(result.message);
+                table.ajax.reload(null, false);
+            } else {
+                Notification.error(result.message || "Une erreur s'est produite.");
+            }
+        } catch (error) {
+            Notification.error("Erreur critique lors de la suppression.");
+            console.error("Delete Error:", error);
         }
     }
 
