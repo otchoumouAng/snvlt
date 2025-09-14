@@ -121,7 +121,7 @@
                     <td class="">{{ notification.description | slice(0, 120)}}...</td>
                     <td class="">
                         {% if senders[notification.id] is defined and senders[notification.id] is not null %}
-                            {{ senders[notification.id].username }}
+                            {{ senders[notification.id] }}
                         {% else %}
                             {{ notification.fromUser }}
                         {% endif %}
