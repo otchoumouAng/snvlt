@@ -109,7 +109,7 @@
                     <tr class="font-weight-bold text-dark picto-item" aria-label="{{ notification.description }}">
                 {% endif %}
                     <td class="">
-                        <a class="link-dark editBtn" href="{{ path( notification.reference, {'id_notification':notification.id } ) }}" id="{{ notification.id }}">
+                        <a class="link-dark editBtn" href="{% if notification.reference %}{{ path(notification.reference, {'id_notification': notification.id }) }}{% else %}{{ path('app_notifs') }}{% endif %}" id="{{ notification.id }}">
                             {% if (notification.lu) %}
                             <i class="mdi mdi-check text-dark " style="font-size: 16px; margin-right: 5px;"></i>
                                 {% else %}
