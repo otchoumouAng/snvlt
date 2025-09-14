@@ -141,8 +141,8 @@
         box-shadow: 0 0 0 2px var(--color-primary);
     }
 
-    /* --- NOUVEAUX STYLES POUR LES STATUTS --- */
-    .status-badge {
+    /* --- STYLES DES STATUTS AVEC SPÉCIFICITÉ ACCRUE --- */
+    #demandesTable .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -157,7 +157,7 @@
         overflow: hidden;
     }
     
-    .status-badge:before {
+    #demandesTable .status-badge:before {
         content: '';
         position: absolute;
         top: 0;
@@ -169,43 +169,43 @@
         transition: opacity 0.3s ease;
     }
     
-    .status-badge:hover {
+    #demandesTable .status-badge:hover {
         transform: scale(1.05);
         box-shadow: var(--shadow-md);
     }
     
-    .status-badge:hover:before {
+    #demandesTable .status-badge:hover:before {
         opacity: 1;
     }
     
-    .status-badge i { 
+    #demandesTable .status-badge i { 
         font-size: 1rem; 
         z-index: 1;
     }
     
-    .status-badge span {
+    #demandesTable .status-badge span {
         z-index: 1;
     }
     
-    .status-approved { 
-        background: linear-gradient(135deg, var(--status-approved-bg) 0%, #a8d5bb 100%);
-        color: var(--status-approved-text);
-        border: 1px solid rgba(15, 81, 50, 0.3);
-        box-shadow: 0 4px 6px rgba(21, 128, 61, 0.15);
+    #demandesTable .status-approved { 
+        background: linear-gradient(135deg, var(--status-approved-bg) 0%, #a8d5bb 100%) !important;
+        color: var(--status-approved-text) !important;
+        border: 1px solid rgba(15, 81, 50, 0.3) !important;
+        box-shadow: 0 4px 6px rgba(21, 128, 61, 0.15) !important;
     }
     
-    .status-pending { 
-        background: linear-gradient(135deg, var(--status-pending-bg) 0%, #ffe69c 100%);
-        color: var(--status-pending-text);
-        border: 1px solid rgba(102, 77, 3, 0.3);
-        box-shadow: 0 4px 6px rgba(255, 193, 7, 0.15);
+    #demandesTable .status-pending { 
+        background: linear-gradient(135deg, var(--status-pending-bg) 0%, #ffe69c 100%) !important;
+        color: var(--status-pending-text) !important;
+        border: 1px solid rgba(102, 77, 3, 0.3) !important;
+        box-shadow: 0 4px 6px rgba(255, 193, 7, 0.15) !important;
     }
     
-    .status-rejected { 
-        background: linear-gradient(135deg, var(--status-rejected-bg) 0%, #f1b0b7 100%);
-        color: var(--status-rejected-text);
-        border: 1px solid rgba(132, 32, 41, 0.3);
-        box-shadow: 0 4px 6px rgba(220, 53, 69, 0.15);
+    #demandesTable .status-rejected { 
+        background: linear-gradient(135deg, var(--status-rejected-bg) 0%, #f1b0b7 100%) !important;
+        color: var(--status-rejected-text) !important;
+        border: 1px solid rgba(132, 32, 41, 0.3) !important;
+        box-shadow: 0 4px 6px rgba(220, 53, 69, 0.15) !important;
     }
 
     /* --- PANNEAU DE DROITE (DÉTAILS DE VALIDATION) --- */

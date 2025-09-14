@@ -88,7 +88,6 @@ class ValidationDemandeApp {
     });
 }
 
-// Mise à jour de la fonction getStatusBadge pour utiliser les nouveaux styles
 getStatusBadge(status) {
     switch (status) {
         case 'approved':
