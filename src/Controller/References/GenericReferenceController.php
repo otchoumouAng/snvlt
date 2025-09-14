@@ -18,12 +18,7 @@ use App\Repository\UserRepository;
  */
 class GenericReferenceController extends AbstractController
 {
-    private const ENTITY_MAP = [
-        'types_service' => \App\Entity\References\TypesService::class,
-        'types_demande' => \App\Entity\DemandeAutorisation\TypeDemande::class,
-        'types_demandeur' => \App\Entity\References\TypesDemandeur::class,
-        'types_paiement' => \App\Entity\Paiement\TypePaiement::class,
-    ];
+    private const ENTITY_MAP = [];
 
     private function getEntityClass(string $entityName): ?string
     {

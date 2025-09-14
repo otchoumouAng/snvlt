@@ -1,0 +1,38 @@
+<div class="modal fade" id="documentsModal" tabindex="-1" aria-labelledby="documentsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentsModalLabel">Gérer les documents pour le type de demande : <span id="typeDemandeName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="documentSelect" class="form-label">Ajouter un document</label>
+                    <div class="input-group">
+                        <select id="documentSelect" class="form-select">
+                            <option value="" selected disabled>Choisir un document...</option>
+                        </select>
+                        <button class="btn btn-primary" type="button" id="addDocumentBtn">
+                            <i class="mdi mdi-plus"></i> Ajouter
+                        </button>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6>Documents requis</h6>
+                <table class="table table-striped" id="documentsTable">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th style="width: 20%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Les documents seront ajoutés ici par JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

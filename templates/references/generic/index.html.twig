@@ -76,12 +76,16 @@
         // Pass server-side variables to JavaScript
         const entityName = '{{ entityName }}';
         const entityTitle = '{{ titre }}';
+        const data_url = '{{ data_url }}';
+        const save_url = '{{ save_url }}';
+        const delete_url = '{{ delete_url }}';
     </script>
 
     <script src="{{ asset('assets/js/references/generic/notification.js') }}"></script>
     <script src="{{ asset('assets/js/references/generic/main.js') }}"></script>
 
-    {% if entityName == 'categories_activite' %}
-        {% include 'references/type_demande/_modal_documents.html.twig' %}
+    {% if entityName == 'app_types_demande' %}
+        {% include 'references/demande_autorisation/modal_documents.html.twig' %}
+        <script src="{{ asset('assets/js/references/demande_autorisation/documents_modal.js') }}"></script>
     {% endif %}
 {% endblock %}
