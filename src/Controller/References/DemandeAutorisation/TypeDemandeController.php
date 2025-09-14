@@ -58,7 +58,7 @@ class TypeDemandeController extends BaseReferenceController
         foreach ($documents as $document) {
             $data[] = [
                 'id' => $document->getId(),
-                'libelle' => $document->getLibelle()
+                'libelle' => $document->getDesignation()
             ];
         }
         return $this->json($data);
@@ -72,7 +72,7 @@ class TypeDemandeController extends BaseReferenceController
         foreach ($details as $detail) {
             $data[] = [
                 'id' => $detail->getId(),
-                'document' => $detail->getTypeDocument()->getLibelle()
+                'document' => $detail->getTypeDocument()->getDesignation()
             ];
         }
         return $this->json($data);

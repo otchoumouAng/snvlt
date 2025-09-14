@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     addDocumentBtn.addEventListener('click', async function() {
         const typeDocumentId = documentSelect.value;
-        if (!typeDocumentId || !currentTypeDemandeId) {
+        if (!typeDocumentId || !currentTypeDemandeId || isNaN(parseInt(typeDocumentId, 10))) {
             Notification.error('Veuillez sélectionner un document.');
             return;
         }
