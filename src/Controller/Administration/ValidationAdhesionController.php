@@ -94,7 +94,22 @@ class ValidationAdhesionController extends AbstractController
 
             $user = $userRepository->find($this->getUser());
             $code_groupe = $user->getCodeGroupe()->getId();
-            $membre = $registry->getRepository(User::class);
+
+            $notifications = $notification->findBy(['to_user'=>$user],['created_at'=>'DESC']);
+            $senders = [];
+            foreach($notifications as $notif){
+                if (is_numeric($notif->getFromUser())) {
+                    $sender = $userRepository->find($notif->getFromUser());
+                } else {
+                    $sender = $userRepository->findOneBy(['email' => $notif->getFromUser()]);
+                }
+
+                if($sender){
+                    $senders[$notif->getId()] = $sender;
+                } else {
+                    $senders[$notif->getId()] = null;
+                }
+            }
 
         }
         return $this->render('administration/validation_adhesion/all.html.twig', [
@@ -102,10 +117,10 @@ class ValidationAdhesionController extends AbstractController
             "all_menus"=>$menus->findAll(),
             'menus'=>$permissions->findBy(['code_groupe_id'=>$code_groupe]),
             'mes_notifs'=>$notification->findBy(['to_user'=>$user, 'lu'=>false],['created_at'=>'DESC'],5,0),
-            'all_notifs'=>$notification->findBy(['to_user'=>$user],['created_at'=>'DESC']),
+            'all_notifs'=>$notifications,
             'groupe'=>$code_groupe,
             'liste_parent'=>$permissions,
-            'recherche_user'=>$membre
+            'senders'=>$senders
         ]);
     }
 

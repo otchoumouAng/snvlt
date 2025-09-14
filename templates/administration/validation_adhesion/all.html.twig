@@ -119,7 +119,13 @@
                         </a>
                     </td>
                     <td class="">{{ notification.description | slice(0, 120)}}...</td>
-                    <td class="">{{recherche_user.find(notification.fromUser)}}</td>
+                    <td class="">
+                        {% if senders[notification.id] is defined and senders[notification.id] is not null %}
+                            {{ senders[notification.id].username }}
+                        {% else %}
+                            {{ notification.fromUser }}
+                        {% endif %}
+                    </td>
                     <td class="">{{ notification.createdAt | date('d/m/Y') }}</td>
                 </tr>
             {% endfor %}
