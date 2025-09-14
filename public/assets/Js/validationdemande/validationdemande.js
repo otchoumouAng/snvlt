@@ -43,49 +43,70 @@ class ValidationDemandeApp {
     }*/
 
     initDataTable() {
-        this.dataTable = new DataTable('#demandesTable', {
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+    this.dataTable = new DataTable('#demandesTable', {
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+        },
+        columns: [
+            {
+                // Colonne pour l'icône de contrôle responsive (laissée vide)
+                data: null,
+                defaultContent: '',
+                className: 'dtr-control',
+                orderable: false
             },
-            columns: [
-                { data: 'titre', title: 'Type de Demande' },
-                { data: 'societe', title: 'Société' },
-                {
-                    data: 'statut',
-                    title: 'Statut Demande',
-                    render: (data, type, row) => {
-                        return this.getStatusBadge(data);
-                    }
-                },
-                { data: 'description', title: 'Étape Actuelle', className: 'none' },
-                { data: 'dateCreation', title: 'Date Demande', className: 'none' }
-            ],
-            responsive: true,
-            columnDefs: [
-                { 
-                    responsivePriority: 1, 
-                    targets: 0  // Priorité maximale sur la première colonne (Type de Demande)
-                },
-                { 
-                    responsivePriority: 2, 
-                    targets: -1 // La dernière colonne (Statut) est la 2e plus importante
-                },
-                {
-                    className: 'dtr-control', // Applique la classe pour l'icône
-                    orderable: false,
-                    targets: 0 // Cible la première colonne (Type de Demande)
+            { data: 'titre', title: 'Type de Demande' },
+            { data: 'societe', title: 'Société' },
+            {
+                data: 'statut',
+                title: 'Statut Demande',
+                render: (data, type, row) => {
+                    return this.getStatusBadge(data);
                 }
-            ],
-            select: {
-                style: 'single',
-                info: false
             },
-            order: [[4, 'desc']], // Tri par date de demande décroissante
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50]
-        });
-    }
+            { data: 'description', title: 'Étape Actuelle', className: 'none' },
+            { data: 'dateCreation', title: 'Date Demande', className: 'none' }
+        ],
+        responsive: true,
+        columnDefs: [
+            { 
+                responsivePriority: 1, 
+                targets: 1  // Priorité maximale sur la colonne Type de Demande
+            },
+            { 
+                responsivePriority: 2, 
+                targets: 3 // La colonne Statut est la 2e plus importante
+            }
+        ],
+        select: {
+            style: 'single',
+            info: false
+        },
+        order: [[5, 'desc']], // Tri par date de demande décroissante (colonne 5)
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50]
+    });
+}
 
+// Mise à jour de la fonction getStatusBadge pour utiliser les nouveaux styles
+getStatusBadge(status) {
+    switch (status) {
+        case 'approved':
+        case 'valider':
+        case 'approuvée':
+            return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i><span>Approuvée</span></span>';
+        case 'pending':
+        case 'en_attente':
+        case 'en_observation':
+            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En attente</span></span>';
+        case 'rejected':
+        case 'refuser':
+        case 'rejetée':
+            return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
+        default:
+            return `<span class="status-badge">${status}</span>`;
+    }
+}
     bindEvents() {
         this.dataTable.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
