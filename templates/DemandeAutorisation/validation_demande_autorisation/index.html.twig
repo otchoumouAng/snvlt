@@ -463,11 +463,6 @@
         border-left: 4px solid var(--color-primary) !important;
         animation: pulse 0.5s ease-in-out;
     }
-
-    /* Masquer les colonnes supplémentaires par défaut */
-    .col-hidden {
-        display: none;
-    }
 </style>
 
 <div class="container-fluid px-4 py-4">
@@ -486,12 +481,11 @@
                     <table id="demandesTable" class="table table-hover" style="width:100%">
                         <thead>
                             <tr>
-                                <th class="col-hidden">ID Etape</th>
                                 <th>Type de Demande</th>
                                 <th>Société</th>
-                                <th class="col-hidden">Étape Actuelle</th>
-                                <th class="col-hidden">Date Demande</th>
                                 <th>Statut Demande</th>
+                                <th class="none">Étape Actuelle</th>
+                                <th class="none">Date Demande</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
