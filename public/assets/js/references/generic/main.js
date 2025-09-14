@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalBody = document.getElementById('formModalBody');
     const modalTitle = document.getElementById('formModalTitle');
 
+
     function initializeDataTable() {
         // We only have one form template now
         preloadedFormHtml = modalBody.innerHTML;
