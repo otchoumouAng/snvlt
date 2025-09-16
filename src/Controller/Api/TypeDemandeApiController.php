@@ -9,6 +9,7 @@ use App\Entity\DemandeAutorisation\TypeDemande;
 use App\Entity\DemandeAutorisation\TypeDemandeDetail;
 use App\Repository\DemandeAutorisation\TypeDocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,23 @@ use Symfony\Component\HttpFoundation\Response;
 #[Route('/api')]
 class TypeDemandeApiController extends AbstractController
 {
+    #[Route('/type-demandes', name: 'api_type_demande_list', methods: ['GET'])]
+    public function list(TypeDemandeRepository $typeDemandeRepository): JsonResponse
+    {
+        $typeDemandes = $typeDemandeRepository->findBy(['active' => true], ['libelle' => 'ASC']);
+
+        $data = array_map(function (TypeDemande $td) {
+            return [
+                'id' => $td->getId(),
+                'label' => $td->getLibelle(),
+                // This is a simple check. A more robust solution would be a dedicated flag in the entity.
+                'is_reprise' => stripos($td->getLibelle(), 'reprise') !== false,
+            ];
+        }, $typeDemandes);
+
+        return $this->json($data);
+    }
+
     #[Route('/type-documents', name: 'api_type_documents_list', methods: ['GET'])]
     public function listTypeDocuments(TypeDocumentRepository $typeDocumentRepository): JsonResponse
     {

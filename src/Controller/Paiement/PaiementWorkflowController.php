@@ -3,9 +3,7 @@
 namespace App\Controller\Paiement;
 
 use App\Repository\Paiement\TransactionRepository;
-use App\Repository\Paiement\TypePaiementRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
-use App\Repository\References\TypesDemandeurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -80,9 +78,6 @@ class PaiementWorkflowController extends AbstractController
     public function index(
         Request $request,
         UrlGeneratorInterface $urlGenerator,
-        TypePaiementRepository $typePaiementRepository,
-        NouvelleDemandeRepository $nouvelleDemandeRepository,
-        TypesDemandeurRepository $typesDemandeurRepository,
         MenuRepository $menus,
         NotificationRepository $notification,
         MenuPermissionRepository $permissions,
@@ -91,15 +86,6 @@ class PaiementWorkflowController extends AbstractController
     {
         $user = $userRepository->find($this->getUser());
         $code_groupe = $user->getCodeGroupe()->getId();
-
-        $demandeId = $request->query->get('demandeId');
-        $demande = null;
-        if ($demandeId) {
-            $demande = $nouvelleDemandeRepository->find($demandeId);
-            if (!$demande || $demande->getOperateur() !== $user) {
-                throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à accéder à cette demande.');
-            }
-        }
 
         $userInfo = [
             'nom' => $user->getNomUtilisateur(),
@@ -115,10 +101,7 @@ class PaiementWorkflowController extends AbstractController
             'groupe' => $code_groupe,
             'titre' => 'Initier une Transaction',
             'liste_parent' => $permissions,
-            'type_paiements' => $typePaiementRepository->findAll(),
-            'types_demandeur' => $typesDemandeurRepository->findAll(),
             'user_info' => $userInfo,
-            'demande' => $demande,
             'suivi_url' => $urlGenerator->generate('app_paiement_suivi'),
         ]);
     }

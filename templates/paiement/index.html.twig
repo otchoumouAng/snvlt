@@ -141,14 +141,18 @@
                 <div class="stepper">
                     <div class="step active" data-step="1">
                         <div class="step-icon">1</div>
-                        <div class="step-label">Sélection</div>
+                        <div class="step-label">Service</div>
                     </div>
                     <div class="step" data-step="2">
                         <div class="step-icon">2</div>
-                        <div class="step-label">Confirmation</div>
+                        <div class="step-label">Détails</div>
                     </div>
                     <div class="step" data-step="3">
                         <div class="step-icon">3</div>
+                        <div class="step-label">Résumé</div>
+                    </div>
+                     <div class="step" data-step="4">
+                        <div class="step-icon">4</div>
                         <div class="step-label">Paiement</div>
                     </div>
                 </div>
@@ -158,53 +162,41 @@
                  data-user-nom="{{ user_info.nom|e('html_attr') }}"
                  data-user-prenom="{{ user_info.prenom|e('html_attr') }}"
                  data-user-telephone="{{ user_info.telephone|e('html_attr') }}"
-                 data-suivi-url="{{ suivi_url }}">
+                 data-suivi-url="{{ suivi_url }}"
+                 data-type-demandes-url="{{ path('api_type_demande_list') }}"
+                 >
 
-                <!-- Étape 1: Sélection -->
-                <div id="selection-step" class="step-content active" data-step="1">
-                    <h4 class="card-title">Étape 1: Sélection du Service</h4>
-                    <div class="row" id="filters-container">
-                        {% if demande %}
-                            <input type="hidden" id="demande_id" value="{{ demande.id }}">
-                            <input type="hidden" id="type_paiement_id" value="{{ demande.typePaiement.id }}">
-                            <input type="hidden" id="type_demande_id" value="{{ demande.typeDemande.id }}">
-
-                            <div class="col-md-4 mb-3">
-                                <label for="type_demandeur_id" class="form-label fw-bold">1. Type de Demandeur</label>
-                                <select id="type_demandeur_id" name="type_demandeur_id" class="form-select">
-                                    <option value="">Sélectionner...</option>
-                                    {% for option in types_demandeur %}
-                                        <option value="{{ option.id }}">{{ option.getLibelle() }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        {% else %}
-                            <div class="col-md-4 mb-3">
-                                <label for="type_paiement_id" class="form-label fw-bold">1. Type de Paiement</label>
-                                <select id="type_paiement_id" name="type_paiement_id" class="form-select">
-                                    <option value="">Sélectionner...</option>
-                                    {% for option in type_paiements %}
-                                        <option value="{{ option.id }}">{{ option.libelle }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        {% endif %}
-                        <!-- Les selects pour Service, Catégorie et Type de Demandeur seront ajoutés ici par JS -->
+                <!-- Étape 1: Sélection du service -->
+                <div class="step-content active" data-step="1">
+                    <h4 class="card-title">Étape 1: Quel service souhaitez-vous payer ?</h4>
+                    <div class="row" id="step-1-container">
+                        <div class="col-md-8">
+                            <label for="type_demande_id" class="form-label fw-bold">Service demandé</label>
+                            <select id="type_demande_id" name="type_demande_id" class="form-select" data-placeholder="Sélectionnez un service..."></select>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Étape 2: Confirmation du Service -->
-                <div id="confirmation-step" class="step-content" data-step="2">
-                     <h4 class="card-title">Étape 2: Résumé et Confirmation</h4>
-                     <div class="alert alert-info" id="service-summary">
-                        <!-- Le résumé du service sera affiché ici -->
+                <!-- Étape 2: Détails (PEF ou Nature de paiement) -->
+                <div class="step-content" data-step="2">
+                    <h4 class="card-title">Étape 2: Précisez votre demande</h4>
+                    <div class="row" id="step-2-container">
+                        <!-- Les champs pour PEF ou TypePaiement seront injectés ici -->
                     </div>
-                    <button id="btn-confirm" class="btn btn-success">Confirmer et Renseigner mes Informations</button>
                 </div>
 
-                <!-- Étape 3: Informations Client -->
-                <div id="client-info-step" class="step-content" data-step="3">
-                    <h4 class="card-title">Étape 3: Informations du Client</h4>
+                <!-- Étape 3: Résumé -->
+                <div class="step-content" data-step="3">
+                    <h4 class="card-title">Étape 3: Résumé de la transaction</h4>
+                    <div id="summary-container" class="p-4 bg-light rounded">
+                        <p>Veuillez compléter les étapes précédentes pour voir le résumé.</p>
+                    </div>
+                </div>
+
+
+                <!-- Étape 4: Informations Client et Paiement -->
+                <div class="step-content" data-step="4">
+                    <h4 class="card-title">Étape 4: Confirmez vos informations</h4>
                     <form id="client-info-form">
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -218,24 +210,29 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="telephone" class="form-label fw-bold">Téléphone(TresorPay)</label>
-                                <input type="tel" id="telephone" name="telephone" class="form-control">
+                                <label for="telephone" class="form-label fw-bold">Téléphone (pour le paiement)</label>
+                                <input type="tel" id="telephone" name="telephone" class="form-control" placeholder="Ex: 0707070707" required>
                             </div>
                         </div>
                     </form>
                 </div>
 
+
                 <!-- Boutons d'action -->
-                <div class="mt-4 d-flex justify-content-end">
-                    <button id="btn-reset" class="btn btn-secondary me-2">Réinitialiser la Sélection</button>
-                    <button id="btn-submit" class="btn btn-primary" style="display: none;">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-                        Générer l'Avis de Recette
-                    </button>
+                <div class="mt-4 d-flex justify-content-between align-items-center">
+                    <button id="btn-prev" class="btn btn-secondary" style="display: none;">Précédent</button>
+                    <div class="ms-auto">
+                        <button id="btn-reset" class="btn btn-outline-secondary me-2">Réinitialiser</button>
+                        <button id="btn-next" class="btn btn-primary">Suivant</button>
+                        <button id="btn-submit" class="btn btn-success" style="display: none;">
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                            Valider et Générer l'Avis de Recette
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Zone de résultat -->
+            <!-- Zone de résultat (après soumission) -->
             <div id="result-container" class="mt-4" style="display: none;"></div>
         </div>
     </div>

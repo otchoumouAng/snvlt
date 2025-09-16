@@ -6,11 +6,15 @@ use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\Transaction;
 use App\Service\Paiement\TresorPayService;
 use App\Entity\Paiement\TypePaiement;
+use App\Repository\Paiement\TypePaiementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Autorisation\Attribution;
+use App\Entity\User;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
 class PaiementController extends AbstractController
@@ -24,6 +28,50 @@ class PaiementController extends AbstractController
         $this->tresorPayService = $tresorPayService;
     }
 
+    #[Route('/user/pefs', name: 'api_user_pefs', methods: ['GET'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    public function userPefs(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        $exploitant = $user->getCodeexploitant();
+
+        if (!$exploitant) {
+            return $this->json([]);
+        }
+
+        $pefs = [];
+        /** @var Attribution $attribution */
+        foreach ($exploitant->getAttributions() as $attribution) {
+            // We only care about active attributions that haven't been withdrawn or abandoned
+            if ($attribution->isStatut() && !$attribution->isRetire() && !$attribution->isAbandonne()) {
+                 if ($foret = $attribution->getCodeForet()) {
+                    $pefs[] = [
+                        'id' => $attribution->getId(), // The ID of the attribution is likely what's needed
+                        'label' => $foret->getDenomination() . ' (N°' . $attribution->getNumeroDecision() . ')'
+                    ];
+                }
+            }
+        }
+
+        return $this->json($pefs);
+    }
+
+    #[Route('/type-paiements', name: 'api_type_paiements', methods: ['GET'])]
+    public function typePaiements(TypePaiementRepository $typePaiementRepository): JsonResponse
+    {
+        $types = $typePaiementRepository->findBy(['active' => true], ['libelle' => 'ASC']);
+        $data = array_map(function (TypePaiement $tp) {
+            return [
+                'id' => $tp->getId(),
+                'label' => $tp->getLibelle(),
+            ];
+        }, $types);
+
+        return $this->json($data);
+    }
+
+
     /**
      * @Route("/paiement/transactions", name="api_create_transaction", methods={"POST"})
      */
@@ -36,13 +84,13 @@ class PaiementController extends AbstractController
         }
 
         $serviceId = $data['service_id'] ?? null;
+        $pefId = $data['pef_id'] ?? null;
         $clientNom = $data['client_nom'] ?? null;
         $clientPrenom = $data['client_prenom'] ?? null;
         $telephone = $data['telephone'] ?? null;
-        $typePaiementId = $data['type_paiement_id'] ?? null;
 
-        if (!$serviceId || !$clientNom || !$clientPrenom || !$typePaiementId) {
-            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom, client_prenom et type_paiement_id sont requis'], 400);
+        if (!$serviceId || !$clientNom || !$clientPrenom) {
+            return $this->json(['success' => false, 'message' => 'Données manquantes: service_id, client_nom et client_prenom sont requis'], 400);
         }
 
         $service = $this->em->getRepository(CatalogueServices::class)->find($serviceId);
@@ -56,12 +104,14 @@ class PaiementController extends AbstractController
         $transaction->setClientNom($clientNom);
         $transaction->setClientPrenom($clientPrenom);
         $transaction->setTelephone($telephone);
+        $transaction->setTypePaiement($service->getTypePaiement());
 
-        $typePaiement = $this->em->getRepository(TypePaiement::class)->find($typePaiementId);
-        if (!$typePaiement) {
-            return $this->json(['success' => false, 'message' => 'Type de paiement non trouvé'], 404);
+        if ($pefId) {
+            $attribution = $this->em->getRepository(Attribution::class)->find($pefId);
+            if ($attribution) {
+                $transaction->setAttribution($attribution);
+            }
         }
-        $transaction->setTypePaiement($typePaiement);
 
         $transaction->setStatut('EN_ATTENTE_AVIS');
 
