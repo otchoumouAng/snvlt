@@ -92,17 +92,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /** Crée et injecte un champ <select> dans un conteneur */
+    /** Crée et injecte un champ <select> avec TomSelect dans un conteneur */
     function renderSelect(id, label, options, container, placeholder = 'Sélectionnez une option...') {
         container.innerHTML = `
             <label for="${id}" class="form-label fw-bold">${label}</label>
-            <select id="${id}" name="${id}" class="form-select">
-                <option value="">${placeholder}</option>
-                ${options.map(opt => `<option value="${opt.id}">${opt.libelle}</option>`).join('')}
-            </select>
+            <select id="${id}" name="${id}"></select>
         `;
         container.style.display = 'block';
-        return document.getElementById(id);
+        const selectEl = document.getElementById(id);
+
+        new TomSelect(selectEl, {
+            options: options,
+            valueField: 'id',
+            labelField: 'libelle',
+            searchField: ['libelle'],
+            placeholder: placeholder,
+            create: false,
+            sortField: { field: "libelle", direction: "asc" }
+        });
+
+        return selectEl; // On retourne l'élément <select> original pour la compatibilité
     }
     
     /** Affiche le résumé du service ou une erreur */
@@ -277,11 +286,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         </div>
                     </div>`;
             } else {
-                alert(result.message || 'Une erreur est survenue lors de la soumission.');
+                Notification.error(result.message || 'Une erreur est survenue lors de la soumission.');
             }
         } catch (error) {
             console.error('Submission failed', error);
-            alert('Erreur de communication avec le serveur.');
+            Notification.error('Erreur de communication avec le serveur.');
         } finally {
             dom.buttons.submit.disabled = false;
             dom.buttons.submit.querySelector('.spinner-border').style.display = 'none';
