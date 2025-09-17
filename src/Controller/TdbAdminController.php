@@ -80,7 +80,6 @@ class TdbAdminController extends AbstractController
         Connection $connection
     ): Response
     {   
-        
         //$request = new Request(['exercice'=>2024]);
         $request = $this->requestStack->getCurrentRequest();
 
