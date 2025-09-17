@@ -87,7 +87,7 @@ class PaiementController extends AbstractController
         $query = $em->createQuery(
             'SELECT p.numero_pef as libelle, p.gid as id
              FROM App\Entity\Pef p
-             JOIN App\Entity\Metier\Attribution a WITH p.gid = a.code_foret_id
+             JOIN App\Entity\Autorisation\Attribution a WITH p.gid = a.code_foret_id
              WHERE a.code_exploitant_id = :code_exploitant'
         )->setParameter('code_exploitant', $user->getCodeOperateur()->getId()); // On suppose que cette méthode existe
 
