@@ -84,22 +84,14 @@ class PaiementController extends AbstractController
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
         }*/
 
-        $exploitant = $user->getCodeexploitant();
-        if (!$exploitant) {
-            return new JsonResponse([]);
-        }
+        $query = $em->createQuery(
+            'SELECT p.numero_pef as libelle, p.gid as id
+             FROM App\Entity\Pef p
+             JOIN App\Entity\Metier\Attribution a WITH p.gid = a.code_foret_id
+             WHERE a.code_exploitant_id = :code_exploitant'
+        )->setParameter('code_exploitant', $user->getCodeOperateur()->getId()); // On suppose que cette méthode existe
 
-        $conn = $em->getConnection();
-        $sql = '
-            SELECT p.numero_pef as libelle, p.gid as id
-            FROM public.pef p
-            JOIN metier.attribution a ON p.gid = a.code_foret_id
-            WHERE a.code_exploitant_id = :code_exploitant_id
-        ';
-
-        $stmt = $conn->prepare($sql);
-        $resultSet = $stmt->executeQuery(['code_exploitant_id' => $exploitant->getId()]);
-        $pefs = $resultSet->fetchAllAssociative();
+        $pefs = $query->getResult();
 
         return new JsonResponse($pefs);
     }

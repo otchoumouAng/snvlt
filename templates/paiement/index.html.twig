@@ -160,13 +160,14 @@
 
             <!-- Conteneur principal du workflow -->
             <div id="transaction-workflow"
-                 data-user-nom="{{ app.user.nom|default('')|e('html_attr') }}"
-                 data-user-prenom="{{ app.user.prenom|default('')|e('html_attr') }}"
-                 data-user-telephone="{{ app.user.telephone|default('')|e('html_attr') }}"
+                 data-user-nom="{{ app.user.nomUtilisateur|default('')|e('html_attr') }}"
+                 data-user-prenom="{{ app.user.prenomsUtilisateur|default('')|e('html_attr') }}"
+                 data-user-telephone="{{ app.user.mobile|default('')|e('html_attr') }}"
                  data-type-demandes-url="{{ path('app_types_demande_data') }}"
                  data-type-paiements-url="{{ path('app_types_paiement_data') }}"
                  data-user-pefs-url="{{ path('app_user_pef_data') }}"
                  data-service-details-url="{{ path('api_service_details') }}"
+                 data-submit-url="{{ path('api_create_transaction') }}"
                  data-suivi-url="" {# Ajoutez l'URL de suivi ici si nécessaire #}
             >
                 <!-- Étape 1: Choix du service (regroupe toutes les sélections) -->

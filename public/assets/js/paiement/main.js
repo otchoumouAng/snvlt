@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function () {
         getTypePaiements: () => api.fetchData(workflowContainer.dataset.typePaiementsUrl),
         getUserPefs: () => api.fetchData(workflowContainer.dataset.userPefsUrl),
         getServiceDetails: (params) => api.fetchData(`${workflowContainer.dataset.serviceDetailsUrl}?${params}`),
-        submitTransaction: (payload) => fetch('/api/transactions', {
+        submitTransaction: (payload) => fetch(workflowContainer.dataset.submitUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
