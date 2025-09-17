@@ -1,10 +1,8 @@
 {% extends 'template_base.html.twig' %}
 
 {% block Title %}
-    SNVLT - Initier une Transaction
+    SNVLT - Nouvelle Transaction de Paiement
 {% endblock %}
-
-
 
 {% block menu %}
     {% include 'base/menu.html.twig' %}
@@ -12,122 +10,127 @@
 
 {% block page_content %}
 
+{# Ajout de la feuille de style pour TomSelect #}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css">
+
 <style>
-    
-    /* Stepper styles */
-.stepper-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
+    /* Styles pour le stepper (indicateur d'étapes) */
+    .stepper {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 0 auto 3rem auto;
+        width: 100%;
+        max-width: 600px;
+    }
+    .stepper::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        width: 100%;
+        height: 2px;
+        background-color: #e9ecef; /* Gris clair */
+        z-index: 1;
+    }
+    .stepper .progress-bar {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        height: 2px;
+        background-color: #0d6efd; /* Bleu Bootstrap */
+        z-index: 2;
+        width: 0;
+        transition: width 0.4s ease;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 3;
+        text-align: center;
+        width: 120px;
+    }
+    .step-icon {
+        height: 40px;
+        width: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background-color: #fff;
+        border: 2px solid #e9ecef;
+        font-weight: bold;
+        transition: all 0.4s ease;
+        color: #adb5bd; /* Gris pour le numéro */
+    }
+    .step-label {
+        margin-top: 0.75rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #6c757d; /* Gris pour le libellé */
+        transition: all 0.4s ease;
+    }
 
-.stepper {
-    display: flex;
-    align-items: center;
-    position: relative;
-    width: 80%;
-}
+    /* États du stepper */
+    .step.active .step-icon {
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+    .step.active .step-label {
+        color: #0d6efd;
+        font-weight: bold;
+    }
+    .step.completed .step-icon {
+        border-color: #198754; /* Vert Bootstrap */
+        background-color: #198754;
+        color: #fff;
+        font-size: 0; /* On cache le numéro */
+    }
+    .step.completed .step-icon::after {
+        content: '✓'; /* On affiche une coche */
+        font-size: 20px;
+    }
+    .step.completed .step-label {
+        color: #198754;
+    }
 
-.stepper::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background-color: #e0e0e0; /* Gris clair pour la barre */
-    transform: translateY(-50%);
-    z-index: 1;
-}
+    /* Styles pour le contenu des étapes */
+    .step-content {
+        display: none;
+        animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-.stepper::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    height: 2px;
-    background-color: #0d6efd; /* Bleu pour la progression */
-    transform: translateY(-50%);
-    z-index: 1;
-    width: var(--progress-width, 0);
-    transition: width 0.3s ease;
-}
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-    flex: 1;
-}
-
-.step-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #e0e0e0; /* Gris par défaut */
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    border: 2px solid #e0e0e0;
-    transition: background-color 0.3s, border-color 0.3s;
-}
-
-.step-label {
-    margin-top: 0.5rem;
-    font-size: 0.9rem;
-    color: #6c757d; /* Gris pour le texte */
-}
-
-/* Active state */
-.step.active .step-icon {
-    background-color: #fff;
-    border-color: #0d6efd; /* Bleu */
-    color: #0d6efd;
-}
-
-.step.active .step-label {
-    color: #0d6efd;
-    font-weight: bold;
-}
-
-/* Completed state */
-.step.completed .step-icon {
-    background-color: #28a745; /* Vert */
-    border-color: #28a745;
-    color: #fff;
-    font-size: 0; /* Hide the number */
-}
-
-.step.completed .step-icon::after {
-    content: '✓';
-    font-size: 20px; /* Show the checkmark */
-}
-
-.step.completed .step-label {
-    color: #212529;
-}
-
-/* Step content */
-.step-content {
-    display: none;
-}
-
-.step-content.active {
-    display: block;
-    animation: fadeIn 0.5s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-
+    /* Styles pour la carte de résumé */
+    #summary-card {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: .5rem;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        transition: all 0.3s ease-in-out;
+    }
+    #summary-card h5 {
+        color: #0d6efd;
+    }
+    #summary-card .summary-amount {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #198754;
+    }
+    /* Amélioration visuelle pour TomSelect pour mieux s'intégrer avec Bootstrap */
+    .ts-control {
+        padding: .5rem .75rem;
+        border-radius: .375rem;
+        border-color: #ced4da;
+    }
 </style>
 
 <div class="container-fluid">
@@ -136,68 +139,68 @@
     </h2>
 
     <div class="card">
-        <div class="card-body">
-            <div class="stepper-container mb-5">
-                <div class="stepper">
-                    <div class="step active" data-step="1">
-                        <div class="step-icon">1</div>
-                        <div class="step-label">Service</div>
-                    </div>
-                    <div class="step" data-step="2">
-                        <div class="step-icon">2</div>
-                        <div class="step-label">Détails</div>
-                    </div>
-                    <div class="step" data-step="3">
-                        <div class="step-icon">3</div>
-                        <div class="step-label">Résumé</div>
-                    </div>
-                     <div class="step" data-step="4">
-                        <div class="step-icon">4</div>
-                        <div class="step-label">Paiement</div>
-                    </div>
+        <div class="card-body p-lg-5">
+
+            <!-- Stepper UI -->
+            <div class="stepper mb-5">
+                <div class="progress-bar" style="width: 0%;"></div>
+                <div class="step active" data-step="1">
+                    <div class="step-icon">1</div>
+                    <div class="step-label">Choix du service</div>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-icon">2</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-icon">3</div>
+                    <div class="step-label">Paiement</div>
                 </div>
             </div>
 
+            <!-- Conteneur principal du workflow -->
             <div id="transaction-workflow"
-                 data-user-nom="{{ user_info.nom|e('html_attr') }}"
-                 data-user-prenom="{{ user_info.prenom|e('html_attr') }}"
-                 data-user-telephone="{{ user_info.telephone|e('html_attr') }}"
-                 data-suivi-url="{{ suivi_url }}"
-                 data-type-demandes-url="{{ path('api_type_demande_list') }}"
-                 >
-
-                <!-- Étape 1: Sélection du service -->
-                <div class="step-content active" data-step="1">
-                    <h4 class="card-title">Étape 1: Quel service souhaitez-vous payer ?</h4>
-                    <div class="row" id="step-1-container">
-                        <div class="col-md-8">
-                            <label for="type_demande_id" class="form-label fw-bold">Service demandé</label>
+                 data-user-nom="{{ app.user.nom|default('')|e('html_attr') }}"
+                 data-user-prenom="{{ app.user.prenom|default('')|e('html_attr') }}"
+                 data-user-telephone="{{ app.user.telephone|default('')|e('html_attr') }}"
+                 data-type-demandes-url="{{ path('app_types_demande_data') }}"
+                 data-type-paiements-url="{{ path('app_types_paiement_data') }}"
+                 data-user-pefs-url="{{ path('app_user_pef_data') }}"
+                 data-service-details-url="{{ path('api_service_details') }}"
+                 data-suivi-url="" {# Ajoutez l'URL de suivi ici si nécessaire #}
+            >
+                <!-- Étape 1: Choix du service (regroupe toutes les sélections) -->
+                <div class="step-content" data-step="1" style="display: block;">
+                    <h4 class="card-title mb-4">Étape 1: Configurez votre service</h4>
+                    <div class="row">
+                        <!-- Select: Type de Demande -->
+                        <div class="col-md-12 mb-3">
+                            <label for="type_demande_id" class="form-label fw-bold">Quel service souhaitez-vous ?</label>
                             <select id="type_demande_id" name="type_demande_id" class="form-select" data-placeholder="Sélectionnez un service..."></select>
+                        </div>
+
+                        <!-- Placeholder pour le select PEF (injecté par JS) -->
+                        <div id="pef-select-container" class="col-md-6 mb-3" style="display: none;"></div>
+
+                        <!-- Placeholder pour le select Type de Paiement (injecté par JS) -->
+                        <div id="type-paiement-select-container" class="col-md-6 mb-3" style="display: none;"></div>
+                    </div>
+
+                    <!-- Résumé dynamique -->
+                    <div id="summary-card" style="display: none;">
+                        <div id="summary-content">
+                            <!-- Le contenu du résumé sera injecté ici par JS -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Étape 2: Détails (PEF ou Nature de paiement) -->
+                <!-- Étape 2: Confirmation des informations -->
                 <div class="step-content" data-step="2">
-                    <h4 class="card-title">Étape 2: Précisez votre demande</h4>
-                    <div class="row" id="step-2-container">
-                        <!-- Les champs pour PEF ou TypePaiement seront injectés ici -->
-                    </div>
-                </div>
-
-                <!-- Étape 3: Résumé -->
-                <div class="step-content" data-step="3">
-                    <h4 class="card-title">Étape 3: Résumé de la transaction</h4>
-                    <div id="summary-container" class="p-4 bg-light rounded">
-                        <p>Veuillez compléter les étapes précédentes pour voir le résumé.</p>
-                    </div>
-                </div>
-
-
-                <!-- Étape 4: Informations Client et Paiement -->
-                <div class="step-content" data-step="4">
-                    <h4 class="card-title">Étape 4: Confirmez vos informations</h4>
+                    <h4 class="card-title mb-4">Étape 2: Confirmez vos informations</h4>
                     <form id="client-info-form">
+                        <div class="alert alert-info" role="alert">
+                            Veuillez vérifier vos informations avant de générer l'avis de paiement.
+                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="client_nom" class="form-label fw-bold">Nom</label>
@@ -205,7 +208,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="client_prenom" class="form-label fw-bold">Prénom(s)</label>
-                                <input type="text" id="client_prenom" name="client_prenom" class="form-control" required>
+                                <input type="text" id="client_prenom" name="client_prenom" class="form-control">
                             </div>
                         </div>
                         <div class="row">
@@ -217,16 +220,18 @@
                     </form>
                 </div>
 
+                <!-- Étape 3: Résultat du paiement -->
+                <!-- Ce contenu est géré par la section #result-container ci-dessous -->
 
-                <!-- Boutons d'action -->
-                <div class="mt-4 d-flex justify-content-between align-items-center">
+                <!-- Boutons de navigation -->
+                <div class="mt-5 d-flex justify-content-between align-items-center">
                     <button id="btn-prev" class="btn btn-secondary" style="display: none;">Précédent</button>
                     <div class="ms-auto">
-                        <button id="btn-reset" class="btn btn-outline-secondary me-2">Réinitialiser</button>
-                        <button id="btn-next" class="btn btn-primary">Suivant</button>
+                        <button id="btn-reset" class="btn btn-outline-danger me-2">Réinitialiser</button>
+                        <button id="btn-next" class="btn btn-primary" disabled>Suivant</button>
                         <button id="btn-submit" class="btn btn-success" style="display: none;">
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-                            Valider et Générer l'Avis de Recette
+                            Confirmer et Générer l'Avis
                         </button>
                     </div>
                 </div>
@@ -234,116 +239,13 @@
 
             <!-- Zone de résultat (après soumission) -->
             <div id="result-container" class="mt-4" style="display: none;"></div>
+
         </div>
     </div>
 </div>
 
-<div id="notification-container"></div>
-<style>
-
-    .stepper-wrapper {
-        display: flex;
-        justify-content: space-between;
-        position: relative;
-        margin-bottom: 4rem;
-    }
-    .stepper-wrapper::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        transform: translateY(-50%);
-        width: 100%;
-        height: 2px;
-        background-color: #e0e0e0;
-        z-index: 1;
-    }
-    .stepper-wrapper .progress-bar {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        transform: translateY(-50%);
-        height: 2px;
-        background-color: #0d6efd;
-        z-index: 2;
-        width: 0;
-        transition: width 0.3s ease-in-out;
-    }
-    .stepper-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        z-index: 3;
-        color: #6c757d;
-    }
-    .step-counter {
-        height: 40px;
-        width: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 50%;
-        background-color: #fff;
-        border: 2px solid #e0e0e0;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    .step-name {
-        margin-top: 0.5rem;
-        font-size: 0.85rem;
-        font-weight: 500;
-    }
-    .stepper-item.active .step-counter {
-        border-color: #0d6efd;
-        background-color: #0d6efd;
-        color: #fff;
-    }
-    .stepper-item.active .step-name {
-        color: #0d6efd;
-        font-weight: bold;
-    }
-    .stepper-item.active .step-counter {
-        animation: pulse 2s infinite;
-    }
-    .stepper-item.completed .step-counter {
-        border-color: #198754;
-        background-color: #198754;
-        color: #fff;
-    }
-    .stepper-item.completed .step-counter::after {
-        content: '✓';
-        font-size: 24px;
-    }
-    .stepper-item.completed .step-name {
-        color: #198754;
-    }
-
-
-    #notification-container { position: fixed; top: 20px; right: 20px; z-index: 9999; width: 350px; }
-    .notification { background: white; border-radius: 5px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 15px; margin-bottom: 10px; display: flex; align-items: center; animation: slideIn 0.3s forwards; border-left: 4px solid; }
-    .notification.success { border-left-color: #28a745; }
-    .notification.error { border-left-color: #dc3545; }
-    .notification .icon { font-size: 24px; margin-right: 15px; }
-    .notification.success .icon { color: #28a745; }
-    .notification.error .icon { color: #dc3545; }
-    .notification .content { flex: 1; }
-    .notification .close { background: none; border: none; font-size: 18px; cursor: pointer; color: #6c757d; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
-    @keyframes pulse {
-        0% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
-        }
-        70% {
-            box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
-        }
-        100% {
-            box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
-        }
-    }
-</style>
-
-<script src="{{ asset('assets/js/paiement/notification.js') }}"></script>
+{# Ajout de la librairie JavaScript TomSelect AVANT notre script principal #}
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script src="{{ asset('assets/js/paiement/main.js') }}"></script>
 {% endblock %}
+

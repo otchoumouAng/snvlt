@@ -21,6 +21,8 @@ use App\Entity\References\Exploitant;
 use App\Entity\Autorisation\Attribution;
 use App\Entity\Autorisation\Reprise;
 use App\Entity\DocStats\Saisie\Lignepagebrh;
+use App\Repository\UserRepository;
+
 
 class TestController extends AbstractController
 {
@@ -42,10 +44,19 @@ class TestController extends AbstractController
         //RequestStack  $requestStack,
         ProjectionQuery $projectionQuery,
         ManagerRegistry $registry,
+        UserRepository $userRepository,
         
     ): Response
 
     {
+        $user = $userRepository->find($this->getUser());
+
+        $exploitant = $user->getCodeexploitant();
+
+        echo $exploitant;
+
+        dd();
+
 
         $exercice = $this->registry->getRepository(Exercice::class)->findOneBy([],['id'=>'DESC'])->getId();
         $exercice = $this->registry->getRepository(Exercice::class)->find($exercice);

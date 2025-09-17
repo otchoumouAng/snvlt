@@ -2,122 +2,151 @@ document.addEventListener('DOMContentLoaded', function () {
     const workflowContainer = document.getElementById('transaction-workflow');
     if (!workflowContainer) return;
 
-    // --- DOM Elements ---
-    const steps = document.querySelectorAll('.step');
-    const stepContents = document.querySelectorAll('.step-content');
-    const btnNext = document.getElementById('btn-next');
-    const btnPrev = document.getElementById('btn-prev');
-    const btnReset = document.getElementById('btn-reset');
-    const btnSubmit = document.getElementById('btn-submit');
+    // --- SÉLECTEURS DOM ---
+    const dom = {
+        stepper: document.querySelector('.stepper'),
+        steps: document.querySelectorAll('.step'),
+        progressBar: document.querySelector('.stepper .progress-bar'),
+        stepContents: document.querySelectorAll('.step-content'),
+        buttons: {
+            next: document.getElementById('btn-next'),
+            prev: document.getElementById('btn-prev'),
+            reset: document.getElementById('btn-reset'),
+            submit: document.getElementById('btn-submit'),
+        },
+        // Étape 1 : Conteneurs et champs
+        typeDemandeSelect: document.getElementById('type_demande_id'),
+        pefContainer: document.getElementById('pef-select-container'),
+        typePaiementContainer: document.getElementById('type-paiement-select-container'),
+        summaryCard: document.getElementById('summary-card'),
+        summaryContent: document.getElementById('summary-content'),
+        // Étape 2 : Formulaire de confirmation
+        clientInfoForm: document.getElementById('client-info-form'),
+        clientNomInput: document.getElementById('client_nom'),
+        clientPrenomInput: document.getElementById('client_prenom'),
+        telephoneInput: document.getElementById('telephone'),
+        // Résultat final
+        resultContainer: document.getElementById('result-container'),
+    };
 
-    // Step 1
-    const step1Container = document.getElementById('step-1-container');
-    const typeDemandeSelect = document.getElementById('type_demande_id');
-
-    // Step 2
-    const step2Container = document.getElementById('step-2-container');
-
-    // Step 3
-    const summaryContainer = document.getElementById('summary-container');
-
-    // Step 4
-    const clientInfoForm = document.getElementById('client-info-form');
-    const clientNomInput = document.getElementById('client_nom');
-    const clientPrenomInput = document.getElementById('client_prenom');
-    const telephoneInput = document.getElementById('telephone');
-
-    // Result
-    const resultContainer = document.getElementById('result-container');
-
-
-    // --- State ---
+    // --- ÉTAT DE L'APPLICATION ---
     let state = {
         currentStep: 1,
         typeDemandeId: null,
         typeDemandeLabel: null,
-        isReprise: false,
+        isReprisePef: false,
         pefId: null,
+        pefLabel: null,
         typePaiementId: null,
-        typeDemandeurId: null,
-        service: null, // To store the fetched service details
+        service: null, // Stocke les détails du service récupérés via API
     };
 
-    // --- API ---
+    // --- API & DATA FETCHING ---
     const api = {
-        getTypeDemandes: () => fetch(workflowContainer.dataset.typeDemandesUrl).then(res => res.json()),
-        getUserPefs: () => fetch('/api/user/pefs').then(res => res.json()),
-        getTypePaiements: () => fetch('/api/type-paiements').then(res => res.json()),
-        getServiceDetails: (params) => fetch(`/api/service-details?${params}`).then(res => res.json()),
+        fetchData: (url) => fetch(url).then(res => {
+            if (!res.ok) throw new Error(`Erreur réseau: ${res.statusText}`);
+            return res.json();
+        }),
+        getTypeDemandes: () => api.fetchData(workflowContainer.dataset.typeDemandesUrl),
+        getTypePaiements: () => api.fetchData(workflowContainer.dataset.typePaiementsUrl),
+        getUserPefs: () => api.fetchData(workflowContainer.dataset.userPefsUrl),
+        getServiceDetails: (params) => api.fetchData(`${workflowContainer.dataset.serviceDetailsUrl}?${params}`),
         submitTransaction: (payload) => fetch('/api/transactions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        }).then(res => res.json())
+        }).then(res => res.json()),
     };
 
+    // --- FONCTIONS DE RENDU (UI) ---
 
-    // --- Functions ---
+    /** Met à jour l'affichage global (stepper, contenu, boutons) */
+    function updateUI() {
+        // Mettre à jour la barre de progression
+        const progress = ((state.currentStep - 1) / (dom.steps.length - 1)) * 100;
+        dom.progressBar.style.width = `${progress}%`;
 
-    function createSelect(id, label, options, container, placeholder = 'Sélectionnez...') {
-        const col = document.createElement('div');
-        col.className = 'col-md-6 mb-3';
-
-        const labelEl = document.createElement('label');
-        labelEl.htmlFor = id;
-        labelEl.className = 'form-label fw-bold';
-        labelEl.textContent = label;
-
-        const selectEl = document.createElement('select');
-        selectEl.id = id;
-        selectEl.name = id;
-        selectEl.className = 'form-select';
-        selectEl.innerHTML = `<option value="">${placeholder}</option>`;
-
-        options.forEach(opt => {
-            selectEl.appendChild(new Option(opt.label, opt.id));
+        // Mettre à jour les icônes du stepper
+        dom.steps.forEach(step => {
+            const stepNum = parseInt(step.dataset.step, 10);
+            step.classList.remove('active', 'completed');
+            if (stepNum < state.currentStep) step.classList.add('completed');
+            else if (stepNum === state.currentStep) step.classList.add('active');
         });
 
-        col.appendChild(labelEl);
-        col.appendChild(selectEl);
-        container.appendChild(col);
-        return selectEl;
+        // Afficher le contenu de l'étape active
+        dom.stepContents.forEach(content => {
+            content.style.display = parseInt(content.dataset.step) === state.currentStep ? 'block' : 'none';
+        });
+
+        // Gérer la visibilité des boutons
+        dom.buttons.prev.style.display = state.currentStep > 1 ? 'inline-block' : 'none';
+        dom.buttons.next.style.display = state.currentStep === 1 ? 'inline-block' : 'none';
+        dom.buttons.submit.style.display = state.currentStep === 2 ? 'inline-block' : 'none';
+        
+        // Pré-remplir le formulaire de confirmation
+        if (state.currentStep === 2) {
+            dom.clientNomInput.value = workflowContainer.dataset.userNom || '';
+            dom.clientPrenomInput.value = workflowContainer.dataset.userPrenom || '';
+            dom.telephoneInput.value = workflowContainer.dataset.userTelephone || '';
+        }
     }
 
-    async function buildStep2() {
-        step2Container.innerHTML = ''; // Clear previous fields
-        summaryContainer.innerHTML = '<p>Veuillez compléter les étapes précédentes pour voir le résumé.</p>'; // Reset summary
-        state.pefId = null;
-        state.typePaiementId = null;
-
-        try {
-            if (state.isReprise) {
-                const pefs = await api.getUserPefs();
-                if (pefs.length > 0) {
-                    createSelect('pef_id', 'Sélectionnez votre PEF', pefs, step2Container);
-                } else {
-                     step2Container.innerHTML = '<div class="col-12"><div class="alert alert-warning">Vous n\'avez aucun PEF associé à votre compte.</div></div>';
-                }
+    /** Crée et injecte un champ <select> dans un conteneur */
+    function renderSelect(id, label, options, container, placeholder = 'Sélectionnez une option...') {
+        container.innerHTML = `
+            <label for="${id}" class="form-label fw-bold">${label}</label>
+            <select id="${id}" name="${id}" class="form-select">
+                <option value="">${placeholder}</option>
+                ${options.map(opt => `<option value="${opt.id}">${opt.libelle}</option>`).join('')}
+            </select>
+        `;
+        container.style.display = 'block';
+        return document.getElementById(id);
+    }
+    
+    /** Affiche le résumé du service ou une erreur */
+    function renderSummary() {
+        dom.summaryCard.style.display = 'block';
+        if (state.service && state.service.montant_fcfa !== undefined) {
+            let html = `
+                <h5 class="mb-3">Résumé de votre demande</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                        Service demandé: <span class="fw-bold">${state.typeDemandeLabel}</span>
+                    </li>
+            `;
+            if (state.isReprisePef && state.pefLabel) {
+                 html += `<li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                    PEF concerné: <span class="fw-bold">${state.pefLabel}</span>
+                </li>`;
             }
-
-            const typePaiements = await api.getTypePaiements();
-            createSelect('type_paiement_id', 'Nature du paiement', typePaiements, step2Container);
-
-        } catch (error) {
-            console.error("Failed to build step 2:", error);
-            // Notification.error("Erreur lors de la construction de l'étape suivante.");
+            html += `
+                </ul>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="h6 mb-0">Montant total à payer:</span>
+                    <span class="summary-amount">${new Intl.NumberFormat('fr-FR').format(state.service.montant_fcfa)} FCFA</span>
+                </div>
+            `;
+            dom.summaryContent.innerHTML = html;
+            dom.buttons.next.disabled = false;
+        } else {
+            dom.summaryContent.innerHTML = `<div class="alert alert-warning mb-0">Aucun service correspondant n'a été trouvé pour votre sélection.</div>`;
+            dom.buttons.next.disabled = true;
         }
     }
 
-    async function buildStep3() {
-        if (!state.typeDemandeId || !state.typePaiementId || (state.isReprise && !state.pefId)) {
-            summaryContainer.innerHTML = '<p>Veuillez compléter les sélections pour voir le résumé.</p>';
-            return;
-        }
+    // --- LOGIQUE MÉTIER ---
 
-        summaryContainer.innerHTML = '<div class="d-flex align-items-center"><span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Chargement du résumé...</div>';
+    /** Vérifie si les conditions sont remplies pour chercher le détail du service */
+    function checkAndFetchServiceDetails() {
+        const isReady = state.typeDemandeId && state.typePaiementId && (!state.isReprisePef || (state.isReprisePef && state.pefId));
+        
+        if (isReady) {
+            dom.summaryCard.style.display = 'block';
+            dom.summaryContent.innerHTML = '<div class="d-flex align-items-center"><span class="spinner-border spinner-border-sm me-2"></span> Recherche du service...</div>';
 
-        try {
-            // TODO: Add type_demandeur_id logic
             const params = new URLSearchParams({
                 type_demande_id: state.typeDemandeId,
                 type_paiement_id: state.typePaiementId,
@@ -126,116 +155,148 @@ document.addEventListener('DOMContentLoaded', function () {
                 params.append('pef_id', state.pefId);
             }
 
-            const service = await api.getServiceDetails(params.toString());
-            state.service = service;
+            api.getServiceDetails(params.toString())
+                .then(service => {
+                    state.service = service;
+                    renderSummary();
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la récupération des détails du service:", error);
+                    dom.summaryContent.innerHTML = '<div class="alert alert-danger mb-0">Erreur de communication avec le serveur.</div>';
+                    dom.buttons.next.disabled = true;
+                });
+        } else {
+             dom.summaryCard.style.display = 'none';
+             dom.buttons.next.disabled = true;
+        }
+    }
 
-            if (service && service.montant_fcfa) {
-                let html = `
-                    <h5 class="mb-3">Résumé</h5>
-                    <ul class="list-group">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Service
-                            <span>${state.typeDemandeLabel}</span>
-                        </li>
-                `;
-                if(state.isReprise && state.pefId) {
-                     const pefSelect = document.getElementById('pef_id');
-                     const pefLabel = pefSelect.options[pefSelect.selectedIndex].text;
-                     html += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            PEF Concerné
-                            <span>${pefLabel}</span>
-                        </li>`;
+    /** Gère la sélection du Type de Demande */
+    async function handleTypeDemandeChange(e) {
+        const selectedId = e.target.value;
+        const selectedOption = e.target.options[e.target.selectedIndex];
+
+        // Réinitialisation partielle
+        state.typeDemandeId = selectedId;
+        state.isReprisePef = false;
+        state.pefId = null;
+        state.pefLabel = null;
+        state.typePaiementId = null;
+        state.service = null;
+        dom.pefContainer.style.display = 'none';
+        dom.typePaiementContainer.style.display = 'none';
+        dom.pefContainer.innerHTML = '';
+        dom.typePaiementContainer.innerHTML = '';
+        checkAndFetchServiceDetails();
+
+        if (!selectedId) return;
+
+        state.typeDemandeLabel = selectedOption.text;
+        // La vérification se fait sur le libellé, à adapter si un ID ou flag est disponible
+        if (state.typeDemandeLabel.toLowerCase().includes("reprise d'activité pef")) {
+            state.isReprisePef = true;
+            dom.pefContainer.innerHTML = '<span class="text-muted">Chargement des PEF...</span>';
+            dom.pefContainer.style.display = 'block';
+            try {
+                const pefs = await api.getUserPefs();
+                if (pefs.length > 0) {
+                    const pefSelect = renderSelect('pef_id', 'Sélectionnez votre PEF', pefs, dom.pefContainer);
+                    pefSelect.addEventListener('change', handlePefChange);
+                } else {
+                    dom.pefContainer.innerHTML = '<div class="alert alert-warning">Aucun PEF n\'est associé à votre compte.</div>';
                 }
-                 html += `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            Montant à payer
-                            <strong class="text-primary fs-5">${service.montant_fcfa} FCFA</strong>
-                        </li>
-                    </ul>
-                `;
-                summaryContainer.innerHTML = html;
-            } else {
-                summaryContainer.innerHTML = '<div class="alert alert-danger">Aucun service correspondant n\'a été trouvé pour votre sélection.</div>';
+            } catch (error) {
+                console.error("Erreur chargement PEF:", error);
+                dom.pefContainer.innerHTML = '<div class="alert alert-danger">Impossible de charger vos PEF.</div>';
             }
-
-        } catch (error) {
-            console.error("Failed to fetch service details:", error);
-            summaryContainer.innerHTML = '<div class="alert alert-danger">Erreur de communication avec le serveur.</div>';
         }
-    }
-
-
-    function updateUI() {
-        // Update stepper
-        steps.forEach(step => {
-            const stepNum = parseInt(step.dataset.step, 10);
-            step.classList.remove('active', 'completed');
-            if (stepNum < state.currentStep) {
-                step.classList.add('completed');
-            } else if (stepNum === state.currentStep) {
-                step.classList.add('active');
-            }
-        });
-
-        // Update step content
-        stepContents.forEach(content => {
-            const stepNum = parseInt(content.dataset.step, 10);
-            content.style.display = stepNum === state.currentStep ? 'block' : 'none';
-        });
-
-        // Update buttons
-        btnPrev.style.display = state.currentStep > 1 ? 'inline-block' : 'none';
-        btnNext.style.display = state.currentStep < 4 ? 'inline-block' : 'none';
-        btnSubmit.style.display = state.currentStep === 4 ? 'inline-block' : 'none';
-
-        // Prefill user info in last step
-        if (state.currentStep === 4) {
-            clientNomInput.value = workflowContainer.dataset.userNom || '';
-            clientPrenomInput.value = workflowContainer.dataset.userPrenom || '';
-            telephoneInput.value = workflowContainer.dataset.userTelephone || '';
-        }
-    }
-
-    async function initializeStep1() {
+        
+        // Charger la nature du paiement dans tous les cas
         try {
-            const typeDemandes = await api.getTypeDemandes();
-            typeDemandeSelect.innerHTML = '<option value=""></option>'; // For placeholder
-            typeDemandes.forEach(td => {
-                const option = new Option(td.label, td.id);
-                // We'll need a way to identify the "Reprise" service
-                if (td.is_reprise) { // Assuming a property 'is_reprise'
-                    option.dataset.isReprise = "true";
-                }
-                typeDemandeSelect.appendChild(option);
-            });
+            const paiements = await api.getTypePaiements();
+            const dataArray = Array.isArray(paiements) ? paiements : paiements.data;
+            const options = dataArray ? dataArray.map(p => ({id: p.id, libelle: p.libelle})) : [];
 
-            // Assuming TomSelect is available
-            new TomSelect(typeDemandeSelect, {
-                create: false,
-                sortField: {
-                    field: "text",
-                    direction: "asc"
-                }
-            });
-
-        } catch (error) {
-            console.error("Failed to load TypeDemandes:", error);
-            // Notification.error("Impossible de charger les services. Veuillez rafraîchir la page.");
+            const paiementSelect = renderSelect('type_paiement_id', 'Nature du paiement', options, dom.typePaiementContainer);
+            paiementSelect.addEventListener('change', handleTypePaiementChange);
+        } catch(error) {
+            console.error("Erreur chargement TypePaiement:", error);
+            dom.typePaiementContainer.innerHTML = '<div class="alert alert-danger">Impossible de charger les natures de paiement.</div>';
         }
     }
 
+    /** Gère la sélection du PEF */
+    function handlePefChange(e) {
+        state.pefId = e.target.value;
+        state.pefLabel = e.target.value ? e.target.options[e.target.selectedIndex].text : null;
+        checkAndFetchServiceDetails();
+    }
+    
+    /** Gère la sélection de la Nature du Paiement */
+    function handleTypePaiementChange(e) {
+        state.typePaiementId = e.target.value;
+        checkAndFetchServiceDetails();
+    }
 
-    function handleNext() {
-        // Validation logic for current step can be added here
-        if (state.currentStep === 1 && !state.typeDemandeId) {
-            // Notification.error("Veuillez sélectionner un service.");
-            alert("Veuillez sélectionner un service.");
+    /** Soumet la transaction finale */
+    async function handleSubmit() {
+        if (!dom.clientInfoForm.checkValidity()) {
+            dom.clientInfoForm.reportValidity();
             return;
         }
 
-        state.currentStep++;
-        updateUI();
+        const payload = {
+            service_id: state.service.id, // Assurez-vous que l'API service renvoie un 'id'
+            pef_id: state.pefId,
+            client_nom: dom.clientNomInput.value,
+            client_prenom: dom.clientPrenomInput.value,
+            telephone: dom.telephoneInput.value,
+        };
+
+        dom.buttons.submit.disabled = true;
+        dom.buttons.submit.querySelector('.spinner-border').style.display = 'inline-block';
+
+        try {
+            const result = await api.submitTransaction(payload);
+            if (result.success) {
+                workflowContainer.style.display = 'none';
+                dom.resultContainer.style.display = 'block';
+                dom.resultContainer.innerHTML = `
+                    <div class="alert alert-success text-center">
+                        <h4 class="alert-heading">Opération Réussie !</h4>
+                        <p>${result.message || 'Votre demande a été enregistrée.'}</p>
+                        <p class="mb-2">Utilisez l'identifiant <strong>${result.identifiant_transaction}</strong> pour le paiement.</p>
+                        <hr>
+                        <div class="mt-3">
+                             <a href="/paiement/transaction/${result.transaction_id}/notice" target="_blank" class="btn btn-primary">
+                                 <i class="mdi mdi-file-pdf-box"></i> Télécharger l'Avis de Recette
+                             </a>
+                             <a href="${workflowContainer.dataset.suiviUrl}" class="btn btn-info">
+                                 <i class="mdi mdi-track-fast"></i> Suivre mes paiements
+                             </a>
+                        </div>
+                    </div>`;
+            } else {
+                alert(result.message || 'Une erreur est survenue lors de la soumission.');
+            }
+        } catch (error) {
+            console.error('Submission failed', error);
+            alert('Erreur de communication avec le serveur.');
+        } finally {
+            dom.buttons.submit.disabled = false;
+            dom.buttons.submit.querySelector('.spinner-border').style.display = 'none';
+        }
+    }
+
+
+    // --- GESTIONNAIRES D'ÉVÉNEMENTS (Navigation) ---
+    function handleNext() {
+        if (state.currentStep === 1 && state.service) {
+            state.currentStep++;
+            updateUI();
+        } else {
+            alert("Veuillez finaliser votre sélection pour continuer.");
+        }
     }
 
     function handlePrev() {
@@ -244,117 +305,65 @@ document.addEventListener('DOMContentLoaded', function () {
             updateUI();
         }
     }
-
-    function reset() {
-        // Full reset logic here
-        state = {
-            currentStep: 1,
-            typeDemandeId: null,
-            typeDemandeLabel: null,
-            isReprise: false,
-            pefId: null,
-            typePaiementId: null,
-            typeDemandeurId: null,
-            service: null,
-        };
-        // Reset TomSelect
-        if (typeDemandeSelect.tomselect) {
-            typeDemandeSelect.tomselect.clear();
+    
+    function resetWorkflow() {
+        state = { currentStep: 1, typeDemandeId: null, typeDemandeLabel: null, isReprisePef: false, pefId: null, pefLabel: null, typePaiementId: null, service: null };
+        
+        if (dom.typeDemandeSelect.tomselect) {
+            dom.typeDemandeSelect.tomselect.clear();
+        } else {
+            dom.typeDemandeSelect.value = '';
         }
-        // Clear dynamically added fields
-        step2Container.innerHTML = '';
-        summaryContainer.innerHTML = '<p>Veuillez compléter les étapes précédentes pour voir le résumé.</p>';
+        
+        dom.pefContainer.innerHTML = '';
+        dom.typePaiementContainer.innerHTML = '';
+        dom.pefContainer.style.display = 'none';
+        dom.typePaiementContainer.style.display = 'none';
+        
+        dom.summaryCard.style.display = 'none';
+        dom.summaryContent.innerHTML = '';
+        
+        dom.buttons.next.disabled = true;
         updateUI();
     }
 
-
-    // --- Event Listeners ---
-    btnNext.addEventListener('click', handleNext);
-    btnPrev.addEventListener('click', handlePrev);
-    btnReset.addEventListener('click', reset);
-    btnSubmit.addEventListener('click', handleSubmit);
-
-    typeDemandeSelect.addEventListener('change', (e) => {
-        state.typeDemandeId = e.target.value;
-        const selectedOption = e.target.options[e.target.selectedIndex];
-
-        if (e.target.value && selectedOption) {
-            state.typeDemandeLabel = selectedOption.text;
-            state.isReprise = selectedOption.dataset.isReprise === "true";
-            buildStep2();
-        } else {
-            state.typeDemandeLabel = null;
-            state.isReprise = false;
-            step2Container.innerHTML = ''; // Clear next step if selection is cleared
-        }
-        summaryContainer.innerHTML = '<p>Veuillez compléter les étapes précédentes pour voir le résumé.</p>';
-    });
-
-    step2Container.addEventListener('change', (e) => {
-        if (e.target.id === 'pef_id') {
-            state.pefId = e.target.value;
-        }
-        if (e.target.id === 'type_paiement_id') {
-            state.typePaiementId = e.target.value;
-        }
-        buildStep3();
-    });
-
-
-    async function handleSubmit() {
-        if (!clientInfoForm.checkValidity()) {
-            clientInfoForm.reportValidity();
-            return;
-        }
-
-        const payload = {
-            service_id: state.service.id,
-            pef_id: state.pefId,
-            client_nom: clientNomInput.value,
-            client_prenom: clientPrenomInput.value,
-            telephone: telephoneInput.value,
-        };
-
-        btnSubmit.disabled = true;
-        btnSubmit.querySelector('.spinner-border').style.display = 'inline-block';
-
+    // --- INITIALISATION ---
+    async function initialize() {
         try {
-            const result = await api.submitTransaction(payload);
-            if (result.success) {
-                workflowContainer.style.display = 'none';
-                resultContainer.style.display = 'block';
-                resultContainer.innerHTML = `
-                    <div class="alert alert-success text-center">
-                        <h4 class="alert-heading">Opération Réussie !</h4>
-                        <p>${result.message}</p>
-                        <p class="mb-2">Utilisez l'identifiant <strong>${result.identifiant_transaction}</strong> pour le paiement.</p>
-                        <hr>
-                        <div class="mt-3">
-                             <a href="/paiement/transaction/${result.transaction_id}/notice" target="_blank" class="btn btn-primary">
-                                <i class="mdi mdi-file-pdf-box"></i> Télécharger l'Avis de Recette
-                            </a>
-                            <a href="${workflowContainer.dataset.suiviUrl}" class="btn btn-info">
-                                <i class="mdi mdi-track-fast"></i> Suivre mes paiements
-                            </a>
-                        </div>
-                    </div>
-                `;
-            } else {
-                // Notification.error(result.message || 'Une erreur est survenue.');
-                 alert(result.message || 'Une erreur est survenue.');
+            const typeDemandes = await api.getTypeDemandes();
+            // CORRECTION: Gère les deux formats de réponse API: un tableau direct ou un objet { data: [...] }
+            const dataArray = Array.isArray(typeDemandes) ? typeDemandes : typeDemandes.data;
+            const options = dataArray ? dataArray.map(td => ({id: td.id, libelle: td.libelle})) : [];
+
+            if (!options.length) {
+                // Si aucune option n'est trouvée, il y a un problème avec les données.
+                throw new Error("La liste des services est vide ou dans un format incorrect.");
             }
+
+            dom.typeDemandeSelect.innerHTML = ''; // Vide le select avant d'utiliser TomSelect
+            new TomSelect(dom.typeDemandeSelect, {
+                options: options,
+                valueField: 'id',
+                labelField: 'libelle',
+                searchField: 'libelle',
+                create: false,
+                placeholder: 'Sélectionnez un service...',
+                sortField: { field: "libelle", direction: "asc" }
+            });
+
+            dom.typeDemandeSelect.addEventListener('change', handleTypeDemandeChange);
+            dom.buttons.next.addEventListener('click', handleNext);
+            dom.buttons.prev.addEventListener('click', handlePrev);
+            dom.buttons.reset.addEventListener('click', resetWorkflow);
+            dom.buttons.submit.addEventListener('click', handleSubmit);
+
+            updateUI();
         } catch (error) {
-            console.error('Submission failed', error);
-            // Notification.error('Erreur de communication avec le serveur.');
-             alert('Erreur de communication avec le serveur.');
-        } finally {
-            btnSubmit.disabled = false;
-            btnSubmit.querySelector('.spinner-border').style.display = 'none';
+            console.error("Impossible d'initialiser le module de paiement:", error);
+            workflowContainer.innerHTML = `<div class="alert alert-danger">Le module de paiement n'a pas pu être chargé. Cause: ${error.message}. Veuillez rafraîchir la page.</div>`;
         }
     }
 
-
-    // --- Initialization ---
-    initializeStep1();
-    updateUI();
+    initialize();
 });
+

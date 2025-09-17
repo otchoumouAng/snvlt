@@ -32,10 +32,11 @@ class ServiceSelectionController extends AbstractController
         }
 
         // Déterminer le type de demandeur (personne morale ou physique)
-        $user = $userRepository->find($this->getUser());
-        $exploitant = $user->getCodeexploitant();
 
-        $typeDemandeurId = ($exploitant && $exploitant->getRaisonSocialeExploitant()) ? 1 : 2;
+        $user = $userRepository->find($this->getUser());
+        $idOperateur = $user->getCodeOperateur()->getId();
+
+        $typeDemandeurId = ($user->getCodeOperateur()->getId() == 2) ? 2 : 3;
 
         $service = $catalogueServicesRepository->findOneBy([
             'categorie_activite' => $typeDemandeId,

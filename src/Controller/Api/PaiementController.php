@@ -11,7 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\Autorisation\Attribution;
+use App\Entity\Attribution;
 use App\Entity\User;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -69,6 +69,31 @@ class PaiementController extends AbstractController
         }, $types);
 
         return $this->json($data);
+    }
+
+
+    /**
+     * @Route("/admin/user/pef", name="app_user_pef_data", methods={"GET"})
+     */
+    public function getUserPefs(EntityManagerInterface $em): JsonResponse
+    {
+        $user = $this->getUser(); // Récupère l'utilisateur connecté
+
+        // Sécurité : Vérifier si l'utilisateur est bien un Exploitant Forestier
+       /* if (!$user || !in_array('ROLE_EXPLOITANT_FORESTIER', $user->getRoles())) {
+            return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
+        }*/
+
+        $query = $em->createQuery(
+            'SELECT p.numero_pef as libelle, p.gid as id
+             FROM App\Entity\Pef p
+             JOIN App\Entity\Metier\Attribution a WITH p.gid = a.code_foret_id
+             WHERE a.code_exploitant_id = :code_exploitant'
+        )->setParameter('code_exploitant', $user->getCodeOperateur()->getId()); // On suppose que cette méthode existe
+
+        $pefs = $query->getResult();
+
+        return new JsonResponse($pefs);
     }
 
 
