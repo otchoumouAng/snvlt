@@ -79,9 +79,9 @@ class PaiementController extends AbstractController
         $user = $this->getUser(); // Récupère l'utilisateur connecté
 
         // Sécurité : Vérifier si l'utilisateur est bien un Exploitant Forestier
-       /* if (!$user || !in_array('ROLE_EXPLOITANT_FORESTIER', $user->getRoles())) {
+        if (!$user || !in_array('ROLE_EXPLOITANT_FORESTIER', $user->getRoles())) {
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
-        }*/
+        }
 
         $exploitant = $user->getCodeexploitant();
         if (!$exploitant) {

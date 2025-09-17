@@ -75,9 +75,17 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/liste", name="app_nouvelle_demande_liste")
      */
-    public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository, UserRepository $userRepository): JsonResponse
     {
-        $demandes = $nouvelleDemandeRepository->findAll();
+        $user = $userRepository->find($this->getUser());
+     
+        $demandes = $nouvelleDemandeRepository->findBy(['operateur' => $user->getId()]);
+
+
+
+
+
+
         
         $data = [];
         foreach ($demandes as $demande) {
