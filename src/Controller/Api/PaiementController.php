@@ -2,7 +2,6 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Autorisation\Attribution;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\Transaction;
 use App\Service\Paiement\TresorPayService;
@@ -138,13 +137,6 @@ class PaiementController extends AbstractController
         $transaction->setClientPrenom($clientPrenom);
         $transaction->setTelephone($telephone);
         $transaction->setTypePaiement($service->getTypePaiement());
-
-        if ($pefId) {
-            $pef = $this->em->getRepository(Attribution::class)->find($pefId);
-            if ($pef) {
-                $transaction->setPef($pef);
-            }
-        }
 
         $transaction->setStatut('EN_ATTENTE_AVIS');
 

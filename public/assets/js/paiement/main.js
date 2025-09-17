@@ -256,7 +256,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const payload = {
             service_id: state.service.id, // Assurez-vous que l'API service renvoie un 'id'
-            pef_id: state.pefId,
             client_nom: dom.clientNomInput.value,
             client_prenom: dom.clientPrenomInput.value,
             telephone: dom.telephoneInput.value,
@@ -268,6 +267,11 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const result = await api.submitTransaction(payload);
             if (result.success) {
+                let noticeUrl = `/paiement/transaction/${result.transaction_id}/notice`;
+                if (state.pefLabel) {
+                    noticeUrl += `?pef_label=${encodeURIComponent(state.pefLabel)}`;
+                }
+
                 workflowContainer.style.display = 'none';
                 dom.resultContainer.style.display = 'block';
                 dom.resultContainer.innerHTML = `
@@ -277,7 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <p class="mb-2">Utilisez l'identifiant <strong>${result.identifiant_transaction}</strong> pour le paiement.</p>
                         <hr>
                         <div class="mt-3">
-                             <a href="/paiement/transaction/${result.transaction_id}/notice" target="_blank" class="btn btn-primary">
+                             <a href="${noticeUrl}" target="_blank" class="btn btn-primary">
                                  <i class="mdi mdi-file-pdf-box"></i> Télécharger l'Avis de Recette
                              </a>
                              <a href="${workflowContainer.dataset.suiviUrl}" class="btn btn-info">

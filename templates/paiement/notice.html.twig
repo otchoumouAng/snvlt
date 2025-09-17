@@ -40,10 +40,10 @@
                         <td>Service demandé</td>
                         <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
                     </tr>
-                    {% if transaction.pef %}
+                    {% if pef_label %}
                     <tr>
                         <td>PEF</td>
-                        <td>{{ transaction.pef.codeForet.denomination }} (N°{{ transaction.pef.numeroDecision }})</td>
+                        <td>{{ pef_label }}</td>
                     </tr>
                     {% endif %}
                      <tr>

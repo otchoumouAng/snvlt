@@ -5,7 +5,6 @@ namespace App\Entity\Paiement;
 use App\Repository\Paiement\TransactionRepository;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\TypePaiement;
-use App\Entity\Autorisation\Attribution;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -64,9 +63,6 @@ class Transaction
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: '0', nullable: true)]
     private ?string $paid_amount = null;
-
-    #[ORM\ManyToOne]
-    private ?Attribution $pef = null;
 
     public function getId(): ?int
     {
@@ -241,15 +237,4 @@ class Transaction
         return $this;
     }
 
-    public function getPef(): ?Attribution
-    {
-        return $this->pef;
-    }
-
-    public function setPef(?Attribution $pef): static
-    {
-        $this->pef = $pef;
-
-        return $this;
-    }
 }
