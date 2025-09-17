@@ -138,10 +138,10 @@ class TdbAdminController extends AbstractController
         $nb_cp_op = 0;
         $nb_bcbp_op = 0;
         $nb_etatb_op = 0;
-        //$nb_users = 0;
-        //$nb_autorisations = 0;
-        //$total_exploitation = 0;
-        //$total_transformation= 0;
+        $nb_users = 0;
+        $nb_autorisations = 0;
+        $total_exploitation = 0;
+        $total_transformation= 0;
         $total_agreements = 0;
         $total_autorisations = 0;
         $arbres_abattus = 0;
