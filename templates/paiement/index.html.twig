@@ -168,7 +168,7 @@
                  data-user-pefs-url="{{ path('app_user_pef_data') }}"
                  data-service-details-url="{{ path('api_service_details') }}"
                  data-submit-url="{{ path('api_create_transaction') }}"
-                 data-suivi-url="" {# Ajoutez l'URL de suivi ici si nécessaire #}
+                 data-suivi-url="http://localhost:8001/suivi-mes-paiements"
             >
                 <!-- Étape 1: Choix du service (regroupe toutes les sélections) -->
                 <div class="step-content" data-step="1" style="display: block;">
@@ -214,7 +214,12 @@
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="telephone" class="form-label fw-bold">Téléphone (pour le paiement)</label>
+                                <label for="telephone" class="form-label fw-bold">
+                                    numéro TresorPay
+                                    <a href="https://pay.tresor.gouv.ci/" target="_blank">
+                                        <img src="https://pay.tresor.gouv.ci/r/assets/images/logo_horizontal_tresorpay.png" alt="TresorPay Logo" style="height: 20px; vertical-align: middle;">
+                                    </a>
+                                </label>
                                 <input type="tel" id="telephone" name="telephone" class="form-control" placeholder="Ex: 0707070707" required>
                             </div>
                         </div>
