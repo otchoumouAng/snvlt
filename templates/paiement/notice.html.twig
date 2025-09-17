@@ -40,12 +40,6 @@
                         <td>Service demandé</td>
                         <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
                     </tr>
-                    {% if transaction.attribution is not null %}
-                    <tr>
-                        <td>PEF Concerné</td>
-                        <td>{{ transaction.attribution.codeForet.denomination }} (N°{{ transaction.attribution.numeroDecision }})</td>
-                    </tr>
-                    {% endif %}
                      <tr>
                         <td><strong>Montant à payer</strong></td>
                         <td><strong>{{ transaction.montantFcfa | number_format(0, ',', ' ') }} FCFA</strong></td>
