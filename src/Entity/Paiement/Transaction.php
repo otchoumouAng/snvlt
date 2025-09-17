@@ -5,7 +5,6 @@ namespace App\Entity\Paiement;
 use App\Repository\Paiement\TransactionRepository;
 use App\Entity\Paiement\CatalogueServices;
 use App\Entity\Paiement\TypePaiement;
-use App\Entity\Autorisation\Attribution;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -238,19 +237,4 @@ class Transaction
         return $this;
     }
 
-    #[ORM\ManyToOne]
-    #[ORM\JoinColumn(name: "attribution_id", referencedColumnName: "id", nullable: true)]
-    private ?Attribution $attribution = null;
-
-    public function getAttribution(): ?Attribution
-    {
-        return $this->attribution;
-    }
-
-    public function setAttribution(?Attribution $attribution): static
-    {
-        $this->attribution = $attribution;
-
-        return $this;
-    }
 }
