@@ -78,6 +78,9 @@ class NouvelleDemandeController extends AbstractController
     public function getListeDemandes(NouvelleDemandeRepository $nouvelleDemandeRepository, UserRepository $userRepository): JsonResponse
     {
         $user = $userRepository->find($this->getUser());
+
+        //dd($user->getId());
+        
      
         $demandes = $nouvelleDemandeRepository->findBy(['operateur' => $user->getId()]);
 
