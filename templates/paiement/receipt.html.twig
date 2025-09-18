@@ -43,9 +43,6 @@
             <p><strong>Téléphone :</strong> {{ transaction.telephone }}</p>
             <hr>
             <p><strong>Service :</strong> {{ transaction.service.designation }}</p>
-            {% if transaction.attribution is not null %}
-                <p><strong>PEF Concerné :</strong> {{ transaction.attribution.codeForet.denomination }} (N°{{ transaction.attribution.numeroDecision }})</p>
-            {% endif %}
             <p><strong>Montant :</strong> {{ transaction.paidAmount|number_format(0, ',', ' ') }} FCFA</p>
         </div>
         <div class="footer">

@@ -40,6 +40,12 @@
                         <td>Service demandé</td>
                         <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
                     </tr>
+                    {% if pef_label %}
+                    <tr>
+                        <td>PEF</td>
+                        <td>{{ pef_label }}</td>
+                    </tr>
+                    {% endif %}
                      <tr>
                         <td><strong>Montant à payer</strong></td>
                         <td><strong>{{ transaction.montantFcfa | number_format(0, ',', ' ') }} FCFA</strong></td>

@@ -35,9 +35,14 @@ class PaiementWorkflowController extends AbstractController
     }
 
     #[Route('/paiement/transaction/{id}/notice', name: 'app_paiement_notice')]
-    public function notice(Transaction $transaction): Response
+    public function notice(Transaction $transaction, Request $request): Response
     {
-        $html = $this->renderView('paiement/notice.html.twig', ['transaction' => $transaction]);
+        $pefLabel = $request->query->get('pef_label');
+
+        $html = $this->renderView('paiement/notice.html.twig', [
+            'transaction' => $transaction,
+            'pef_label' => $pefLabel
+        ]);
         return new Response($this->pdfService->generateBinaryPDF($html), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="avis-recette-'.$transaction->getIdentifiant().'.pdf"'
