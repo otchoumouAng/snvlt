@@ -16,6 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Psr\Log\LoggerInterface;
 
 #[Route('/api')]
 class PaiementController extends AbstractController
@@ -76,12 +77,11 @@ class PaiementController extends AbstractController
     /**
      * @Route("/admin/user/pef", name="app_user_pef_data", methods={"GET"})
      */
-    /*public function getUserPefs(EntityManagerInterface $em): JsonResponse
+    
+    public function getUserPefs(EntityManagerInterface $em): JsonResponse
     {
-        $user = $this->getUser(); // Récupère l'utilisateur connecté
+        $user = $this->getUser();
 
-        // Sécurité : Vérifier si l'utilisateur est bien un Exploitant Forestier
-        //["ROLE_EXPLOITANT","EXPLOITANT FORESTIER"]
         if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
         }
@@ -93,10 +93,12 @@ class PaiementController extends AbstractController
 
         $conn = $em->getConnection();
         $sql = '
-            SELECT p.numero_pef as libelle, p.gid as id
-            FROM public.pef p
-            JOIN metier.attribution a ON p.gid = a.code_foret_id
+            SELECT DISTINCT f.numero_foret as libelle, f.id as id
+            FROM metier.foret f
+            JOIN metier.attribution a ON f.id = a.code_foret_id
             WHERE a.code_exploitant_id = :code_exploitant_id
+            AND (a.retire IS NULL OR a.retire = false)
+            AND (a.abandonne IS NULL OR a.abandonne = false)
         ';
 
         $stmt = $conn->prepare($sql);
@@ -104,56 +106,8 @@ class PaiementController extends AbstractController
         $pefs = $resultSet->fetchAllAssociative();
 
         return new JsonResponse($pefs);
-    }*/
-
-    public function getUserPefs(): JsonResponse
-{
-    $user = $this->getUser();
-
-    if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
-        return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
     }
 
-    $userId = $user->getId();
-
-    //dd($user->getId());
-    if (!$userId) {
-        return new JsonResponse([]);
-    }
-
-    $httpClient = HttpClient::create();
-    $response = $httpClient->request('GET', 'https://boislegal.ci/snvlt/users/getPefs/'.$userId);
-
-    if (200 !== $response->getStatusCode()) {
-        return new JsonResponse(['error' => 'Erreur lors de la récupération des données'], 500);
-    }
-
-    $content = $response->getContent();
-    $data = json_decode($content, true);
-
-    // Vérification que le décodage JSON a réussi
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        return new JsonResponse(['error' => 'Erreur de décodage des données'], 500);
-    }
-
-    // Vérification de la structure des données
-    if (!is_array($data) || !isset($data['code']) || 'SUCCESS' !== $data['code'] || !isset($data['data'])) {
-        //var_dump($data['data']);
-        return new JsonResponse([]);
-    }
-
-    // Transformation des données et suppression des doublons
-    $uniquePefs = [];
-    foreach ($data['data'] as $pef) {
-        $id = $pef['id_foret'];
-        $uniquePefs[$id] = [
-            'id' => $id,
-            'libelle' => $pef['numero_foret']
-        ];
-    }
-
-    return new JsonResponse(array_values($uniquePefs));
-}
 
 
     /**
