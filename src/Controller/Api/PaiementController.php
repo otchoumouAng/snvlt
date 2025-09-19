@@ -114,13 +114,15 @@ class PaiementController extends AbstractController
         return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
     }
 
-    $exploitant = $user->getCodeexploitant();
-    if (!$exploitant) {
+    $userId = $user->getId();
+
+    //dd($user->getId());
+    if (!$userId) {
         return new JsonResponse([]);
     }
 
     $httpClient = HttpClient::create();
-    $response = $httpClient->request('GET', 'https://boislegal.ci/snvlt/users/getPefs/'.$exploitant->getId());
+    $response = $httpClient->request('GET', 'https://boislegal.ci/snvlt/users/getPefs/'.$userId);
 
     if (200 !== $response->getStatusCode()) {
         return new JsonResponse(['error' => 'Erreur lors de la récupération des données'], 500);
@@ -136,6 +138,7 @@ class PaiementController extends AbstractController
 
     // Vérification de la structure des données
     if (!is_array($data) || !isset($data['code']) || 'SUCCESS' !== $data['code'] || !isset($data['data'])) {
+        //var_dump($data['data']);
         return new JsonResponse([]);
     }
 
