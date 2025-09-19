@@ -1,13 +1,5 @@
 <?php
 
-/*
-    - master data
-    - shema: metier
-    - table: aut_type_demande
-    - Gestion des TypeDemande
-    - Cette entité nous permet de CRUD les types de demande (Ex: Reprise d'activite, etc...)
-*/
-
 namespace App\Entity\DemandeAutorisation;
 
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;
@@ -35,7 +27,11 @@ class TypeDemande
     #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: \App\Entity\References\ModeleCommunication::class)]
     private Collection $modeleCommunications;
 
-    #[ORM\OneToMany(mappedBy: 'categorie_activite', targetEntity: \App\Entity\Paiement\CatalogueServices::class)]
+    /**
+     * CORRIGÉ: L'attribut mappedBy pointe maintenant vers 'typeDemande' 
+     * dans l'entité CatalogueServices.
+     */
+    #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: \App\Entity\Paiement\CatalogueServices::class)]
     private Collection $catalogueServices;
 
     #[ORM\OneToMany(mappedBy: 'typeDemande', targetEntity: TypeDemandeDetail::class, orphanRemoval: true)]
@@ -118,7 +114,8 @@ class TypeDemande
     {
         if (!$this->catalogueServices->contains($catalogueService)) {
             $this->catalogueServices->add($catalogueService);
-            $catalogueService->setCategorieActivite($this);
+            // CORRIGÉ: Utilise le nouveau setter 'setTypeDemande'
+            $catalogueService->setTypeDemande($this);
         }
 
         return $this;
@@ -128,8 +125,9 @@ class TypeDemande
     {
         if ($this->catalogueServices->removeElement($catalogueService)) {
             // set the owning side to null (unless already changed)
-            if ($catalogueService->getCategorieActivite() === $this) {
-                $catalogueService->setCategorieActivite(null);
+            // CORRIGÉ: Utilise le nouveau getter et setter 'getTypeDemande' et 'setTypeDemande'
+            if ($catalogueService->getTypeDemande() === $this) {
+                $catalogueService->setTypeDemande(null);
             }
         }
 

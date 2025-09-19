@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Entity\Paiement;
 
 use App\Repository\Paiement\CatalogueServicesRepository;
@@ -38,9 +37,13 @@ class CatalogueServices
     #[ORM\JoinColumn(nullable: false)]
     private ?TypesService $type_service = null;
 
+    /**
+     * @var TypeDemande|null
+     * CORRIGÉ: La propriété est renommée de 'categorie_activite' à 'typeDemande'
+     */
     #[ORM\ManyToOne(targetEntity: TypeDemande::class, inversedBy: "catalogueServices")]
     #[ORM\JoinColumn(nullable: false)]
-    private ?TypeDemande $categorie_activite = null;
+    private ?TypeDemande $typeDemande = null;
 
     #[ORM\ManyToOne]
     private ?TypesDemandeur $type_demandeur = null;
@@ -115,14 +118,20 @@ class CatalogueServices
         return $this;
     }
 
-    public function getCategorieActivite(): ?TypeDemande
+    /**
+     * CORRIGÉ: Getter renommé
+     */
+    public function getTypeDemande(): ?TypeDemande
     {
-        return $this->categorie_activite;
+        return $this->typeDemande;
     }
 
-    public function setCategorieActivite(?TypeDemande $categorie_activite): static
+    /**
+     * CORRIGÉ: Setter renommé
+     */
+    public function setTypeDemande(?TypeDemande $typeDemande): static
     {
-        $this->categorie_activite = $categorie_activite;
+        $this->typeDemande = $typeDemande;
 
         return $this;
     }
@@ -150,5 +159,4 @@ class CatalogueServices
 
         return $this;
     }
-
 }

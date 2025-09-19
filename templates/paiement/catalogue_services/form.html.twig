@@ -12,31 +12,86 @@
         {% endif %}
 
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <div class="form-group mb-3">
-                    <label for="code_service" class="form-label fw-bold">Code Service</label>
+                    <label for="code_service" class="form-label fw-bold">Codification</label>
                     <input type="text" class="form-control" id="code_service" name="code_service" value="{{ catalogue_service.codeService ?? '' }}" required>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <div class="form-group mb-3">
-                    <label for="montant_fcfa" class="form-label fw-bold">Montant (FCFA)</label>
-                    <input type="number" class="form-control" id="montant_fcfa" name="montant_fcfa" value="{{ catalogue_service.montantFcfa ?? '' }}" required>
+                    <label for="type_service_id" class="form-label fw-bold">Categorie</label>
+                    <select class="form-control" id="type_service_id" name="type_service_id" required>
+                        <option value="">Sélectionner...</option>
+                        {% for item in types_service %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
+            
         </div>
 
-        <div class="row">
+        <!-- <div class="row d-none">
             <div class="col-12">
                 <div class="form-group mb-3">
                     <label for="designation" class="form-label fw-bold">Désignation</label>
                     <input type="text" class="form-control" id="designation" name="designation" value="{{ catalogue_service.designation ?? '' }}" required>
                 </div>
             </div>
+        </div> -->
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="type_demandeur_id" class="form-label fw-bold">Type de Société</label>
+                    <select class="form-control" id="type_demandeur_id" name="type_demandeur_id">
+                        <option value="">Sélectionner...</option>
+                        {% for item in types_demandeur %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="type_demande_id" class="form-label fw-bold">Nom de l'acte</label>
+                    <select class="form-control" id="type_demande_id" name="type_demande_id" required>
+                        <option value="">Sélectionner...</option>
+                        {% for item in actes %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            
+
+            
         </div>
 
         <div class="row">
             <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="type_paiement_id" class="form-label fw-bold">Nature de Paiement</label>
+                    <select class="form-control" id="type_paiement_id" name="type_paiement_id">
+                        <option value="">Sélectionner...</option>
+                        {% for item in type_paiements %}
+                            <option value="{{ item.id }}">{{ item.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label for="montant_fcfa" class="form-label fw-bold">Montant (FCFA)</label>
+                    <input type="number" class="form-control" id="montant_fcfa" name="montant_fcfa" value="{{ catalogue_service.montantFcfa ?? '' }}" required>
+                </div>
+            </div>
+
+            <!-- <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label for="type_service_id" class="form-label fw-bold">Type de Service</label>
                     <select class="form-control" id="type_service_id" name="type_service_id" required>
@@ -46,53 +101,13 @@
                         {% endfor %}
                     </select>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label for="categorie_activite_id" class="form-label fw-bold">Type de demande</label>
-                    <select class="form-control" id="categorie_activite_id" name="categorie_activite_id" required>
-                        <option value="">Sélectionner...</option>
-                        {% for item in categories_activite %}
-                            <option value="{{ item.id }}">{{ item.libelle }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
+            </div> -->
+            
         </div>
 
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group mb-3">
-                    <label for="type_demandeur_id" class="form-label fw-bold">Type de Demandeur</label>
-                    <select class="form-control" id="type_demandeur_id" name="type_demandeur_id">
-                        <option value="">(Optionnel)</option>
-                        {% for item in types_demandeur %}
-                            <option value="{{ item.id }}">{{ item.libelle }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group mb-3">
-                    <label for="type_paiement_id" class="form-label fw-bold">Type de Paiement</label>
-                    <select class="form-control" id="type_paiement_id" name="type_paiement_id">
-                        <option value="">(Optionnel)</option>
-                        {% for item in type_paiements %}
-                            <option value="{{ item.id }}">{{ item.libelle }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
+        
 
-        <div class="row">
-            <div class="col-12">
-                <div class="form-group mb-3">
-                    <label for="note" class="form-label fw-bold">Note</label>
-                    <textarea class="form-control" id="note" name="note" rows="3"></textarea>
-                </div>
-            </div>
-        </div>
+        
 
         <div class="row mt-4">
             <div class="col-12 text-end">

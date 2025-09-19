@@ -15,6 +15,8 @@ use App\Entity\User;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+use Symfony\Component\HttpClient\HttpClient;
+
 #[Route('/api')]
 class PaiementController extends AbstractController
 {
@@ -74,12 +76,13 @@ class PaiementController extends AbstractController
     /**
      * @Route("/admin/user/pef", name="app_user_pef_data", methods={"GET"})
      */
-    public function getUserPefs(EntityManagerInterface $em): JsonResponse
+    /*public function getUserPefs(EntityManagerInterface $em): JsonResponse
     {
         $user = $this->getUser(); // Récupère l'utilisateur connecté
 
         // Sécurité : Vérifier si l'utilisateur est bien un Exploitant Forestier
-        if (!$user || !in_array('ROLE_EXPLOITANT_FORESTIER', $user->getRoles())) {
+        //["ROLE_EXPLOITANT","EXPLOITANT FORESTIER"]
+        if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
         }
 
@@ -101,7 +104,53 @@ class PaiementController extends AbstractController
         $pefs = $resultSet->fetchAllAssociative();
 
         return new JsonResponse($pefs);
+    }*/
+
+    public function getUserPefs(): JsonResponse
+{
+    $user = $this->getUser();
+
+    if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
+        return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
     }
+
+    $exploitant = $user->getCodeexploitant();
+    if (!$exploitant) {
+        return new JsonResponse([]);
+    }
+
+    $httpClient = HttpClient::create();
+    $response = $httpClient->request('GET', 'https://boislegal.ci/snvlt/users/getPefs/'.$exploitant->getId());
+
+    if (200 !== $response->getStatusCode()) {
+        return new JsonResponse(['error' => 'Erreur lors de la récupération des données'], 500);
+    }
+
+    $content = $response->getContent();
+    $data = json_decode($content, true);
+
+    // Vérification que le décodage JSON a réussi
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        return new JsonResponse(['error' => 'Erreur de décodage des données'], 500);
+    }
+
+    // Vérification de la structure des données
+    if (!is_array($data) || !isset($data['code']) || 'SUCCESS' !== $data['code'] || !isset($data['data'])) {
+        return new JsonResponse([]);
+    }
+
+    // Transformation des données et suppression des doublons
+    $uniquePefs = [];
+    foreach ($data['data'] as $pef) {
+        $id = $pef['id_foret'];
+        $uniquePefs[$id] = [
+            'id' => $id,
+            'libelle' => $pef['numero_foret']
+        ];
+    }
+
+    return new JsonResponse(array_values($uniquePefs));
+}
 
 
     /**
@@ -140,11 +189,12 @@ class PaiementController extends AbstractController
 
         $transaction->setStatut('EN_ATTENTE_AVIS');
 
-        $identifiant = 'FORET-' . date('Y') . '-' . time() . rand(100, 999);
+        $identifiant = 'SNVLT-' . date('Y') . '-' . time() . rand(100, 999);
         $transaction->setIdentifiant($identifiant);
 
         $this->em->persist($transaction);
         $this->em->flush();
+
 
         $tresorPayResponse = $this->tresorPayService->genererAvisRecette(
             $identifiant,

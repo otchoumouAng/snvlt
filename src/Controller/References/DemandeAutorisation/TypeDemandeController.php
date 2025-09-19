@@ -23,7 +23,7 @@ class TypeDemandeController extends BaseReferenceController
     {
         $this->entityClass = TypeDemande::class;
         $this->entityName = 'app_types_demande';
-        $this->title = 'Types de Demande';
+        $this->title = 'Acte';
     }
 
     #[Route('/', name: 'app_types_demande_index', methods: ['GET'])]

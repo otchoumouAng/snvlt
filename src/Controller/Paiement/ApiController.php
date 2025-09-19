@@ -34,7 +34,7 @@ class ApiController extends AbstractController
             $criteria['typePaiement'] = $request->query->get('type_paiement_id');
         }
         if ($request->query->get('type_demande_id')) {
-            $criteria['categorie_activite'] = $request->query->get('type_demande_id');
+            $criteria['typeDemande'] = $request->query->get('type_demande_id');
         }
         if ($request->query->get('type_demandeur_id')) {
             $criteria['type_demandeur'] = $request->query->get('type_demandeur_id');

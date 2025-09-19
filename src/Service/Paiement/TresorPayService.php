@@ -61,6 +61,7 @@ class TresorPayService
             'nature_recette' => $this->normalizeString($nature_recette),
         ];
 
+
         try {
             $response = $this->httpClient->request('POST', $this->apiUrl, [
                 'json' => $payload,

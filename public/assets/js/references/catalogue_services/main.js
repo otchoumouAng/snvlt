@@ -62,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function showForm(id, mode) {
         modalTitle.textContent = mode === 'new' ? "Nouveau Service" : "Modifier le Service";
 
-        // Use the 'new' form template for both modes, as we will populate it dynamically
         modalBody.innerHTML = preloadedForms.new;
         const form = modalBody.querySelector('#catalogueServiceForm');
 
@@ -71,15 +70,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 const details = await apiService.getCatalogueServiceDetails(id);
                 if (details.error) throw new Error(details.error);
 
+                // ===== BLOC CORRIGÉ =====
+
                 form.querySelector('#id').value = details.id;
                 form.querySelector('#code_service').value = details.code_service;
-                form.querySelector('#designation').value = details.designation;
                 form.querySelector('#montant_fcfa').value = details.montant_fcfa;
-                form.querySelector('#note').value = details.note;
                 form.querySelector('#type_service_id').value = details.type_service_id;
-                form.querySelector('#categorie_activite_id').value = details.categorie_activite_id;
+                
+                // CORRECTION 1 : Utilisation du bon ID '#type_demande_id'
+                form.querySelector('#type_demande_id').value = String(details.type_demande_id);
+                
                 form.querySelector('#type_demandeur_id').value = details.type_demandeur_id;
                 form.querySelector('#type_paiement_id').value = details.type_paiement_id;
+
+                // CORRECTION 2 : Les champs '#designation' et '#note' ont été retirés
+                // car ils n'existent pas dans le formulaire HTML.
+
+                // ========================
 
                 form.querySelector('button[type="submit"]').textContent = 'Modifier';
 

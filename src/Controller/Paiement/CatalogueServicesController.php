@@ -36,7 +36,7 @@ class CatalogueServicesController extends AbstractController
         // Data for form dropdowns
         $formData = [
             'types_service' => $em->getRepository(TypesService::class)->findAll(),
-            'categories_activite' => $em->getRepository(TypeDemande::class)->findAll(),
+            'actes' => $em->getRepository(TypeDemande::class)->findAll(),
             'types_demandeur' => $em->getRepository(TypesDemandeur::class)->findAll(),
             'type_paiements' => $em->getRepository(TypePaiement::class)->findAll(),
             'catalogue_service' => null
@@ -93,7 +93,9 @@ class CatalogueServicesController extends AbstractController
     {
         try {
             $data = json_decode($request->getContent(), true);
-            if ($data === null) return $this->json(['success' => false, 'message' => 'JSON invalide'], 400);
+            if ($data === null) {
+                return $this->json(['success' => false, 'message' => 'JSON invalide'], 400);
+            }
 
             $id = $data['id'] ?? null;
             $catalogueService = $id ? $em->getRepository(CatalogueServices::class)->find($id) : new CatalogueServices();
@@ -103,36 +105,53 @@ class CatalogueServicesController extends AbstractController
             }
 
             $catalogueService->setCodeService($data['code_service'] ?? '');
-            $catalogueService->setDesignation($data['designation'] ?? '');
             $catalogueService->setMontantFcfa($data['montant_fcfa'] ?? '0');
             $catalogueService->setNote($data['note'] ?? null);
 
+            // Récupération des entités liées
             $typeService = $em->getRepository(TypesService::class)->find($data['type_service_id']);
-            if (!$typeService) return $this->json(['success' => false, 'message' => 'Type de service invalide'], 400);
+            if (!$typeService) {
+                return $this->json(['success' => false, 'message' => 'Type de service invalide'], 400);
+            }
             $catalogueService->setTypeService($typeService);
 
-            $categorieActivite = $em->getRepository(TypeDemande::class)->find($data['categorie_activite_id']);
-            if (!$categorieActivite) return $this->json(['success' => false, 'message' => 'Catégorie d\'activité invalide'], 400);
-            $catalogueService->setCategorieActivite($categorieActivite);
+            $typeDemande = $em->getRepository(TypeDemande::class)->find($data['type_demande_id']);
+            if (!$typeDemande) {
+                return $this->json(['success' => false, 'message' => 'Type de demande invalide'], 400);
+            }
+            
+            // ===== BLOC DE CORRECTION =====
+
+            // Correction n°1 : Utilisation du setter sémantiquement correct 'setTypeDemande'.
+            $catalogueService->setTypeDemande($typeDemande);
+            
+            // Correction n°2 : Assignation de la désignation (une chaîne de caractères) 
+            // en utilisant le getter de l'objet TypeDemande, au lieu de passer l'objet entier.
+            $catalogueService->setDesignation($typeDemande->getDesignation());
+            
+            // ============================
 
             if (!empty($data['type_demandeur_id'])) {
-                $catalogueService->setTypeDemandeur($em->getRepository(TypesDemandeur::class)->find($data['type_demandeur_id']));
+                $typeDemandeur = $em->getRepository(TypesDemandeur::class)->find($data['type_demandeur_id']);
+                $catalogueService->setTypeDemandeur($typeDemandeur);
             } else {
                  $catalogueService->setTypeDemandeur(null);
             }
 
             if (!empty($data['type_paiement_id'])) {
-                $catalogueService->setTypePaiement($em->getRepository(TypePaiement::class)->find($data['type_paiement_id']));
+                $typePaiement = $em->getRepository(TypePaiement::class)->find($data['type_paiement_id']);
+                $catalogueService->setTypePaiement($typePaiement);
             } else {
                 $catalogueService->setTypePaiement(null);
             }
-
 
             $em->persist($catalogueService);
             $em->flush();
 
             return $this->json(['success' => true, 'message' => 'Service enregistré avec succès']);
+
         } catch (\Exception $e) {
+            // En cas d'erreur (contrainte de base de données, etc.), on renvoie un message clair.
             return $this->json(['success' => false, 'message' => 'Erreur: ' . $e->getMessage()], 500);
         }
     }
@@ -150,7 +169,7 @@ class CatalogueServicesController extends AbstractController
                 'montant_fcfa' => $catalogueService->getMontantFcfa(),
                 'note' => $catalogueService->getNote(),
                 'type_service_id' => $catalogueService->getTypeService()?->getId(),
-                'categorie_activite_id' => $catalogueService->getCategorieActivite()?->getId(),
+                'categorie_activite_id' => $catalogueService->getTypeDemande()?->getId(),
                 'type_demandeur_id' => $catalogueService->getTypeDemandeur()?->getId(),
                 'type_paiement_id' => $catalogueService->getTypePaiement()?->getId(),
             ];

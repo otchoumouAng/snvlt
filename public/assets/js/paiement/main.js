@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
         pefId: null,
         pefLabel: null,
         typePaiementId: null,
-        service: null, // Stocke les détails du service récupérés via API
+        service: null, 
     };
 
     // --- API & DATA FETCHING ---
@@ -117,7 +117,8 @@ document.addEventListener('DOMContentLoaded', function () {
     /** Affiche le résumé du service ou une erreur */
     function renderSummary() {
         dom.summaryCard.style.display = 'block';
-        if (state.service && state.service.montant_fcfa !== undefined) {
+        console.log(state)
+        if (state.service && state.service.montant !== undefined) {
             let html = `
                 <h5 class="mb-3">Résumé de votre demande</h5>
                 <ul class="list-group list-group-flush">
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <hr>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="h6 mb-0">Montant total à payer:</span>
-                    <span class="summary-amount">${new Intl.NumberFormat('fr-FR').format(state.service.montant_fcfa)} FCFA</span>
+                    <span class="summary-amount">${new Intl.NumberFormat('fr-FR').format(state.service.montant)} FCFA</span>
                 </div>
             `;
             dom.summaryContent.innerHTML = html;
@@ -165,8 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             api.getServiceDetails(params.toString())
-                .then(service => {
-                    state.service = service;
+                .then(serviceData  => {
+                    state.service = Array.isArray(serviceData) && serviceData.length > 0 ? serviceData[0] : null;
                     renderSummary();
                 })
                 .catch(error => {

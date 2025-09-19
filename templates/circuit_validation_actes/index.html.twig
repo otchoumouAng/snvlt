@@ -1,0 +1,256 @@
+{% extends 'template_base.html.twig' %}
+
+{% block Title %}
+    SNVLT - {% trans %}Circuit de validation des actes{% endtrans %}
+{% endblock %}
+
+{% block titre_page %}
+    <h2 class="text-dark font-weight-bold mb-2">
+        <img src="{{ asset('assets/images/webapp/grille_legalite.png') }}"  alt="attribution">  Circuit de validation [Actes]
+    </h2>
+{% endblock %}
+
+ {% block menu %}
+     {% include 'base/menu.html.twig' %}
+ {% endblock %}
+
+{% block page_content %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.4/css/dataTables.dataTables.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.1.1/css/buttons.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+    <link rel="stylesheet" href="{{ asset('assets/assets_other/vendor/fonts/boxicons.css') }}" />
+    <link rel="stylesheet" href="{{ asset('assets/assets/css/modal.css') }}" />
+
+    <style>
+        select {
+            background: #eefbfe;
+            font-weight: bold;
+            border: 1px solid lightgrey;
+            font-size: 13px;
+            min-width: 200px;
+        }
+        .not_active {
+            background: #ffffff;
+            font-weight: bold;
+            border: 1px solid lightgrey;
+            font-size: 13px;
+            min-width: 200px;
+        }
+    </style>
+    <section class="section">
+        <div class="card" style="border-top: 2px solid darkgreen">
+
+            <div class="card-body">
+                <div class="d-inline-flex">
+                    <select class="" name="categories" id="categories">
+                        <option value="0">-- Sélectionnez une Catégorie --</option>
+                    </select>
+                    <select class="ms-2" style="margin-left: 10px;" name="actes" id="actes">
+{#                        <option value="0">-- Sélectionnez un acte --</option>#}
+                    </select>
+
+                </div>
+                <hr>
+                <div class="alert-light p-2" style="min-height: 350px;border-top: 4px solid darkgray;">
+                    <h4 class="mb-4">Créer ou mettre à jour le circuit de validation</h4>
+
+                    <div class="mt-2 container">
+                        <div class="d-inline-flex">
+                            <select class="bg-light" name="direction" id="direction" style="width: 150px;" disabled>
+                                <option value="1">DPIF</option>
+                            </select>
+                            <select class="ms-2" name="serviceMinef" id="serviceMinef" style="margin-left: 10px;border: #0a430c 1px solid">
+                                <option value="0">-- Services de la DPIF --</option>
+                            </select>
+                            <button style="margin-left: 10px;" id="btn-add"><i class="fa-solid fa-user-plus me-2 text-primary"></i> Ajouter</button>
+                        </div>
+                        <table class="table  mt-2" id="tbl_circuit">
+                            <thead>
+                                <tr style="background: #e5e6e5">
+                                    <td>N° ordre</td>
+                                    <td>Service</td>
+                                    <td>Actions</td>
+                                </tr>
+                            </thead>
+                            <tbody class="body_contenu">
+                                <tr>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdn.datatables.net/2.1.4/js/dataTables.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/dataTables.buttons.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.dataTables.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/3.1.1/js/buttons.print.min.js"></script>
+    <script src="{{ asset('assets/Js/utilitaires.js') }}"></script>
+
+    <script>
+        let code_service = document.querySelector("#serviceMinef");
+        let categories = document.querySelector("#categories");
+        let actes = document.querySelector("#actes");
+
+        code_service.style = 'background:white;font-weight: bold;border: 1px solid lightgrey;font-size: 13px;min-width: 200px;'
+
+        dataTableSnvltNoButton("tbl_circuit", 10)
+
+        afficheServices($("#direction").val());
+        afficheCategories();
+
+        $('#categories').on('change', function(){
+            afficheActes(this.value)
+
+        })
+
+        $('#actes').on('change', function(){
+            afficheServices($("#direction").val())
+            afficheDetails(this.value)
+        })
+
+
+
+        function afficheServices(code_direction) {
+            code_service.style = 'background:white;font-weight: bold;border: 1px solid lightgrey;font-size: 13px;min-width: 200px;'
+            $.ajax({
+                url: '{{ path('app_portail') }}snvlt/servicemenef/list/' + code_direction + "/" + actes.value,
+                type: 'POST',
+                data: {code_direction: code_direction},
+                success: function (response) {
+                    console.log(response);
+                    let liste_service = JSON.parse(response);
+                    var contenu = '<option value="0">-- Services de la DPIF --</option>';
+                    for (var i = 0; i < liste_service.length; i++) {
+                        contenu = contenu + '<option value="' + liste_service[i].id + '" >' + liste_service[i].libelle_service + '</option>';
+                    }
+
+                    code_service.innerHTML = contenu;
+                    code_service.style = 'background:#f7e1cd;font-weight: bold;border: 1px solid lightgrey;font-size: 13px;min-width: 200px;'
+
+                    }
+                })
+            }
+            function afficheCategories() {
+                $.ajax({
+                    url: '{{ path('app_portail') }}admin/type_documents/CategoriesActes/list',
+                    type: 'POST',
+                    success: function (response) {
+                        console.log(response);
+                        let liste_service = JSON.parse(response);
+                        var contenu = '<option value="0">-- Sélectionnez une Catégorie --</option>';
+                        for (var i = 0; i < liste_service.length; i++) {
+                            contenu = contenu + '<option value="' + liste_service[i].id + '" >' + liste_service[i].designation + '</option>';
+                        }
+                        categories.innerHTML = contenu;
+                    }
+                })
+            }
+
+            function afficheActes(code_categorie){
+                actes.style = "border-bottom:solid 1px lightgray;"
+                var contenu = '';
+                $.ajax({
+                    url: '{{ path('app_portail') }}admin/type_documents/CategoriesActesByid/' + code_categorie ,
+                    type : 'POST',
+                    success: function(response){
+                        console.log(response);
+                        let liste_service = JSON.parse(response);
+
+                        if (liste_service.length > 0){
+                            contenu = '<option value="0">-- Sélectionnez l\'acte SVP --</option>';
+                            for(var i = 0; i < liste_service.length; i++){
+                                contenu = contenu + '<option value="' + liste_service[i].id + '" >' + liste_service[i].designation + '</option>';
+                            }
+                            if (liste_service.length > 0){ actes.style = "border-bottom:solid 1px blue;";} else {actes.style = "border-bottom:solid 1px lightgray;"}
+                        }
+
+                        actes.innerHTML = contenu;
+                    }
+                })
+            }
+
+
+        $('#btn-add').on('click',  function() {
+            if (actes.value === "0" ||
+                code_service.value === "0" ||
+                actes.value === null ||
+                code_service.value === null){
+                render_toast_value("Merci de sélectionnez le service et l'acte", 2)
+            } else {
+                $.ajax({
+                    url:'{{ path('app_portail')}}snvlt/addDetail/CircuitActes/' +  actes.value + "/" + code_service.value,
+                    type : 'POST',
+                    success: function(response){
+                        console.log(response);
+                        render_toast_value("Circuit mis à jour", 3)
+                        afficheDetails(actes.value)
+                        afficheServices($("#direction").val())
+                    }
+                })
+            }
+
+        })
+
+        $('body').on('click', '.btnDelete', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url:'{{ path('app_portail')}}snvlt/getDetail/CircuitActes/Del/' + this.id,
+                type : 'POST',
+                success: function(response){
+                    let reponse = JSON.parse(response)
+                    afficheDetails(actes.value)
+                    if (reponse[0].code === "SUCCESS"){
+                        render_toast_value("Circuit mis à jour", 3)
+                        afficheServices($("#direction").val())
+                    } else {
+                        render_toast_value("L'élément n'a pas été supprimé!", 0)
+                    }
+
+                }
+            })
+        })
+
+
+        function afficheDetails(id_acte){
+
+            $.ajax({
+                url:'{{ path('app_portail')}}snvlt/getDetail/CircuitActes/' + id_acte,
+                type : 'POST',
+                success: function(response){
+                    console.log(response);
+                    let reponse = JSON.parse(response);
+
+                    var contenu =  '';
+
+                    if (reponse.length > 0){
+                        for(var i = 0; i < reponse.length; i++){
+                            contenu = contenu + '<tr class="bg-white">' +
+                                '<td class=" fw-bold text-center"><span class="badge text-dark bg-warning rounded-circle fs-6">' + reponse[i].ordre + '</span></td>' +
+                                '<td>'+ reponse[i].service + '</td>'+
+                                '<td><a class="btnDelete" href="#" id="' + reponse[i].id +'"><img src="{{ asset('assets/icons/16x16/delete.png') }}" style="height:16px;width:16px;" alt="delete"></a></td>'+
+                                '</tr>';
+                        }
+
+                    } else {
+                        contenu = '<h3 class="text-danger ">Aucun service enregistré</h3>'
+                    }
+                    document.querySelector('.body_contenu').innerHTML = contenu;
+
+                }
+            })
+        }
+    </script>
+
+{% endblock %}

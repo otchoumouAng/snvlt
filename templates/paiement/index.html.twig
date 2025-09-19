@@ -166,9 +166,9 @@
                  data-type-demandes-url="{{ path('app_types_demande_data') }}"
                  data-type-paiements-url="{{ path('app_types_paiement_data') }}"
                  data-user-pefs-url="{{ path('app_user_pef_data') }}"
-                 data-service-details-url="{{ path('api_service_details') }}"
+                 data-service-details-url="{{ path('api_get_services_by_type_and_category') }}"
                  data-submit-url="{{ path('api_create_transaction') }}"
-                 data-suivi-url="http://localhost:8001/suivi-mes-paiements"
+                 data-suivi-url="{{ path('app_paiement_suivi')}}"
             >
                 <!-- Étape 1: Choix du service (regroupe toutes les sélections) -->
                 <div class="step-content" data-step="1" style="display: block;">
@@ -215,7 +215,6 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="telephone" class="form-label fw-bold">
-                                    numéro TresorPay
                                     <a href="https://pay.tresor.gouv.ci/" target="_blank">
                                         <img src="https://pay.tresor.gouv.ci/r/assets/images/logo_horizontal_tresorpay.png" alt="TresorPay Logo" style="height: 20px; vertical-align: middle;">
                                     </a>
@@ -250,7 +249,6 @@
     </div>
 </div>
 
-{# Ajout de la librairie JavaScript TomSelect AVANT notre script principal #}
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 <script src="{{ asset('assets/js/paiement/main.js') }}"></script>
 {% endblock %}
