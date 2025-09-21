@@ -227,8 +227,8 @@ getStatusBadge(status) {
                 <div class="mb-3">
                     <label for="demande-status" class="form-label">Changer le statut de la demande</label>
                     <select id="demande-status" class="form-select">
-                        <option value="En cours de traiment">En cours de traiment</option>
-                        <option value="Demande signée et disponible">Demande signée et disponible</option>
+                        <option value="En cours">En cours de traitement</option>
+                        <option value="Signé">Demande signée et disponible</option>
                     </select>
                 </div>
 
