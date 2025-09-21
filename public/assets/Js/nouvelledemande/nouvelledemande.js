@@ -313,6 +313,29 @@ class NouvelleDemandeApp {
             //this.setupModal(mode, null);
             this.setupModalWithData(mode, {});
         }
+
+        $('#typeDemande').on('change', async (e) => {
+            const selectedOptionText = $(e.currentTarget).find('option:selected').text();
+            const pefContainer = $('#pef-container');
+            const produitContainer = $('#produit-container');
+
+            pefContainer.hide();
+            produitContainer.hide();
+
+            if (selectedOptionText === "Reprise d'activité PEF") {
+                pefContainer.show();
+                const pefs = await this.apiService.get('/admin/nouvelle_demande/api/user/pefs');
+                const pefSelect = $('#numero_pef');
+                pefSelect.empty();
+                pefSelect.append('<option value="">Sélectionner un PEF</option>');
+                pefs.forEach(pef => {
+                    pefSelect.append(`<option value="${pef.id}">${pef.libelle}</option>`);
+                });
+
+            } else if (selectedOptionText === "Agrement Exploitant") {
+                produitContainer.show();
+            }
+        });
         
     } catch (error) {
         this.notification.error('Erreur lors de l\'ouverture du modal');
@@ -553,7 +576,9 @@ showDetailsPlaceholder() {
                 id: $('#demandeId').val() || null,
                 typePaiementId: $('#typePaiement').val(),
                 description: $('#description').val(),
-                typeDemandeId: $('#typeDemande').val()
+                typeDemandeId: $('#typeDemande').val(),
+                numero_pef: $('#numero_pef').val(),
+                produit: $('input[name="produit"]:checked').val()
             };
             
             // Validation
@@ -642,6 +667,7 @@ showDetailsPlaceholder() {
             if (result.success) {
                 this.notification.success(result.message || 'Demande soumise avec succès.');
                 this.loadDemandes();
+                window.open(`/admin/nouvelle_demande/${this.selectedDemandeId}/etat_depot`, '_blank');
             } else {
                 this.notification.error(result.error || 'Une erreur est survenue.');
             }

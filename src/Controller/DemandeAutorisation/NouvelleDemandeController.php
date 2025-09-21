@@ -35,6 +35,38 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class NouvelleDemandeController extends AbstractController
 {
+    /**
+     * @Route("/api/user/pefs", name="app_user_pefs_json", methods={"GET"})
+     */
+    public function getUserPefsAction(EntityManagerInterface $em): JsonResponse
+    {
+        $user = $this->getUser();
+
+        if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
+            return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
+        }
+
+        $exploitant = $user->getCodeexploitant();
+        if (!$exploitant) {
+            return new JsonResponse([]);
+        }
+
+        $conn = $em->getConnection();
+        $sql = '
+            SELECT DISTINCT f.numero_foret as libelle, f.id as id
+            FROM metier.foret f
+            JOIN metier.attribution a ON f.id = a.code_foret_id
+            WHERE a.code_exploitant_id = :code_exploitant_id
+            AND (a.retire IS NULL OR a.retire = false)
+            AND (a.abandonne IS NULL OR a.abandonne = false)
+        ';
+
+        $stmt = $conn->prepare($sql);
+        $resultSet = $stmt->executeQuery(['code_exploitant_id' => $exploitant->getId()]);
+        $pefs = $resultSet->fetchAllAssociative();
+
+        return new JsonResponse($pefs);
+    }
     public function __construct(
         private EntityManagerInterface $entityManager,
         private EtapeValidationRepository $etapeValidationRepository,
@@ -204,6 +236,8 @@ class NouvelleDemandeController extends AbstractController
 
             $demande->setDescription($data['description']);
             $demande->setStatut($data['statut'] ?? 'Soumis');
+            $demande->setNumeroPef($data['numero_pef'] ?? null);
+            $demande->setProduit($data['produit'] ?? null);
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
@@ -513,5 +547,24 @@ class NouvelleDemandeController extends AbstractController
         }
 
         $this->entityManager->flush();
+    }
+
+    /**
+     * @Route("/{id}/etat_depot", name="app_nouvelle_demande_etat_depot_pdf")
+     */
+    public function generateEtatDepotPdf(NouvelleDemande $demande, \App\Service\Paiement\PdfService $pdfService): Response
+    {
+        $html = $this->renderView('DemandeAutorisation/nouvelle_demande/etat_depot.html.twig', [
+            'demande' => $demande,
+        ]);
+
+        return new Response(
+            $pdfService->generateBinaryPDF($html),
+            Response::HTTP_OK,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="etat_depot_' . $demande->getCodeSuivie() . '.pdf"',
+            ]
+        );
     }
 }

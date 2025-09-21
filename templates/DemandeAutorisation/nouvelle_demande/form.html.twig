@@ -41,7 +41,25 @@
                         <textarea class="form-control" id="description" name="description" rows="3"
                             {% if mode == 'read' %}disabled{% endif %}></textarea>
                     </div>
-                    
+
+                    <div id="pef-container" class="mb-3" style="display: none;">
+                        <label for="numero_pef" class="form-label">Choisir le PEF</label>
+                        <select class="form-select" id="numero_pef" name="numero_pef">
+                            <option value="">Chargement...</option>
+                        </select>
+                    </div>
+
+                    <div id="produit-container" class="mb-3" style="display: none;">
+                        <label class="form-label">Produit</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="produit" id="produit_ligneux" value="Ligneux">
+                            <label class="form-check-label" for="produit_ligneux">Ligneux</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="produit" id="produit_non_ligneux" value="Non ligneux">
+                            <label class="form-check-label" for="produit_non_ligneux">Non ligneux</label>
+                        </div>
+                    </div>
                     
                 </form>
             </div>

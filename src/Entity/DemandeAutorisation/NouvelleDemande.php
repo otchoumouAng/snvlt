@@ -56,6 +56,12 @@ class NouvelleDemande
     #[ORM\OneToMany(mappedBy: 'demande', targetEntity: DemandeDocument::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $demandeDocuments;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numero_pef = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $produit = null;
+
     public function __construct()
     {
         $this->etapesValidation = new ArrayCollection();
@@ -184,6 +190,30 @@ class NouvelleDemande
                 $demandeDocument->setDemande(null);
             }
         }
+        return $this;
+    }
+
+    public function getNumeroPef(): ?string
+    {
+        return $this->numero_pef;
+    }
+
+    public function setNumeroPef(?string $numero_pef): static
+    {
+        $this->numero_pef = $numero_pef;
+
+        return $this;
+    }
+
+    public function getProduit(): ?string
+    {
+        return $this->produit;
+    }
+
+    public function setProduit(?string $produit): static
+    {
+        $this->produit = $produit;
+
         return $this;
     }
 }
