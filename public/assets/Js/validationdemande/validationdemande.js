@@ -90,15 +90,12 @@ class ValidationDemandeApp {
 
 getStatusBadge(status) {
     switch (status) {
-        case 'approved':
-        case 'valider':
-        case 'approuvée':
-            return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i><span>Approuvée</span></span>';
-        case 'pending':
-        case 'en_attente':
-        case 'en_observation':
-            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En attente</span></span>';
-        case 'rejected':
+        case 'Signé':
+            return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i><span>Signée & Disponible</span></span>';
+        case 'En cours':
+            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
+        case 'Soumis':
+            return `<span class="status-badge">${status}</span>`;
         case 'refuser':
         case 'rejetée':
             return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
@@ -267,22 +264,5 @@ getStatusBadge(status) {
         }
     }
 
-    getStatusBadge(status) {
-        switch (status) {
-            case 'approved':
-            case 'valider':
-            case 'approuvée':
-                return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i> Approuvée</span>';
-            case 'pending':
-            case 'en_attente':
-            case 'en_observation':
-                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i> En attente</span>';
-            case 'rejected':
-            case 'refuser':
-            case 'rejetée':
-                return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i> Rejetée</span>';
-            default:
-                return `<span class="status-badge">${status}</span>`;
-        }
-    }
+    
 }

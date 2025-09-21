@@ -84,11 +84,6 @@ class NouvelleDemandeController extends AbstractController
      
         $demandes = $nouvelleDemandeRepository->findBy(['operateur' => $user->getId()]);
 
-
-
-
-
-
         
         $data = [];
         foreach ($demandes as $demande) {
@@ -158,7 +153,7 @@ class NouvelleDemandeController extends AbstractController
                     $requiredDocuments[] = [
                         'type_document_id' => $typeDocId,
                         'nom' => $typeDocument->getDesignation(),
-                        'statut' => 'Non soumis',
+                        'statut' => 'Non chargé',
                         'document_id' => null,
                         'nom_fichier' => null,
                         'path' => null,
@@ -208,7 +203,7 @@ class NouvelleDemandeController extends AbstractController
             }
 
             $demande->setDescription($data['description']);
-            $demande->setStatut($data['statut'] ?? 'créé');
+            $demande->setStatut($data['statut'] ?? 'Soumis');
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
@@ -274,7 +269,7 @@ class NouvelleDemandeController extends AbstractController
         $document = new Document();
         $document->setNom($file->getClientOriginalName());
         $document->setPath($newFilename);
-        $document->setStatut('soumis');
+        $document->setStatut('Chargé');
         $document->setTypeDocument($typeDocument);
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
 
@@ -389,7 +384,7 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
-            $demande->setStatut('en cours');
+            $demande->setStatut('En cours');
 
             $etapes = $demande->getEtapesValidation();
 
@@ -399,7 +394,7 @@ class NouvelleDemandeController extends AbstractController
             } else {
                 // Re-submission
                 foreach ($etapes as $etape) {
-                    $etape->setStatut('en_attente');
+                    $etape->setStatut('En cours');
                     $etape->setDateTraitement(null);
                     $etape->setDetails(null);
                     $this->entityManager->persist($etape);
@@ -442,7 +437,7 @@ class NouvelleDemandeController extends AbstractController
      * Détermine le statut d'une étape pour l'affichage du stepper.
      *
      * @param EtapeValidation $etape L'étape à évaluer.
-     * @param string $demandeStatut Le statut global de la demande ('en_attente', 'approuvee', 'rejetee').
+     * @param string $demandeStatut Le statut global de la demande ('En cours', 'approuvee', 'rejetee').
      * @param bool $etapeActiveTrouvee Indique si l'étape active a déjà été identifiée dans la boucle.
      * @return array [string status, bool isActive]
      */
@@ -487,6 +482,10 @@ class NouvelleDemandeController extends AbstractController
 
         $detailsModele = $modele->getDetailsModeles();
 
+        $EtapeSpecial = ['Soumis','En cours de traiment','Demande signée et disponible'];
+
+        $i = 0;
+
         foreach ($detailsModele as $detail) {
             $etapeValidation = new EtapeValidation();
             $etapeValidation->setDemande($nouvelleDemande);
@@ -497,16 +496,20 @@ class NouvelleDemandeController extends AbstractController
                 $nomEtape = $detail->getCodeDirection()->getDenomination();
             } elseif ($detail->getTypeService() === 'SERVICE' && $detail->getCodeService()) {
                 $nomEtape = $detail->getCodeService()->getLibelleService();
+            } elseif ($detail->getTypeService() === 'SPECIAL' && $detail->getCodeService()) {
+                $nomEtape = $EtapeSpecial[$i]; #$detail->getCodeService()->getLibelleService();
             }
             $etapeValidation->setNom($nomEtape);
 
-            $etapeValidation->setStatut('en_attente');
+            $etapeValidation->setStatut('En cours');
             $this->entityManager->persist($etapeValidation);
 
             // Send notification for the first step
             if ($detail->getNumseq() === 1) {
                 $this->notificationService->sendNotificationForStep($nouvelleDemande, $detail, $this->getUser());
             }
+
+            $i ++;
         }
 
         $this->entityManager->flush();

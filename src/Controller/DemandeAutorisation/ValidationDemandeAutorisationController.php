@@ -22,20 +22,26 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\References\ServiceMinefRepository; 
+
 
 /**
  * @Route("/admin/validation_demande_autorisation")
  */
 class ValidationDemandeAutorisationController extends AbstractController
 {
+    private $serviceMinefRepository;
+
     public function __construct(
         private EntityManagerInterface $entityManager,
         private EtapeValidationRepository $etapeValidationRepository,
         private NouvelleDemandeRepository $nouvelleDemandeRepository,
         private TypeDemandeDetailRepository $typeDemandeDetailRepository,
         private NotificationService $notificationService,
-        private ModeleCommunicationRepository $modeleCommunicationRepository
+        private ModeleCommunicationRepository $modeleCommunicationRepository,
+        ServiceMinefRepository $serviceMinefRepository
     ) {
+        $this->serviceMinefRepository = $serviceMinefRepository; 
     }
 
     /**
@@ -80,7 +86,18 @@ class ValidationDemandeAutorisationController extends AbstractController
         // For now, we'll just fetch all steps assigned to the user's direction/service that are pending.
 
         $userDirection = $currentUser->getCodeDirection();
+
+        //$currentUser->setCodeService(1001);
+        // 1. On cherche l'entité ServiceMinef qui a l'ID 1001
+        $serviceEntity = $this->serviceMinefRepository->find(1001);
+        if (!$serviceEntity) {
+            return new JsonResponse(['error' => 'Service non trouvé pour l\'ID 1001'], 404);
+        }
+
+        $currentUser->setCodeService($serviceEntity);
         $userService = $currentUser->getCodeService();
+        //echo $userService;
+        //dd($userService);
 
         $pendingSteps = $this->etapeValidationRepository->findPendingStepsForUser($userDirection, $userService);
 

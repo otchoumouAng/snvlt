@@ -380,15 +380,15 @@ async displayDocumentPanel(demandeData) {
     const status = demandeData.statut;
     let buttonHtml = '';
 
-    if (status === 'créé' || status === 'rejeté') {
+    if (status === 'Soumis' || status === 'rejeté') {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'en cours') {
+    } else if (status === 'En cours') {
         buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
-    } else if (status === 'accepté') {
+    } else if (status === 'Signé') {
         buttonHtml = `<button class="btn btn-sm btn-primary" id="pay-fees-btn" data-action="pay">
                         <i class="ph-fill ph-credit-card"></i> Payer les frais
                       </button>`;
