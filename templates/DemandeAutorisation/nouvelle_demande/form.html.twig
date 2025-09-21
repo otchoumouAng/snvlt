@@ -5,7 +5,7 @@
             <div class="modal-header border-0 pb-0">
                 <h5 class="modal-title pro-card-title" id="demandeModalLabel">
                     <i class="ph-fill ph-file-plus" id="modal-icon"></i>
-                    <span id="modal-title">Nouvelle Demande</span>
+                    <span id="modal-title">Nature de demande</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -13,33 +13,26 @@
                 <form id="demandeForm">
                     <input type="hidden" id="demandeId" name="id">
                     
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="typePaiement" class="form-label">Type de Paiement *</label>
-                            <select class="form-select" id="typePaiement" name="typePaiementId" required
-                                {% if mode == 'read' %}disabled{% endif %}>
-                                <option value="" selected disabled>Sélectionner un type...</option>
-                                {% for type in typesPaiement %}
-                                    <option value="{{ type.id }}">{{ type.libelle }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="typeDemande" class="form-label">Type de Demande *</label>
-                            <select class="form-select" id="typeDemande" name="typeDemandeId" required
-                                {% if mode == 'read' %}disabled{% endif %}>
-                                <option value="" selected disabled>Sélectionner un type...</option>
-                                {% for type in typesDemande %}
-                                    <option value="{{ type.id }}">{{ type.designation }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                    <div class="col-md-10">
+                        <label for="typeDemande" class="form-label">Nature de demande *</label>
+                        <select class="form-select" id="typeDemande" name="typeDemandeId" required
+                            {% if mode == 'read' %}disabled{% endif %}>
+                            <option value="" selected disabled>Sélectionner un type...</option>
+                            {% for type in typesDemande %}
+                                <option value="{{ type.id }}">{{ type.designation }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"
-                            {% if mode == 'read' %}disabled{% endif %}></textarea>
+
+                    <div class="col-md-6">
+                        <label for="typePaiement" class="form-label">Type de Paiement *</label>
+                        <select class="form-select" id="typePaiement" name="typePaiementId" required
+                            {% if mode == 'read' %}disabled{% endif %}>
+                            <option value="" selected disabled>Sélectionner un type...</option>
+                            {% for type in typesPaiement %}
+                                <option value="{{ type.id }}">{{ type.libelle }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div id="pef-container" class="mb-3" style="display: none;">
@@ -57,6 +50,15 @@
                             <option value="Non ligneux">Non ligneux</option>
                         </select>
                     </div>
+                    
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Note</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"
+                            {% if mode == 'read' %}disabled{% endif %}></textarea>
+                    </div>
+
+                    
                     
                 </form>
             </div>

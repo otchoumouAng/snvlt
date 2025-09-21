@@ -35,7 +35,6 @@ class NouvelleDemandeApp {
                 { data: 'id' },
                 { data: 'titre' },
                 { data: 'typeDemande' },
-                { data: 'societe' },
                 { data: 'dateCreation' },
                 { 
                     data: 'statut',
@@ -44,7 +43,7 @@ class NouvelleDemandeApp {
                     }
                 }
             ],
-    
+
             dom: "<'dataTables_top'l f> t <'dataTables_bottom' i p>",
             
             select: {
@@ -52,21 +51,26 @@ class NouvelleDemandeApp {
                 info: false
             },
             responsive: true,
+            
             columnDefs: [
-            { 
-                responsivePriority: 1, 
-                targets: 0  // Priorité maximale sur la première colonne (ID)
-            },
-            { 
-                responsivePriority: 2, 
-                targets: -1 // La dernière colonne (Statut) est la 2e plus importante
-            },
-            {
-                className: 'dtr-control', // Applique la classe pour l'icône
-                orderable: false,
-                targets: 0 // Cible la première colonne (ID)
-            }
-        ],
+                // --- Priorités d'affichage ---
+                // Les 4 colonnes que vous voulez voir par défaut
+                { responsivePriority: 1, targets: 2 }, // Priorité 1 (la plus haute) pour "Nature"
+                { responsivePriority: 2, targets: 3 }, // Priorité 3 pour "Date"
+                { responsivePriority: 3, targets: 4 }, // Priorité 4 pour "Statut"
+
+                // Les colonnes qui seront masquées en premier
+                { responsivePriority: 100, targets: 0 }, // Priorité basse pour "ID"
+                { responsivePriority: 101, targets: 1 }, // Priorité la plus basse pour "Paiement"
+                
+                // --- Comportement du bouton d'expansion (+) ---
+                {
+                    className: 'dtr-control',
+                    orderable: false,
+                    targets: 0 // Le bouton (+) sera sur la colonne ID (mais il se déplace si ID est cachée)
+                }
+            ],
+
             order: [[3, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]

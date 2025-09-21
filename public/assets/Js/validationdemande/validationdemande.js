@@ -158,6 +158,7 @@ getStatusBadge(status) {
 
         $(document).on('click', '#validate-demande-btn', (e) => {
             const demandeId = $(e.currentTarget).data('demande-id');
+            const etapeId = $(e.currentTarget).data('etape-id');
             const justification = $('#justification-comment').val();
             const newStatus = $('#demande-status').val();
 
@@ -165,8 +166,8 @@ getStatusBadge(status) {
                 this.notification.warning('La justification est obligatoire si vous refusez des documents.');
                 return;
             }
-
-            this.validateDemande(demandeId, newStatus, this.refusedDocuments, justification);
+            this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification);
+            //this.validateDemande(demandeId, newStatus, this.refusedDocuments, justification);
         });
     }
 
@@ -274,6 +275,8 @@ getStatusBadge(status) {
         }
     }*/
 
+    
+
     async displayDetails(demandeId, etapeId) {
     try {
         const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
@@ -284,10 +287,9 @@ getStatusBadge(status) {
 
         // 1. Logique pour les documents
         let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
-        this.refusedDocuments = {}; // Réinitialise les documents refusés à chaque affichage
+        this.refusedDocuments = {};
         if (details.documents && details.documents.length > 0) {
             documentsHtml = details.documents.map(doc => {
-                // Affiche les boutons uniquement si le statut est "Chargé"
                 const actionButtons = doc.statut === 'Chargé' ? `
                     <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
                     <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
@@ -327,9 +329,9 @@ getStatusBadge(status) {
             <div class="mb-3">
                 <label for="demande-status" class="form-label">Changer le statut de la demande</label>
                 <select id="demande-status" class="form-select">
-                    <option value="Soumis">Soumis</option>
-                    <option value="En cours">En cours de traitement</option>
-                    <option value="Signé">Demande signée et disponible</option>
+                    <option>--Changer--</option>
+                    <option value="En cours" ${details.statut === 'En cours' ? 'selected' : ''}>En cours de traitement</option>
+                    <option value="Signé" ${details.statut === 'Signé' ? 'selected' : ''}>Demande signée et disponible</option>
                 </select>
             </div>
 
@@ -346,7 +348,9 @@ getStatusBadge(status) {
 
             <div id="validation-actions" class="mt-3">
                 <div class="d-flex justify-content-end">
-                    <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}"><i class="ph ph-check-circle"></i> Valider</button>
+                    <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}" data-etape-id="${etapeId}">
+                        <i class="ph ph-check-circle"></i> Valider
+                    </button>
                 </div>
             </div>
         `;
@@ -359,6 +363,8 @@ getStatusBadge(status) {
     }
 }
 
+
+
     showDetailsPlaceholder() {
         const detailsContent = $('#details-content');
         const placeholder = $('#details-placeholder');
@@ -366,7 +372,7 @@ getStatusBadge(status) {
         placeholder.show();
     }
 
-    async validateDemande(demandeId, newStatus, refusedDocuments, justification) {
+    /*async validateDemande(demandeId, newStatus, refusedDocuments, justification) {
         const data = {
             newStatus: newStatus,
             refusedDocuments: refusedDocuments,
@@ -382,7 +388,25 @@ getStatusBadge(status) {
             this.notification.error(error.message || "Erreur lors de la validation de la demande.");
             console.error(error);
         }
+    }*/
+
+    async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification) {
+    const data = {
+        etapeId: etapeId, // <-- AJOUTER L'ID DE L'ÉTAPE AUX DONNÉES
+        newStatus: newStatus,
+        refusedDocuments: refusedDocuments,
+        justification: justification
+    };
+
+    try {
+        await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, data);
+        this.notification.success('Demande validée avec succès.');
+        this.loadDemandes(); // Cette ligne actualise déjà la DataTable
+    } catch (error) {
+        this.notification.error(error.message || "Erreur lors de la validation de la demande.");
+        console.error(error);
     }
+}
 
     
 }

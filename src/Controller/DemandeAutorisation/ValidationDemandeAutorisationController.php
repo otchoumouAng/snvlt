@@ -203,6 +203,11 @@ class ValidationDemandeAutorisationController extends AbstractController
         return new JsonResponse($data);
     }
 
+   
+
+    //**************
+
+
     /**
      * @Route("/{id}/validate_demande", name="app_validation_demande_autorisation_validate_demande", methods={"POST"})
      */
@@ -212,14 +217,35 @@ class ValidationDemandeAutorisationController extends AbstractController
         $newStatus = $data['newStatus'] ?? null;
         $refusedDocuments = $data['refusedDocuments'] ?? [];
         $justification = $data['justification'] ?? null;
+        $etapeId = $data['etapeId'] ?? null; // NOUVEAU : Récupérer l'ID de l'étape
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
 
+        // NOUVEAU : Vérifier que l'ID de l'étape est bien présent
+        if (empty($etapeId)) {
+            return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
+        }
+
         if (!empty($refusedDocuments) && empty($justification)) {
             return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
+
+        // NOUVEAU : Trouver et mettre à jour l'étape de validation
+        $etape = $this->etapeValidationRepository->find($etapeId);
+        if (!$etape) {
+            return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
+        }
+        
+        // Sécurité : Vérifier que l'étape appartient bien à la demande traitée
+        if ($etape->getDemande()->getId() !== $demande->getId()) {
+            return new JsonResponse(['error' => 'Cette étape n\'appartient pas à la demande sélectionnée.'], 400);
+        }
+
+        $etape->setStatut('Validé'); // Mettre le statut de l'étape à "Validé"
+        $etape->setDateTraitement(new \DateTime()); // Mettre à jour la date de traitement
+        // Fin des nouveautés pour la mise à jour de l'étape
 
         $demande->setStatut($newStatus);
 
@@ -242,6 +268,9 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         return new JsonResponse(['success' => true]);
     }
+
+
+    //*************
 
     private function saveSignature(string $dataUrl, int $demandeId): ?string
     {
