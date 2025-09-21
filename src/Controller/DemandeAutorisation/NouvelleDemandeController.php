@@ -235,11 +235,11 @@ class NouvelleDemandeController extends AbstractController
                 $demande = new NouvelleDemande();
                 $demande->setCreatedBy($user->getUserIdentifier());
                 $demande->setOperateur($user);
-                $demande->setCodeSuivie(strtoupper(uniqid('SN-')));
+                $demande->setCodeSuivie(strtoupper(uniqid('SNVLT-')));
             }
 
             $demande->setDescription($data['description']);
-            $demande->setStatut($data['statut'] ?? 'Soumis');
+            $demande->setStatut($data['statut'] ?? 'Créé');
             $demande->setNumeroPef($data['numero_pef'] ?? null);
             $demande->setProduit($data['produit'] ?? null);
 

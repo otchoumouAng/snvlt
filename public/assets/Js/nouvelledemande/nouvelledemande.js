@@ -158,7 +158,8 @@ class NouvelleDemandeApp {
                 pefSelect.empty();
                 pefSelect.append('<option value="">Sélectionner un PEF</option>');
                 pefs.forEach(pef => {
-                    pefSelect.append(`<option value="${pef.id}">${pef.libelle}</option>`);
+                    //pefSelect.append(`<option value="${pef.id}">${pef.libelle}</option>`);
+                    pefSelect.append(`<option value="${pef.libelle}">${pef.libelle}</option>`);
                 });
 
             } else if (selectedOptionText === "Agrement Exploitant") {
@@ -403,7 +404,7 @@ async displayDocumentPanel(demandeData) {
     const status = demandeData.statut;
     let buttonHtml = '';
 
-    if (status === 'Soumis' || status === 'rejeté') {
+    if (status === 'Créé' || status === 'rejeté') {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
