@@ -512,7 +512,7 @@ buildDocumentsHtml(details) {
 
         // Définir le badge de STATUT
         switch (doc.statut) {
-            case 'soumis':
+            case 'Chargé':
                 statutHtml = '<span class="status-badge-sm status-fourni">Soumis</span>';
                 break;
             case 'accepté':
@@ -521,7 +521,7 @@ buildDocumentsHtml(details) {
             case 'rejeté':
                 statutHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
                 break;
-            case 'Non soumis':
+            case 'Non chargé':
                 statutHtml = '<span class="status-badge-sm status-non-fourni">Non soumis</span>';
                 break;
             default:
@@ -529,11 +529,11 @@ buildDocumentsHtml(details) {
         }
 
         // Définir les BOUTONS D'ACTION
-        if (doc.statut === 'soumis' || doc.statut === 'accepté') {
+        if (doc.statut === 'Chargé' || doc.statut === 'accepté') {
             actionsHtml = `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
                            </button>`;
-        } else { // "Non soumis" ou "rejeté"
+        } else { // "Non chargé" ou "rejeté"
             actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
                            </button>`;

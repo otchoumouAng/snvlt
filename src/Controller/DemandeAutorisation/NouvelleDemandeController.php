@@ -152,11 +152,15 @@ class NouvelleDemandeController extends AbstractController
         $uploadedDocuments = [];
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $doc = $demandeDocument->getDocument();
+            $status = $doc->getStatut();
+            if ($status === 'soumis') {
+                $status = 'Chargé';
+            }
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
                 'path' => '/uploads/documents/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
-                'statut' => $doc->getStatut(), // Utiliser le statut réel du document
+                'statut' => $status, // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
         }
@@ -307,6 +311,7 @@ class NouvelleDemandeController extends AbstractController
         $document->setStatut('soumis');
         $document->setTypeDocument($typeDocument);
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
+        $document->setDesactivate(false);
 
         $demandeDocument = new DemandeDocument();
         $demandeDocument->setDemande($demande);
