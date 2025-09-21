@@ -276,9 +276,10 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Aucun fichier fourni'], 400);
         }
 
-        // 1. Validation du type de fichier (PDF uniquement)
-        if ($file->getMimeType() !== 'application/pdf') {
-            return new JsonResponse(['error' => 'Le fichier doit être un PDF.'], 400);
+        // 1. Validation du type de fichier (PDF et Excel)
+        $allowedMimeTypes = ['application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return new JsonResponse(['error' => 'Le fichier doit être un PDF ou un fichier Excel.'], 400);
         }
 
         if (!$typeDocumentId) {
@@ -303,7 +304,7 @@ class NouvelleDemandeController extends AbstractController
         $document = new Document();
         $document->setNom($file->getClientOriginalName());
         $document->setPath($newFilename);
-        $document->setStatut('Chargé');
+        $document->setStatut('soumis');
         $document->setTypeDocument($typeDocument);
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
 

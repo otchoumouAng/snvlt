@@ -50,15 +50,11 @@
                     </div>
 
                     <div id="produit-container" class="mb-3" style="display: none;">
-                        <label class="form-label">Produit</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="produit" id="produit_ligneux" value="Ligneux">
-                            <label class="form-check-label" for="produit_ligneux">Ligneux</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="produit" id="produit_non_ligneux" value="Non ligneux">
-                            <label class="form-check-label" for="produit_non_ligneux">Non ligneux</label>
-                        </div>
+                        <label for="produit" class="form-label">Produit</label>
+                        <select class="form-select" id="produit" name="produit">
+                            <option value="Ligneux">Ligneux</option>
+                            <option value="Non ligneux">Non ligneux</option>
+                        </select>
                     </div>
                     
                 </form>

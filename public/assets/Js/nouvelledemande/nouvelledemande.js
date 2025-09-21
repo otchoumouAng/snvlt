@@ -143,6 +143,29 @@ class NouvelleDemandeApp {
             this.saveDemande(); // La fonction saveDemande est déjà correcte
         });
 
+        $(document).on('change', '#typeDemande', async (e) => {
+            const selectedOptionText = $(e.currentTarget).find('option:selected').text();
+            const pefContainer = $('#pef-container');
+            const produitContainer = $('#produit-container');
+
+            pefContainer.hide();
+            produitContainer.hide();
+
+            if (selectedOptionText === "Reprise d'activité PEF") {
+                pefContainer.show();
+                const pefs = await this.apiService.get('/admin/nouvelle_demande/api/user/pefs');
+                const pefSelect = $('#numero_pef');
+                pefSelect.empty();
+                pefSelect.append('<option value="">Sélectionner un PEF</option>');
+                pefs.forEach(pef => {
+                    pefSelect.append(`<option value="${pef.id}">${pef.libelle}</option>`);
+                });
+
+            } else if (selectedOptionText === "Agrement Exploitant") {
+                produitContainer.show();
+            }
+        });
+
         // Événements pour le panneau de documents
         $('#details-panel').on('click', '.upload', (e) => {
             const docTypeId = $(e.currentTarget).closest('.document-item-new').data('doc-type-id');
@@ -313,29 +336,6 @@ class NouvelleDemandeApp {
             //this.setupModal(mode, null);
             this.setupModalWithData(mode, {});
         }
-
-        $('#typeDemande').on('change', async (e) => {
-            const selectedOptionText = $(e.currentTarget).find('option:selected').text();
-            const pefContainer = $('#pef-container');
-            const produitContainer = $('#produit-container');
-
-            pefContainer.hide();
-            produitContainer.hide();
-
-            if (selectedOptionText === "Reprise d'activité PEF") {
-                pefContainer.show();
-                const pefs = await this.apiService.get('/admin/nouvelle_demande/api/user/pefs');
-                const pefSelect = $('#numero_pef');
-                pefSelect.empty();
-                pefSelect.append('<option value="">Sélectionner un PEF</option>');
-                pefs.forEach(pef => {
-                    pefSelect.append(`<option value="${pef.id}">${pef.libelle}</option>`);
-                });
-
-            } else if (selectedOptionText === "Agrement Exploitant") {
-                produitContainer.show();
-            }
-        });
         
     } catch (error) {
         this.notification.error('Erreur lors de l\'ouverture du modal');
@@ -357,7 +357,7 @@ setupModalWithData(mode, data) {
     form.find('#demandeId').val(data.id);
     form.find('#typePaiement').val(data.typePaiementId); // Updated
     form.find('#description').val(data.description);
-    form.find('#typeDemande').val(data.typeDemandeId); // Corrected from typeDocument
+    form.find('#typeDemande').val(data.typeDemandeId).trigger('change'); // Corrected from typeDocument
     
     // Set mode-specific configurations
     switch(mode) {
@@ -578,7 +578,7 @@ showDetailsPlaceholder() {
                 description: $('#description').val(),
                 typeDemandeId: $('#typeDemande').val(),
                 numero_pef: $('#numero_pef').val(),
-                produit: $('input[name="produit"]:checked').val()
+                produit: $('#produit').val()
             };
             
             // Validation
@@ -630,8 +630,9 @@ showDetailsPlaceholder() {
         const demandeId = this.selectedDemandeId;
 
         for (const file of files) {
-            if (file.type !== 'application/pdf') {
-                this.notification.warning('Seuls les fichiers PDF sont acceptés');
+            const allowedTypes = ['application/pdf', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            if (!allowedTypes.includes(file.type)) {
+                this.notification.warning('Seuls les fichiers PDF et Excel sont acceptés');
                 continue;
             }
 
