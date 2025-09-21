@@ -152,11 +152,15 @@ class NouvelleDemandeController extends AbstractController
         $uploadedDocuments = [];
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $doc = $demandeDocument->getDocument();
+            $status = $doc->getStatut();
+            if ($status === 'soumis') {
+                $status = 'Chargé';
+            }
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
                 'path' => '/uploads/documents/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
-                'statut' => $doc->getStatut(), // Utiliser le statut réel du document
+                'statut' => $status, // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
         }
@@ -304,9 +308,10 @@ class NouvelleDemandeController extends AbstractController
         $document = new Document();
         $document->setNom($file->getClientOriginalName());
         $document->setPath($newFilename);
-        $document->setStatut('soumis');
+        $document->setStatut('Chargé');
         $document->setTypeDocument($typeDocument);
         $document->setCreatedBy($this->getUser()->getUserIdentifier());
+        $document->setDesactivate(false);
 
         $demandeDocument = new DemandeDocument();
         $demandeDocument->setDemande($demande);
@@ -490,7 +495,7 @@ class NouvelleDemandeController extends AbstractController
 
         // La première étape sans date de traitement est l'étape "active".
         // Sauf si la demande est déjà terminée (approuvée/rejetée).
-        if ($demandeStatut === 'approuvee' || $demandeStatut === 'rejetee') {
+        if ($demandeStatut === 'Accepté' || $demandeStatut === 'rejetee') {
             return ['', false];
         }
 

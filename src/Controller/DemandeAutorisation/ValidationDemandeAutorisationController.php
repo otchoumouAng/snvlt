@@ -166,7 +166,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                     $requiredDocuments[] = [
                         'type_document_id' => $typeDocId,
                         'nom' => $typeDocument->getDesignation(),
-                        'statut' => 'Non soumis',
+                        'statut' => 'Non chargé',
                         'document_id' => null,
                         'path' => null,
                         'dateAjout' => null
@@ -204,71 +204,39 @@ class ValidationDemandeAutorisationController extends AbstractController
     }
 
     /**
-     * @Route("/etape/{id}/validate", name="app_validation_demande_autorisation_etape_validate", methods={"POST"})
+     * @Route("/{id}/validate_demande", name="app_validation_demande_autorisation_validate_demande", methods={"POST"})
      */
-    public function validateStep(EtapeValidation $etape, Request $request): JsonResponse
+    public function validateDemande(NouvelleDemande $demande, Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $decision = $data['decision'] ?? null; // 'approve' or 'reject'
-        $comment = $data['comment'] ?? null;
+        $newStatus = $data['newStatus'] ?? null;
+        $refusedDocuments = $data['refusedDocuments'] ?? [];
+        $justification = $data['justification'] ?? null;
 
-        if (!in_array($decision, ['approve', 'reject'])) {
-            return new JsonResponse(['error' => 'Invalid decision'], 400);
+        if (empty($newStatus)) {
+            return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
 
-        if ($decision === 'reject' && empty($comment)) {
-            return new JsonResponse(['error' => 'Un commentaire est requis pour le rejet.'], 400);
+        if (!empty($refusedDocuments) && empty($justification)) {
+            return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
 
-        $demande = $etape->getDemande();
+        $demande->setStatut($newStatus);
 
-        if ($decision === 'approve') {
-            $etape->setStatut('Validé');
-            $etape->setDateTraitement(new \DateTimeImmutable());
-
-            // Find next step
-            $nextEtape = $this->etapeValidationRepository->findOneBy([
-                'demande' => $demande,
-                'ordre' => $etape->getOrdre() + 1
-            ]);
-
-            if ($nextEtape) {
-                // Not the last step, find the corresponding circuit detail to notify next validators
-                $typeDemande = $demande->getTypeDemande();
-                $nextDetail = null;
-                if ($typeDemande) {
-                    $modele = $this->modeleCommunicationRepository->findOneBy([
-                        'typeDemande' => $typeDemande,
-                        'statut' => 'ACTIF'
-                    ]);
-
-                    if ($modele) {
-                        foreach ($modele->getDetailsModeles() as $detail) {
-                            if ($detail->getNumseq() === $nextEtape->getOrdre()) {
-                                $nextDetail = $detail;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if ($nextDetail) {
-                    $this->notificationService->sendNotificationForStep($demande, $nextDetail, $this->getUser());
-                }
-                // If $nextDetail is not found, we might want to log an error or handle it somehow
-                // For now, it will just not send a notification.
-
-            } else {
-                // This was the last step, approve the whole request
-                $demande->setStatut('accepté');
+        foreach ($refusedDocuments as $docId => $status) {
+            $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
+            if ($document) {
+                $document->setStatut('Rejeté');
             }
-        } else { // 'reject'
-            $etape->setStatut('Rejeté');
-            $etape->setDateTraitement(new \DateTimeImmutable());
-            $etape->setDetails($comment);
-            $demande->setStatut('rejeté');
         }
 
+        $validationAction = new ValidationAction();
+        $validationAction->setDemande($demande);
+        $validationAction->setValidator($this->getUser());
+        $validationAction->setStatut($newStatus);
+        $validationAction->setNote($justification);
+
+        $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
 
         return new JsonResponse(['success' => true]);

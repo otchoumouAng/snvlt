@@ -533,7 +533,7 @@ buildDocumentsHtml(details) {
             actionsHtml = `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
                            </button>`;
-        } else { // "Non soumis" ou "rejeté"
+        } else { // "Non chargé" ou "rejeté"
             actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
                            </button>`;

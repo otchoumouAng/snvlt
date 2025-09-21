@@ -143,6 +143,31 @@ getStatusBadge(status) {
             const comment = $('#rejection-comment').val();
             this.rejectStep(etapeId, comment);
         });
+
+        $(document).on('click', '.refuse-doc-btn', (e) => {
+            const docId = $(e.currentTarget).data('doc-id');
+            if (confirm('Êtes-vous sûr de vouloir refuser ce document ?')) {
+                this.refusedDocuments[docId] = 'Refusé';
+                $(e.currentTarget).closest('.list-group-item').addClass('refused');
+                this.notification.info('Document marqué comme refusé.');
+                if (Object.keys(this.refusedDocuments).length > 0) {
+                    $('#justification-form').slideDown();
+                }
+            }
+        });
+
+        $(document).on('click', '#validate-demande-btn', (e) => {
+            const demandeId = $(e.currentTarget).data('demande-id');
+            const justification = $('#justification-comment').val();
+            const newStatus = $('#demande-status').val();
+
+            if (Object.keys(this.refusedDocuments).length > 0 && !justification) {
+                this.notification.warning('La justification est obligatoire si vous refusez des documents.');
+                return;
+            }
+
+            this.validateDemande(demandeId, newStatus, this.refusedDocuments, justification);
+        });
     }
 
     async loadDemandes() {
@@ -168,12 +193,16 @@ getStatusBadge(status) {
             placeholder.hide();
 
             let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
+            this.refusedDocuments = {}; // Reset refused documents
             if (details.documents && details.documents.length > 0) {
                 documentsHtml = details.documents.map(doc => `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <a href="${doc.path || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 80%;">${doc.nom}</a>
-                        <span class="badge bg-secondary">${doc.statut}</span>
-                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-eye"></i></a>
+                        <div>
+                            <span class="badge bg-secondary me-2">${doc.statut}</span>
+                            <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
+                            <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
+                        </div>
                     </li>
                 `).join('');
             }
@@ -195,26 +224,25 @@ getStatusBadge(status) {
                     ${this.getStatusBadge(details.statut)}
                 </div>
 
+                <div class="mb-3">
+                    <label for="demande-status" class="form-label">Changer le statut de la demande</label>
+                    <select id="demande-status" class="form-select">
+                        <option value="En cours de traiment">En cours de traiment</option>
+                        <option value="Demande signée et disponible">Demande signée et disponible</option>
+                    </select>
+                </div>
+
                 <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
                 <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
 
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Circuit de Validation</h6>
-                <ul class="list-group list-group-flush document-list mb-4">${etapesHtml}</ul>
-
-                <div id="validation-actions">
-                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Action</h6>
-                    <div class="d-flex justify-content-end gap-2">
-                        <button class="btn btn-danger" id="reject-step-btn" data-etape-id="${etapeId}"><i class="ph ph-x-circle"></i> Rejeter</button>
-                        <button class="btn btn-success" id="approve-step-btn" data-etape-id="${etapeId}"><i class="ph ph-check-circle"></i> Approuver</button>
-                    </div>
+                <div id="justification-form" class="mt-3" style="display: none;">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification du refus</h6>
+                    <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification..."></textarea>
                 </div>
 
-                <div id="rejection-form" class="mt-3" style="display: none;">
-                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Motif du Rejet</h6>
-                    <textarea id="rejection-comment" class="form-control" rows="3" placeholder="Veuillez fournir un commentaire..."></textarea>
-                    <div class="d-flex justify-content-end gap-2 mt-2">
-                        <button class="btn btn-secondary btn-sm" id="cancel-rejection-btn">Annuler</button>
-                        <button class="btn btn-danger btn-sm" id="confirm-rejection-btn" data-etape-id="${etapeId}">Confirmer le Rejet</button>
+                <div id="validation-actions" class="mt-3">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}"><i class="ph ph-check-circle"></i> Valider</button>
                     </div>
                 </div>
             `;
@@ -234,32 +262,20 @@ getStatusBadge(status) {
         placeholder.show();
     }
 
-    async approveStep(etapeId) {
-        try {
-            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, { decision: 'approve' });
-            this.notification.success('Étape approuvée avec succès.');
-            this.loadDemandes();
-        } catch (error) {
-            this.notification.error("Erreur lors de l'approbation de l'étape.");
-            console.error(error);
-        }
-    }
-
-    async rejectStep(etapeId, comment) {
-        if (!comment) {
-            this.notification.warning('Le commentaire de rejet est obligatoire.');
-            return;
-        }
+    async validateDemande(demandeId, newStatus, refusedDocuments, justification) {
+        const data = {
+            newStatus: newStatus,
+            refusedDocuments: refusedDocuments,
+            justification: justification
+        };
 
         try {
-            await this.apiService.post(`/admin/validation_demande_autorisation/etape/${etapeId}/validate`, {
-                decision: 'reject',
-                comment: comment
-            });
-            this.notification.success('Étape rejetée avec succès.');
+            // I will create this new endpoint in the controller
+            await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, data);
+            this.notification.success('Demande validée avec succès.');
             this.loadDemandes();
         } catch (error) {
-            this.notification.error(error.message || "Erreur lors du rejet de l'étape.");
+            this.notification.error(error.message || "Erreur lors de la validation de la demande.");
             console.error(error);
         }
     }
