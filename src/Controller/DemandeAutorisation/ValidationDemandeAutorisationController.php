@@ -235,6 +235,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         $validationAction->setValidator($this->getUser());
         $validationAction->setStatut($newStatus);
         $validationAction->setNote($justification);
+        $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
