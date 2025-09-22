@@ -14,6 +14,7 @@ class NouvelleDemandeApp {
     }
 
     init() {
+        this.preloadModalTemplates();
         this.initDataTable();
         this.bindEvents();
         this.loadDemandes();
@@ -53,23 +54,22 @@ class NouvelleDemandeApp {
             responsive: true,
             
             columnDefs: [
-                // --- Priorités d'affichage ---
-                // Les 4 colonnes que vous voulez voir par défaut
-                { responsivePriority: 1, targets: 2 }, // Priorité 1 (la plus haute) pour "Nature"
-                { responsivePriority: 2, targets: 3 }, // Priorité 3 pour "Date"
-                { responsivePriority: 3, targets: 4 }, // Priorité 4 pour "Statut"
+            // --- Priorités d'affichage mises à jour ---
+            { responsivePriority: 1, targets: 0 }, // Priorité 1 (la plus haute) pour "ID"
+            { responsivePriority: 2, targets: 2 }, // Priorité 2 pour "Nature"
+            { responsivePriority: 3, targets: 3 }, // Priorité 3 pour "Date"
+            { responsivePriority: 4, targets: 4 }, // Priorité 4 pour "Statut"
 
-                // Les colonnes qui seront masquées en premier
-                { responsivePriority: 100, targets: 0 }, // Priorité basse pour "ID"
-                { responsivePriority: 101, targets: 1 }, // Priorité la plus basse pour "Paiement"
-                
-                // --- Comportement du bouton d'expansion (+) ---
-                {
-                    className: 'dtr-control',
-                    orderable: false,
-                    targets: 0 // Le bouton (+) sera sur la colonne ID (mais il se déplace si ID est cachée)
-                }
-            ],
+            // La colonne qui sera masquée en premier
+            { responsivePriority: 101, targets: 1 }, // Priorité la plus basse pour "Paiement"
+            
+            // --- Comportement du bouton d'expansion (+) ---
+            {
+                className: 'dtr-control',
+                orderable: false,
+                targets: 0 // Le bouton (+) reste sur la colonne ID
+            }
+        ],
 
             order: [[3, 'desc']],
             pageLength: 10,
@@ -155,7 +155,7 @@ class NouvelleDemandeApp {
             pefContainer.hide();
             produitContainer.hide();
 
-            if (selectedOptionText === "Reprise d'activité PEF") {
+            if (selectedOptionText === "Autorisation annuelle de reprise d'activité dans les PEF") {
                 pefContainer.show();
                 const pefs = await this.apiService.get('/admin/nouvelle_demande/api/user/pefs');
                 const pefSelect = $('#numero_pef');
@@ -166,7 +166,7 @@ class NouvelleDemandeApp {
                     pefSelect.append(`<option value="${pef.libelle}">${pef.libelle}</option>`);
                 });
 
-            } else if (selectedOptionText === "Agrement Exploitant") {
+            } else if (selectedOptionText === "Agrément d'exportateur de produits forestiers ( Ligneux et Non ligneux)") {
                 produitContainer.show();
             }
         });
