@@ -55,6 +55,7 @@ class ValidationDemandeApp {
                 className: 'dtr-control',
                 orderable: false
             },
+            { data: 'id', title: 'ID' },
             { data: 'titre', title: 'Type de Demande' },
             { data: 'societe', title: 'Société' },
             {
