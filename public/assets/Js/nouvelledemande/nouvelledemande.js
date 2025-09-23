@@ -766,4 +766,3 @@ showDetailsPlaceholder() {
         }
     }
 }
-

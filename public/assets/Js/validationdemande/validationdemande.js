@@ -198,85 +198,6 @@ getStatusBadge(status) {
         }
     }
 
-
-
-    /*async displayDetails(demandeId, etapeId) {
-        try {
-            const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
-            console.log(details)
-            const detailsContent = $('#details-content');
-            const placeholder = $('#details-placeholder');
-
-            placeholder.hide();
-
-            let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
-            this.refusedDocuments = {}; // Reset refused documents
-            if (details.documents && details.documents.length > 0) {
-                documentsHtml = details.documents.map(doc => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <a href="${doc.path || '#'}" target="_blank" class="text-decoration-none text-dark text-truncate" style="max-width: 80%;">${doc.nom}</a>
-                        <div>
-                            <span class="badge bg-secondary me-2">${doc.statut}</span>
-                            <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
-                            <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
-                        </div>
-                    </li>
-                `).join('');
-            }
-
-            let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
-            if (details.etapes_validation && details.etapes_validation.length > 0) {
-                etapesHtml = details.etapes_validation.map(etape => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center ${etape.id === etapeId ? 'active' : ''}">
-                        <span>${etape.ordre}. ${etape.nom}</span>
-                        <span class="badge bg-info">${etape.statut}</span>
-                    </li>
-                `).join('');
-            }
-
-            const contentHtml = `
-                <div class="mb-3">
-                    <h5 class="fw-bold mb-1">${details.titre}</h5>
-                    <p class="text-muted mb-2">Société: ${details.societe}</p>
-                    ${this.getStatusBadge(details.statut)}
-                </div>
-
-                <div class="mb-3">
-                    <label for="demande-status" class="form-label">Changer le statut de la demande</label>
-                    <select id="demande-status" class="form-select">
-                        <option value="En cours">En cours de traitement</option>
-                        <option value="Signé">Demande signée et disponible</option>
-                    </select>
-                </div>
-
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
-                <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
-
-                <h6 class="text-muted small fw-bold text-uppercase mt-4 mb-2">Circuit de Validation</h6>
-                <ul class="list-group list-group-flush mb-4">${etapesHtml}</ul>
-
-                <div id="justification-form" class="mt-3" style="display: none;">
-                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification du refus</h6>
-                    <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification..."></textarea>
-                </div>
-
-                <div id="validation-actions" class="mt-3">
-                    <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}"><i class="ph ph-check-circle"></i> Valider</button>
-                    </div>
-                </div>
-            `;
-
-            detailsContent.html(contentHtml).addClass('visible');
-        } catch (error) {
-            this.notification.error("Erreur lors de l'affichage des détails.");
-            console.error(error);
-            this.showDetailsPlaceholder();
-        }
-    }*/
-
-    
-
     async displayDetails(demandeId, etapeId) {
     try {
         const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
@@ -386,24 +307,6 @@ getStatusBadge(status) {
         detailsContent.removeClass('visible').html('');
         placeholder.show();
     }
-
-    /*async validateDemande(demandeId, newStatus, refusedDocuments, justification) {
-        const data = {
-            newStatus: newStatus,
-            refusedDocuments: refusedDocuments,
-            justification: justification
-        };
-
-        try {
-            // I will create this new endpoint in the controller
-            await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, data);
-            this.notification.success('Demande validée avec succès.');
-            this.loadDemandes();
-        } catch (error) {
-            this.notification.error(error.message || "Erreur lors de la validation de la demande.");
-            console.error(error);
-        }
-    }*/
 
     async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification) {
     const formData = new FormData();

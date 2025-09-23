@@ -82,22 +82,26 @@ class ApiService {
         return this.request(endpoint, { method: 'GET', ...options });
     }
 
-    post(endpoint, data, options = {}) {
-        const headers = { ...(options.headers || {}) };
+    post(endpoint, data, isFormData = false) {
+        try {
+            const options = {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: isFormData ? data : JSON.stringify(data)
+            };
 
-        if (options.json === false) {
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
-        }
-        if (options.multipart === true) {
-            if (headers['Content-Type']) delete headers['Content-Type'];
-        }
+            if (!isFormData) {
+                options.headers['Content-Type'] = 'application/json';
+            }
 
-        return this.request(endpoint, {
-            method: 'POST',
-            body: data,
-            headers,
-            ...options,
-        });
+            const response = fetch(endpoint, options);
+            return this.handleResponse(response);
+        } catch (error) {
+            console.error('API POST Error:', error);
+            throw error;
+        }
     }
 
     // Méthodes spécifiques pour Nouvelle Demande

@@ -148,6 +148,10 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $documentsDir = $this->getParameter('documents_directory');
+        $webPath = str_replace($publicDir, '', $documentsDir);
+
         // Get uploaded documents for the demand
         $uploadedDocuments = [];
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
@@ -159,7 +163,7 @@ class NouvelleDemandeController extends AbstractController
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
-                'path' => '/uploads/documents/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
+                'path' => $webPath . '/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
                 'statut' => $status, // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
@@ -207,7 +211,7 @@ class NouvelleDemandeController extends AbstractController
             'statut' => $demande->getStatut(),
             'documents' => $requiredDocuments,
             'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-            'signed_document_path' => $demande->getDocumentSignePath() ? '/uploads/documents/' . $demande->getDocumentSignePath() : null,
+            'signed_document_path' => $demande->getDocumentSignePath() ? $webPath . '/' . $demande->getDocumentSignePath() : null,
         ];
 
         return new JsonResponse($data);
