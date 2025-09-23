@@ -189,6 +189,10 @@ class ValidationDemandeAutorisationController extends AbstractController
         $operateur = $demande->getOperateur();
         $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $documentsDir = $this->getParameter('documents_directory');
+        $webPath = str_replace($publicDir, '', $documentsDir);
+
         $data = [
             'id' => $demande->getId(),
             'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
@@ -198,6 +202,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
+            'document_excel_path' => $demande->getDocumentExcelPath() ? $webPath . '/' . $demande->getDocumentExcelPath() : null,
         ];
 
         return new JsonResponse($data);

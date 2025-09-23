@@ -217,6 +217,43 @@ class NouvelleDemandeController extends AbstractController
         return new JsonResponse($data);
     }
 
+    /**
+     * @Route("/{id}/add_excel_document", name="app_nouvelle_demande_add_excel_document", methods={"POST"})
+     */
+    public function addExcelDocument(int $id, Request $request, NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    {
+        $demande = $nouvelleDemandeRepository->find($id);
+
+        if (!$demande) {
+            return new JsonResponse(['error' => 'Demande non trouvée'], 404);
+        }
+
+        $file = $request->files->get('document');
+
+        if (!$file) {
+            return new JsonResponse(['error' => 'Aucun fichier fourni'], 400);
+        }
+
+        $allowedMimeTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return new JsonResponse(['error' => 'Le fichier doit être un fichier Excel.'], 400);
+        }
+
+        $uploadsDirectory = $this->getParameter('documents_directory');
+        $newFilename = uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move($uploadsDirectory, $newFilename);
+        } catch (FileException $e) {
+            return new JsonResponse(['error' => 'Impossible de stocker le fichier'], 500);
+        }
+
+        $demande->setDocumentExcelPath($newFilename);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+    }
+
 
     /**
      * @Route("/save", name="app_nouvelle_demande_save", methods={"POST"})

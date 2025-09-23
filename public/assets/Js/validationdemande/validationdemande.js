@@ -207,10 +207,24 @@ getStatusBadge(status) {
         placeholder.hide();
 
         // 1. Logique pour les documents
-        let documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
+        let documentsHtml = '';
+
+        if (details.document_excel_path) {
+            documentsHtml += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-truncate" style="max-width: 70%;">Document Spécial Excel</span>
+                    <div class="d-flex align-items-center">
+                        ${this.getDocumentStatusBadge('Chargé')}
+                        <a href="${details.document_excel_path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
+                    </div>
+                </li>
+            `;
+        }
+
+
         this.refusedDocuments = {};
         if (details.documents && details.documents.length > 0) {
-            documentsHtml = details.documents.map(doc => {
+            documentsHtml += details.documents.map(doc => {
                 const actionButtons = doc.statut === 'Chargé' ? `
                     <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
                     <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
@@ -226,6 +240,10 @@ getStatusBadge(status) {
                     </li>
                 `;
             }).join('');
+        }
+
+        if(documentsHtml === ''){
+            documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
         }
 
         // 2. Logique pour le circuit de validation

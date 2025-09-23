@@ -146,6 +146,11 @@ class ApiService {
         return this.post(`/admin/nouvelle_demande/${demandeId}/add_document`, formData, { multipart: true });
     }
 
+    addExcelDocument(demandeId, formData) {
+        this.cache.clear();
+        return this.post(`/admin/nouvelle_demande/${demandeId}/add_excel_document`, formData, true);
+    }
+
     removeDocument(demandeId, documentId) {
         this.cache.clear();
         return this.post(`/admin/nouvelle_demande/${demandeId}/remove_document`, { document_id: documentId });
