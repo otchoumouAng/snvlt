@@ -212,7 +212,7 @@ getStatusBadge(status) {
         if (details.document_excel_path) {
             documentsHtml += `
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span class="text-truncate" style="max-width: 70%;">Document Spécial Excel</span>
+                    <span class="text-truncate" style="max-width: 70%;"><i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42; vertical-align: middle; margin-right: 8px;"></i>Document Spécial Excel</span>
                     <div class="d-flex align-items-center">
                         ${this.getDocumentStatusBadge('Chargé')}
                         <a href="${details.document_excel_path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
