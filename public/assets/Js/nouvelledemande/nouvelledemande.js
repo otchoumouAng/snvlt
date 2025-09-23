@@ -421,7 +421,7 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-success" id="view-signed-doc-portal-btn" data-action="pay">
+        buttonHtml = `<button class="btn btn-primary" id="view-signed-doc-portal-btn">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {
@@ -558,21 +558,6 @@ buildDocumentsHtml(details) {
             </li>
         `;
     }).join('');
-
-    if (details.statut === 'Signé' && details.signed_document_path) {
-        documentsListHtml += `
-            <li class="document-item-new" data-doc-path="${details.signed_document_path}">
-                <i class="ph-fill ph-file-pdf doc-icon" style="color: #dc3545;"></i>
-                <div class="doc-info">Document Signé</div>
-                <div class="doc-status"><span class="status-badge-sm status-accepte">Signé</span></div>
-                <div class="doc-actions">
-                    <button class="action-btn view" title="Visualiser le document signé">
-                        <i class="ph-fill ph-eye"></i>
-                    </button>
-                </div>
-            </li>
-        `;
-    }
 
     // On retourne la liste complète
     return `<ul class="document-requirements-list">${documentsListHtml}</ul>`;

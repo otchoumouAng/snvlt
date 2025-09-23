@@ -11,7 +11,7 @@
         </div>
         {% if demande.statut == 'Signé' and demande.documentSignePath %}
             <div class="ms-auto">
-                <a href="{{ asset('uploads/documents/' ~ demande.documentSignePath) }}" target="_blank" class="btn btn-primary">
+                <a href="{{ asset('uploads/documents/' ~ demande.documentSignePath) }}" target="_blank" class="btn btn-success">
                     <i class="ph-fill ph-file-pdf"></i>
                     Visualiser le document
                 </a>
