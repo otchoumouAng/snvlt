@@ -189,6 +189,10 @@ class ValidationDemandeAutorisationController extends AbstractController
         $operateur = $demande->getOperateur();
         $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $documentsDir = $this->getParameter('documents_directory');
+        $webPath = str_replace($publicDir, '', $documentsDir);
+
         $data = [
             'id' => $demande->getId(),
             'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
@@ -198,6 +202,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
+            'document_excel_path' => $demande->getDocumentExcelPath() ? $webPath . '/' . $demande->getDocumentExcelPath() : null,
         ];
 
         return new JsonResponse($data);
@@ -213,17 +218,16 @@ class ValidationDemandeAutorisationController extends AbstractController
      */
     public function validateDemande(NouvelleDemande $demande, Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $newStatus = $data['newStatus'] ?? null;
-        $refusedDocuments = $data['refusedDocuments'] ?? [];
-        $justification = $data['justification'] ?? null;
-        $etapeId = $data['etapeId'] ?? null; // NOUVEAU : Récupérer l'ID de l'étape
+        $newStatus = $request->request->get('newStatus');
+        $refusedDocuments = json_decode($request->request->get('refusedDocuments', '[]'), true);
+        $justification = $request->request->get('justification');
+        $etapeId = $request->request->get('etapeId');
+        $uploadedFile = $request->files->get('signedDocument');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
 
-        // NOUVEAU : Vérifier que l'ID de l'étape est bien présent
         if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
         }
@@ -232,22 +236,32 @@ class ValidationDemandeAutorisationController extends AbstractController
             return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
 
-        // NOUVEAU : Trouver et mettre à jour l'étape de validation
+        if ($newStatus === 'Signé' && !$uploadedFile) {
+            return new JsonResponse(['error' => 'Le document signé est obligatoire.'], 400);
+        }
+
         $etape = $this->etapeValidationRepository->find($etapeId);
         if (!$etape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
         }
-        
-        // Sécurité : Vérifier que l'étape appartient bien à la demande traitée
+
         if ($etape->getDemande()->getId() !== $demande->getId()) {
             return new JsonResponse(['error' => 'Cette étape n\'appartient pas à la demande sélectionnée.'], 400);
         }
 
-        $etape->setStatut('Validé'); // Mettre le statut de l'étape à "Validé"
-        $etape->setDateTraitement(new \DateTime()); // Mettre à jour la date de traitement
-        // Fin des nouveautés pour la mise à jour de l'étape
+        $etape->setStatut('Validé');
+        $etape->setDateTraitement(new \DateTime());
 
         $demande->setStatut($newStatus);
+
+        if ($newStatus === 'Signé' && $uploadedFile) {
+            $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
+            $uploadedFile->move(
+                $this->getParameter('documents_directory'),
+                $newFilename
+            );
+            $demande->setDocumentSignePath($newFilename);
+        }
 
         foreach ($refusedDocuments as $docId => $status) {
             $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);

@@ -62,6 +62,12 @@ class NouvelleDemande
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $produit = null;
 
+    #[ORM\Column(name: "document_signe_path", length: 255, nullable: true)]
+    private ?string $documentSignePath = null;
+
+    #[ORM\Column(name: "document_excel_path", length: 255, nullable: true)]
+    private ?string $documentExcelPath = null;
+
     public function __construct()
     {
         $this->etapesValidation = new ArrayCollection();
@@ -213,6 +219,30 @@ class NouvelleDemande
     public function setProduit(?string $produit): static
     {
         $this->produit = $produit;
+
+        return $this;
+    }
+
+    public function getDocumentSignePath(): ?string
+    {
+        return $this->documentSignePath;
+    }
+
+    public function setDocumentSignePath(?string $documentSignePath): static
+    {
+        $this->documentSignePath = $documentSignePath;
+
+        return $this;
+    }
+
+    public function getDocumentExcelPath(): ?string
+    {
+        return $this->documentExcelPath;
+    }
+
+    public function setDocumentExcelPath(?string $documentExcelPath): static
+    {
+        $this->documentExcelPath = $documentExcelPath;
 
         return $this;
     }

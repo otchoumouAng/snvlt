@@ -148,6 +148,10 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $documentsDir = $this->getParameter('documents_directory');
+        $webPath = str_replace($publicDir, '', $documentsDir);
+
         // Get uploaded documents for the demand
         $uploadedDocuments = [];
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
@@ -159,7 +163,7 @@ class NouvelleDemandeController extends AbstractController
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
-                'path' => '/uploads/documents/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
+                'path' => $webPath . '/' . $doc->getPath(), // Assurez-vous que c'est le bon chemin public
                 'statut' => $status, // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
@@ -207,9 +211,47 @@ class NouvelleDemandeController extends AbstractController
             'statut' => $demande->getStatut(),
             'documents' => $requiredDocuments,
             'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+            'signed_document_path' => $demande->getDocumentSignePath() ? $webPath . '/' . $demande->getDocumentSignePath() : null,
         ];
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/{id}/add_excel_document", name="app_nouvelle_demande_add_excel_document", methods={"POST"})
+     */
+    public function addExcelDocument(int $id, Request $request, NouvelleDemandeRepository $nouvelleDemandeRepository): JsonResponse
+    {
+        $demande = $nouvelleDemandeRepository->find($id);
+
+        if (!$demande) {
+            return new JsonResponse(['error' => 'Demande non trouvée'], 404);
+        }
+
+        $file = $request->files->get('document');
+
+        if (!$file) {
+            return new JsonResponse(['error' => 'Aucun fichier fourni'], 400);
+        }
+
+        $allowedMimeTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+            return new JsonResponse(['error' => 'Le fichier doit être un fichier Excel.'], 400);
+        }
+
+        $uploadsDirectory = $this->getParameter('documents_directory');
+        $newFilename = uniqid() . '.' . $file->guessExtension();
+
+        try {
+            $file->move($uploadsDirectory, $newFilename);
+        } catch (FileException $e) {
+            return new JsonResponse(['error' => 'Impossible de stocker le fichier'], 500);
+        }
+
+        $demande->setDocumentExcelPath($newFilename);
+        $this->entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
     }
 
 

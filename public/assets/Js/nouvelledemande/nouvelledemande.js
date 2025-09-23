@@ -179,9 +179,18 @@ class NouvelleDemandeApp {
             fileInput.click();
         });
 
+        $('#details-panel').on('click', '#upload-special-excel-btn', (e) => {
+            const fileInput = $('#excel-upload-panel');
+            fileInput.click();
+        });
+
         $('#details-panel').on('change', '#pdf-upload-panel', (e) => {
             const docTypeId = $(e.currentTarget).attr('data-doc-type-id');
             this.handleFileUpload(e.target.files, docTypeId);
+        });
+
+        $('#details-panel').on('change', '#excel-upload-panel', (e) => {
+            this.handleExcelUpload(e.target.files);
         });
 
         $('#details-panel').on('click', '.view', (e) => {
@@ -218,6 +227,10 @@ class NouvelleDemandeApp {
         $(document).on('click', '.stepper-item.completed', (e) => {
             const stepId = $(e.currentTarget).data('step-id');
             this.loadStepDetails(this.selectedDemandeId, stepId);
+        });
+
+        $(document).on('click', '#view-signed-doc-portal-btn', (e) => {
+            this.showTrackingPortal(this.selectedDemandeId);
         });
 
     }
@@ -417,8 +430,8 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-sm btn-primary" id="pay-fees-btn" data-action="pay">
-                        <i class="ph-fill ph-credit-card"></i> Payer les frais
+        buttonHtml = `<button class="btn btn-primary" id="view-signed-doc-portal-btn">
+                        <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {
         buttonHtml = ``; // No button for other statuses
@@ -440,7 +453,9 @@ async displayDocumentPanel(demandeData) {
         const contentHtml = this.buildDocumentsHtml(details); // On sépare la logique de construction HTML
 
         // Add the hidden file input
-        const fullHtml = contentHtml + '<input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" />';
+        const fullHtml = contentHtml +
+        '<input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" />' +
+        '<input type="file" id="excel-upload-panel" accept=".xls,.xlsx" style="display: none;" />';
 
         // Replace spinner with content
         $('#details-content').html(fullHtml);
@@ -501,17 +516,36 @@ async displayDocumentPanel(demandeData) {
 // Fichier : nouvelledemande.js
 
 buildDocumentsHtml(details) {
+
+    let specialExcelHtml = '';
+    let excelActionsHtml = '';
+    if (details.document_excel_path) {
+        excelActionsHtml = `<button class="action-btn view" title="Visualiser le document Excel" data-doc-path="${details.document_excel_path}">
+                               <i class="ph-fill ph-eye"></i>
+                           </button>`;
+    } else {
+        excelActionsHtml = `<button class="action-btn upload" id="upload-special-excel-btn" title="Charger le document Excel">
+                               <i class="ph-fill ph-upload-simple"></i>
+                           </button>`;
+    }
+
+    specialExcelHtml = `
+        <li class="document-item-new" data-doc-path="${details.document_excel_path || ''}">
+            <i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42;"></i>
+            <div class="doc-info">Document Spécial Excel</div>
+            <div class="doc-status">${details.document_excel_path ? '<span class="status-badge-sm status-fourni">Chargé</span>' : '<span class="status-badge-sm status-non-fourni">Non chargé</span>'}</div>
+            <div class="doc-actions">${excelActionsHtml}</div>
+        </li>
+    `;
+
+
     // Si la demande n'a pas de documents requis, on affiche un message.
     if (!details.documents || details.documents.length === 0) {
-        return `<div class="text-center p-5 mt-3">
-                    <i class="ph-light ph-files" style="font-size: 3rem; color: #ced4da;"></i>
-                    <h6 class="mt-3">Aucun document requis</h6>
-                    <p class="text-muted small">Cette typologie de demande ne nécessite pas de document.</p>
-                </div>`;
+        return `<ul class="document-requirements-list">${specialExcelHtml}</ul>`;
     }
 
     // On construit la liste des documents à fournir
-    const documentsListHtml = details.documents.map(doc => {
+    let documentsListHtml = details.documents.map(doc => {
         let statutHtml = '';
         let actionsHtml = '';
 
@@ -556,7 +590,7 @@ buildDocumentsHtml(details) {
     }).join('');
 
     // On retourne la liste complète
-    return `<ul class="document-requirements-list">${documentsListHtml}</ul>`;
+    return `<ul class="document-requirements-list">${specialExcelHtml}${documentsListHtml}</ul>`;
 }
 
 // Fonctions de gestion des états du panneau
@@ -622,6 +656,44 @@ showDetailsPlaceholder() {
             
         } catch (error) {
             this.notification.error('Erreur lors de la suppression');
+            console.error(error);
+        }
+    }
+
+    async handleExcelUpload(files) {
+        if (!this.selectedDemandeId) {
+            this.notification.warning('Veuillez sélectionner une demande');
+            return;
+        }
+
+        const demandeId = this.selectedDemandeId;
+        const file = files[0];
+        const allowedTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+        if (!allowedTypes.includes(file.type)) {
+            this.notification.warning('Seuls les fichiers Excel sont acceptés');
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) { // 10MB limit
+            this.notification.warning('Le fichier ne doit pas dépasser 10 Mo');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('document', file);
+
+        try {
+            await this.apiService.addExcelDocument(demandeId, formData);
+            this.notification.success('Document Excel ajouté avec succès');
+
+            // Reload the document panel
+            const rowData = this.dataTable.row({ selected: true }).data();
+            if (rowData) {
+                this.displayDocumentPanel(rowData);
+            }
+
+        } catch (error) {
+            this.notification.error('Erreur lors de l\'ajout du document Excel');
             console.error(error);
         }
     }
@@ -751,4 +823,3 @@ showDetailsPlaceholder() {
         }
     }
 }
-
