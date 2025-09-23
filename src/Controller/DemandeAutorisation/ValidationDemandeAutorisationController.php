@@ -250,32 +250,12 @@ class ValidationDemandeAutorisationController extends AbstractController
         $demande->setStatut($newStatus);
 
         if ($newStatus === 'Signé' && $uploadedFile) {
-            $document = new \App\Entity\DemandeAutorisation\Document();
-            $typeDocument = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\TypeDocument::class)->findOneBy(['designation' => 'Document signé']);
-            if (!$typeDocument) {
-                // Create it if it doesn't exist
-                $typeDocument = new \App\Entity\DemandeAutorisation\TypeDocument();
-                $typeDocument->setDesignation('Document signé');
-                $this->entityManager->persist($typeDocument);
-            }
-            $document->setTypeDocument($typeDocument);
-
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move(
                 $this->getParameter('documents_directory'),
                 $newFilename
             );
-            $document->setPath($newFilename);
-            $document->setNom($uploadedFile->getClientOriginalName());
-            $document->setStatut('Signé');
-            $document->setCreatedBy($this->getUser()->getUserIdentifier());
-
-            $demandeDocument = new \App\Entity\DemandeAutorisation\DemandeDocument();
-            $demandeDocument->setDemande($demande);
-            $demandeDocument->setDocument($document);
-
-            $this->entityManager->persist($document);
-            $this->entityManager->persist($demandeDocument);
+            $demande->setDocumentSignePath($newFilename);
         }
 
         foreach ($refusedDocuments as $docId => $status) {

@@ -193,16 +193,6 @@ class NouvelleDemandeApp {
             }
         });
 
-        // Event listener for the signed document view button
-        $('#details-panel').on('click', '.view-signed-doc-btn', (e) => {
-            const docPath = $(e.currentTarget).data('doc-path');
-            if (docPath) {
-                window.open(docPath, '_blank');
-            } else {
-                this.notification.error('Chemin du document signé non trouvé.');
-            }
-        });
-
 
         // Use document for delegated event since the button is in the header, outside the panel
         $(document).on('click', '#refresh-demande-btn', (e) => {
@@ -572,7 +562,7 @@ buildDocumentsHtml(details) {
                 <div class="doc-info">Document Signé</div>
                 <div class="doc-status"><span class="status-badge-sm status-accepte">Signé</span></div>
                 <div class="doc-actions">
-                    <button class="action-btn view-signed-doc-btn" title="Visualiser le document signé" data-doc-path="${details.signed_document_path}">
+                    <button class="action-btn view" title="Visualiser le document signé">
                         <i class="ph-fill ph-eye"></i>
                     </button>
                 </div>
