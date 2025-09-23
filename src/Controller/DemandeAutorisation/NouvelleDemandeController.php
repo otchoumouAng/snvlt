@@ -600,10 +600,37 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/{id}/etat_depot", name="app_nouvelle_demande_etat_depot_pdf")
      */
-    public function generateEtatDepotPdf(NouvelleDemande $demande, \App\Service\Paiement\PdfService $pdfService): Response
+    public function generateEtatDepotPdf(NouvelleDemande $demande, \App\Service\Paiement\PdfService $pdfService, TypeDemandeDetailRepository $typeDemandeDetailRepository): Response
     {
+        $uploadedDocuments = [];
+        foreach ($demande->getDemandeDocuments() as $demandeDocument) {
+            $doc = $demandeDocument->getDocument();
+            $uploadedDocuments[$doc->getTypeDocument()->getId()] = true;
+        }
+
+        $allDocuments = [];
+        if ($demande->getTypeDemande()) {
+            $requiredDocumentDetails = $typeDemandeDetailRepository->findBy(['typeDemande' => $demande->getTypeDemande()]);
+            foreach ($requiredDocumentDetails as $detail) {
+                $typeDocument = $detail->getTypeDocument();
+                $typeDocId = $typeDocument->getId();
+                $allDocuments[] = [
+                    'nom' => $typeDocument->getDesignation(),
+                    'fourni' => isset($uploadedDocuments[$typeDocId]) ? 'Fourni' : 'Non fourni',
+                ];
+            }
+        }
+
+        if ($demande->getDocumentExcelPath()) {
+            $allDocuments[] = [
+                'nom' => 'Fichier Spécial Excel',
+                'fourni' => 'Fourni',
+            ];
+        }
+
         $html = $this->renderView('DemandeAutorisation/nouvelle_demande/etat_depot.html.twig', [
             'demande' => $demande,
+            'documents' => $allDocuments
         ]);
 
         return new Response(

@@ -209,31 +209,26 @@ getStatusBadge(status) {
 
         // 1. Logique pour les documents
         let documentsHtml = '';
-
-        if (details.document_excel_path) {
-            documentsHtml += `
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span class="text-truncate" style="max-width: 70%;"><i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42; vertical-align: middle; margin-right: 8px;"></i>Document Spécial Excel</span>
-                    <div class="d-flex align-items-center">
-                        ${this.getDocumentStatusBadge('Chargé')}
-                        <a href="${details.document_excel_path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
-                    </div>
-                </li>
-            `;
-        }
-
-
         this.refusedDocuments = {};
         if (details.documents && details.documents.length > 0) {
-            documentsHtml += details.documents.map(doc => {
-                const actionButtons = doc.statut === 'Chargé' ? `
-                    <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
-                    <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
-                ` : '';
+            documentsHtml = details.documents.map(doc => {
+                let actionButtons = '';
+                let docName = doc.nom;
+                let icon = '';
+
+                if (doc.type_document_id === 'excel_special') {
+                    actionButtons = `<a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
+                    icon = `<i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42; vertical-align: middle; margin-right: 8px;"></i>`;
+                } else if (doc.statut === 'Chargé') {
+                    actionButtons = `
+                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
+                        <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
+                    `;
+                }
 
                 return `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
+                        <span class="text-truncate" style="max-width: 70%;">${icon}${docName}</span>
                         <div class="d-flex align-items-center">
                             ${this.getDocumentStatusBadge(doc.statut)}
                             ${actionButtons}

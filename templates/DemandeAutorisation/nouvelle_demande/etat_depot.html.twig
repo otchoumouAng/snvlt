@@ -38,6 +38,30 @@
         {% endif %}
 
         <p><strong>Description:</strong> {{ demande.description|nl2br }}</p>
+
+        <hr>
+
+        <h3>Pièces jointes</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Fichier</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                    <tr>
+                        <td>{{ doc.nom }}</td>
+                        <td>{{ doc.fourni }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2">Aucun document requis pour cette demande.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>

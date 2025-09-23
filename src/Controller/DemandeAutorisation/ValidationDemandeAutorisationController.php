@@ -193,6 +193,17 @@ class ValidationDemandeAutorisationController extends AbstractController
         $documentsDir = $this->getParameter('documents_directory');
         $webPath = str_replace($publicDir, '', $documentsDir);
 
+        if ($demande->getDocumentExcelPath()) {
+            array_unshift($requiredDocuments, [
+                'type_document_id' => 'excel_special',
+                'nom' => 'Fichier Spécial Excel',
+                'statut' => 'Chargé',
+                'document_id' => null,
+                'path' => $webPath . '/' . $demande->getDocumentExcelPath(),
+                'dateAjout' => null,
+            ]);
+        }
+
         $data = [
             'id' => $demande->getId(),
             'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
@@ -202,7 +213,6 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
-            'document_excel_path' => $demande->getDocumentExcelPath() ? $webPath . '/' . $demande->getDocumentExcelPath() : null,
         ];
 
         return new JsonResponse($data);
