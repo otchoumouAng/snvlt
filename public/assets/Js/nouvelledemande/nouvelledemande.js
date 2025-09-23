@@ -220,6 +220,10 @@ class NouvelleDemandeApp {
             this.loadStepDetails(this.selectedDemandeId, stepId);
         });
 
+        $(document).on('click', '#view-signed-doc-portal-btn', (e) => {
+            this.showTrackingPortal(this.selectedDemandeId);
+        });
+
     }
 
         // Nouvelle fonction pour afficher le portail de suivi
@@ -417,8 +421,8 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-sm btn-primary" id="pay-fees-btn" data-action="pay">
-                        <i class="ph-fill ph-credit-card"></i> Payer les frais
+        buttonHtml = `<button class="btn btn-success" id="view-signed-doc-portal-btn" data-action="pay">
+                        <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {
         buttonHtml = ``; // No button for other statuses

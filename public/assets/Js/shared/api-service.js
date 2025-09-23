@@ -4,6 +4,24 @@ class ApiService {
         this.cache = new Map();
     }
 
+    async handleResponse(response) {
+        const res = await response; // response is a promise
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || `Erreur API (${res.status})`);
+            }
+            return data;
+        }
+        // Handle other content types if necessary, e.g., text/html
+        const text = await res.text();
+        if (!res.ok) {
+            throw new Error(text || `Erreur API (${res.status})`);
+        }
+        return text;
+    }
+
     async request(endpoint, options = {}) {
         const url = `${this.baseUrl}${endpoint}`;
         const cacheKey = `${options.method || 'GET'}:${url}`;
@@ -82,7 +100,7 @@ class ApiService {
         return this.request(endpoint, { method: 'GET', ...options });
     }
 
-    post(endpoint, data, isFormData = false) {
+    async post(endpoint, data, isFormData = false) {
         try {
             const options = {
                 method: 'POST',

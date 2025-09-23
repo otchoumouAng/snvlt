@@ -9,6 +9,14 @@
                 Demande #<span id="tracking-demande-id">{{ demande.id }}</span> - {{ demande.typePaiement ? demande.typePaiement.libelle : 'N/A' }}
             </p>
         </div>
+        {% if demande.statut == 'Signé' and demande.documentSignePath %}
+            <div class="ms-auto">
+                <a href="{{ asset('uploads/documents/' ~ demande.documentSignePath) }}" target="_blank" class="btn btn-primary">
+                    <i class="ph-fill ph-file-pdf"></i>
+                    Visualiser le document
+                </a>
+            </div>
+        {% endif %}
     </div>
 
     <!-- STEP PROGRESS -->
