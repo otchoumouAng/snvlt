@@ -335,6 +335,11 @@ getStatusBadge(status) {
                 </select>
             </div>
 
+            <div id="file-upload-container" class="mb-3" style="display: none;">
+                <label for="signed-document" class="form-label">Charger le document signé</label>
+                <input type="file" id="signed-document" class="form-control">
+            </div>
+
             <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
             <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
 
@@ -356,6 +361,16 @@ getStatusBadge(status) {
         `;
 
         detailsContent.html(contentHtml).addClass('visible');
+
+        // Add event listener for the status change
+        $('#demande-status').on('change', function() {
+            if ($(this).val() === 'Signé') {
+                $('#file-upload-container').slideDown();
+            } else {
+                $('#file-upload-container').slideUp();
+            }
+        });
+
     } catch (error) {
         this.notification.error("Erreur lors de l'affichage des détails.");
         console.error(error);
@@ -391,17 +406,26 @@ getStatusBadge(status) {
     }*/
 
     async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification) {
-    const data = {
-        etapeId: etapeId, // <-- AJOUTER L'ID DE L'ÉTAPE AUX DONNÉES
-        newStatus: newStatus,
-        refusedDocuments: refusedDocuments,
-        justification: justification
-    };
+    const formData = new FormData();
+    formData.append('etapeId', etapeId);
+    formData.append('newStatus', newStatus);
+    formData.append('justification', justification);
+    formData.append('refusedDocuments', JSON.stringify(refusedDocuments));
+
+    if (newStatus === 'Signé') {
+        const fileInput = document.getElementById('signed-document');
+        if (fileInput.files.length > 0) {
+            formData.append('signedDocument', fileInput.files[0]);
+        } else {
+            this.notification.warning('Veuillez sélectionner un document signé.');
+            return;
+        }
+    }
 
     try {
-        await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, data);
+        await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, formData, true); // true for sending FormData
         this.notification.success('Demande validée avec succès.');
-        this.loadDemandes(); // Cette ligne actualise déjà la DataTable
+        this.loadDemandes();
     } catch (error) {
         this.notification.error(error.message || "Erreur lors de la validation de la demande.");
         console.error(error);

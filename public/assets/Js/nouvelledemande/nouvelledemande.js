@@ -193,6 +193,16 @@ class NouvelleDemandeApp {
             }
         });
 
+        // Event listener for the signed document view button
+        $('#details-panel').on('click', '.view-signed-doc-btn', (e) => {
+            const docPath = $(e.currentTarget).data('doc-path');
+            if (docPath) {
+                window.open(docPath, '_blank');
+            } else {
+                this.notification.error('Chemin du document signé non trouvé.');
+            }
+        });
+
 
         // Use document for delegated event since the button is in the header, outside the panel
         $(document).on('click', '#refresh-demande-btn', (e) => {
@@ -511,7 +521,7 @@ buildDocumentsHtml(details) {
     }
 
     // On construit la liste des documents à fournir
-    const documentsListHtml = details.documents.map(doc => {
+    let documentsListHtml = details.documents.map(doc => {
         let statutHtml = '';
         let actionsHtml = '';
 
@@ -554,6 +564,21 @@ buildDocumentsHtml(details) {
             </li>
         `;
     }).join('');
+
+    if (details.statut === 'Signé' && details.signed_document_path) {
+        documentsListHtml += `
+            <li class="document-item-new" data-doc-path="${details.signed_document_path}">
+                <i class="ph-fill ph-file-pdf doc-icon" style="color: #dc3545;"></i>
+                <div class="doc-info">Document Signé</div>
+                <div class="doc-status"><span class="status-badge-sm status-accepte">Signé</span></div>
+                <div class="doc-actions">
+                    <button class="action-btn view-signed-doc-btn" title="Visualiser le document signé" data-doc-path="${details.signed_document_path}">
+                        <i class="ph-fill ph-eye"></i>
+                    </button>
+                </div>
+            </li>
+        `;
+    }
 
     // On retourne la liste complète
     return `<ul class="document-requirements-list">${documentsListHtml}</ul>`;

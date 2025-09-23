@@ -150,6 +150,7 @@ class NouvelleDemandeController extends AbstractController
 
         // Get uploaded documents for the demand
         $uploadedDocuments = [];
+        $signedDocumentPath = null;
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $doc = $demandeDocument->getDocument();
             $status = $doc->getStatut();
@@ -163,6 +164,9 @@ class NouvelleDemandeController extends AbstractController
                 'statut' => $status, // Utiliser le statut réel du document
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
+            if ($doc->getTypeDocument()->getDesignation() === 'Document signé') {
+                $signedDocumentPath = '/uploads/documents/' . $doc->getPath();
+            }
         }
 
         // Get required document types for the demand's type
@@ -207,6 +211,7 @@ class NouvelleDemandeController extends AbstractController
             'statut' => $demande->getStatut(),
             'documents' => $requiredDocuments,
             'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+            'signed_document_path' => $signedDocumentPath,
         ];
 
         return new JsonResponse($data);
