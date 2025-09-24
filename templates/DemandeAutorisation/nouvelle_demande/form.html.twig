@@ -1,72 +1,99 @@
 {# Dans form.html.twig #}
 <div class="modal fade" id="demandeModal" tabindex="-1" aria-labelledby="demandeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content" style="border-radius: 12px; border: none;">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title pro-card-title" id="demandeModalLabel">
-                    <i class="ph-fill ph-file-plus" id="modal-icon"></i>
-                    <span id="modal-title">Nature de demande</span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content rounded-2 border-0 shadow-sm">
+            {# Header doux et professionnel #}
+            <div class="modal-header border-bottom bg-gray-50 rounded-top-2 px-4 py-3">
+                <div class="d-flex align-items-center w-100">
+                    <i class="ph-fill ph-file-plus me-3 fs-5 text-gray-500" id="modal-icon"></i>
+                    <div class="flex-grow-1">
+                        <h5 class="modal-title mb-0 fw-semibold text-gray-700" id="demandeModalLabel">
+                            <span id="modal-title">Nature de demande</span>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
-            <div class="modal-body p-4">
-                <form id="demandeForm">
+
+            {# Body avec espacement régulier #}
+            <div class="modal-body p-4 bg-white">
+                <form id="demandeForm" class="needs-validation" novalidate>
                     <input type="hidden" id="demandeId" name="id">
                     
-                    <div class="col-md-10">
-                        <label for="typeDemande" class="form-label">Nature de demande *</label>
-                        <select class="form-select" id="typeDemande" name="typeDemandeId" required
-                            {% if mode == 'read' %}disabled{% endif %}>
-                            <option value="" selected disabled>Sélectionner un type...</option>
-                            {% for type in typesDemande %}
-                                <option value="{{ type.id }}">{{ type.designation }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    {# Conteneur vertical avec espacement homogène #}
+                    <div class="d-flex flex-column gap-3">
+                        {# Nature de demande #}
+                        <div>
+                            <label for="typeDemande" class="form-label fw-medium text-gray-700 mb-1">
+                                Nature de demande *
+                            </label>
+                            <select class="form-select border-gray-300" id="typeDemande" name="typeDemandeId" required
+                                {% if mode == 'read' %}disabled{% endif %}>
+                                <option value="" selected disabled>Sélectionner un type...</option>
+                                {% for type in typesDemande %}
+                                    <option value="{{ type.id }}">{{ type.designation }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback text-gray-600 mt-1">Veuillez sélectionner un type de demande.</div>
+                        </div>
 
-                    <div class="col-md-6">
-                        <label for="typePaiement" class="form-label">Type de Paiement *</label>
-                        <select class="form-select" id="typePaiement" name="typePaiementId" required
-                            {% if mode == 'read' %}disabled{% endif %}>
-                            <option value="" selected disabled>Sélectionner un type...</option>
-                            {% for type in typesPaiement %}
-                                <option value="{{ type.id }}">{{ type.libelle }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                        {# Type de paiement #}
+                        <div>
+                            <label for="typePaiement" class="form-label fw-medium text-gray-700 mb-1">
+                                Type de Paiement *
+                            </label>
+                            <select class="form-select border-gray-300" id="typePaiement" name="typePaiementId" required
+                                {% if mode == 'read' %}disabled{% endif %}>
+                                <option value="" selected disabled>Sélectionner un type...</option>
+                                {% for type in typesPaiement %}
+                                    <option value="{{ type.id }}">{{ type.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback text-gray-600 mt-1">Veuillez sélectionner un type de paiement.</div>
+                        </div>
 
-                    <div id="pef-container" class="mb-3" style="display: none;">
-                        <label for="numero_pef" class="form-label">Choisir le PEF</label>
-                        <select class="form-select" id="numero_pef" name="numero_pef">
-                            <option value="">Chargement...</option>
-                        </select>
-                    </div>
+                        {# Conteneurs conditionnels #}
+                        <div id="pef-container" class="slide-down" style="display: none;">
+                            <label for="numero_pef" class="form-label fw-medium text-gray-700 mb-1">
+                                Choisir le PEF
+                            </label>
+                            <select class="form-select border-gray-300" id="numero_pef" name="numero_pef">
+                                <option value="">Chargement...</option>
+                            </select>
+                        </div>
 
-                    <div id="produit-container" class="mb-3" style="display: none;">
-                        <label for="produit" class="form-label">Produit</label>
-                        <select class="form-select" id="produit" name="produit">
-                            <option value="">--Choisir--</option>
-                            <option value="Ligneux">Ligneux</option>
-                            <option value="Non ligneux">Non ligneux</option>
-                        </select>
-                    </div>
-                    
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Note</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"
-                            {% if mode == 'read' %}disabled{% endif %}></textarea>
-                    </div>
+                        <div id="produit-container" class="slide-down" style="display: none;">
+                            <label for="produit" class="form-label fw-medium text-gray-700 mb-1">
+                                Produit
+                            </label>
+                            <select class="form-select border-gray-300" id="produit" name="produit">
+                                <option value="">-- Choisir --</option>
+                                <option value="Ligneux">Ligneux</option>
+                                <option value="Non ligneux">Non ligneux</option>
+                            </select>
+                        </div>
 
-                    
-                    
+                        {# Description #}
+                        <div>
+                            <label for="description" class="form-label fw-medium text-gray-700 mb-1">
+                                Note
+                            </label>
+                            <textarea class="form-control border-gray-300" id="description" name="description" rows="3"
+                                placeholder="Saisissez vos commentaires..."
+                                {% if mode == 'read' %}disabled{% endif %}></textarea>
+                            <div class="form-text text-gray-500 mt-1">Maximum 500 caractères</div>
+                        </div>
+                    </div>
                 </form>
             </div>
-            <div class="modal-footer border-0 pt-0">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+
+            {# Footer discret #}
+            <div class="modal-footer border-top bg-gray-50 rounded-bottom-2 px-4 py-3">
+                <button type="button" class="btn btn-outline-gray btn-sm" data-bs-dismiss="modal">
+                    Annuler
+                </button>
                 {% if mode != 'read' %}
-                <button type="submit" form="demandeForm" class="btn btn-primary" id="saveBtn">
-                    <i class="ph-fill ph-paper-plane-tilt me-1"></i> 
+                <button type="submit" form="demandeForm" class="btn btn-gray-600 btn-sm px-3" id="saveBtn">
                     {{ mode == 'new' ? 'Initier' : 'Modifier' }}
                 </button>
                 {% endif %}
@@ -74,3 +101,85 @@
         </div>
     </div>
 </div>
+
+<style>
+.slide-down {
+    animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Nuances de gris douces */
+.bg-gray-50 { background-color: #fafbfc; }
+.text-gray-500 { color: #6b7280; }
+.text-gray-600 { color: #4b5563; }
+.text-gray-700 { color: #374151; }
+.border-gray-300 { border-color: #d1d5db; }
+
+/* Boutons discrets */
+.btn-outline-gray {
+    border-color: #d1d5db;
+    color: #6b7280;
+    background-color: white;
+}
+
+.btn-outline-gray:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+.btn-gray-600 {
+    background-color: #4b5563;
+    border-color: #4b5563;
+    color: white;
+}
+
+.btn-gray-600:hover {
+    background-color: #374151;
+    border-color: #374151;
+}
+
+/* Form controls mieux intégrés */
+.form-select, .form-control {
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.1);
+    outline: none;
+}
+
+.form-select:disabled, .form-control:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+}
+
+/* Modal subtil */
+.modal-content {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+}
+
+.gap-3 {
+    gap: 1rem !important;
+}
+
+/* Header plus doux */
+.modal-header {
+    background: linear-gradient(135deg, #fafbfc 0%, #f3f4f6 100%);
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+</style>
