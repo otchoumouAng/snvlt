@@ -77,7 +77,6 @@ class TypeDocumentController extends AbstractController
                     'id' => $typeDocument->getId(),
                     'designation' => $typeDocument->getDesignation(),
                     'desactivate' => $typeDocument->isDesactivate(),
-                    'fichierSpecial' => $typeDocument->isFichierSpecial(),
                     'DT_RowId' => 'row_' . $typeDocument->getId() // Ajout d'un ID unique pour chaque ligne
                 ];
             }
@@ -130,16 +129,10 @@ class TypeDocumentController extends AbstractController
             $id = $data['id'] ?? null;
             $designation = $data['designation'] ?? null;
             $desactivateRaw = $data['desactivate'] ?? ($data['desactivated'] ?? null);
-            $fichierSpecialRaw = $data['fichierSpecial'] ?? null;
 
             $desactivate = filter_var($desactivateRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
             if ($desactivate === null) {
                 $desactivate = false;
-            }
-
-            $fichierSpecial = filter_var($fichierSpecialRaw, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($fichierSpecial === null) {
-                $fichierSpecial = false;
             }
 
             if ($id) {
@@ -157,7 +150,6 @@ class TypeDocumentController extends AbstractController
 
             $typeDocument->setDesignation($designation);
             $typeDocument->setDesactivate((bool)$desactivate);
-            $typeDocument->setFichierSpecial((bool)$fichierSpecial);
 
             $em->persist($typeDocument);
             $em->flush();
@@ -170,7 +162,6 @@ class TypeDocumentController extends AbstractController
                     'id' => $typeDocument->getId(),
                     'designation' => $typeDocument->getDesignation(),
                     'desactivate' => $typeDocument->isDesactivate(),
-                    'fichierSpecial' => $typeDocument->isFichierSpecial(),
                     'DT_RowId' => 'row_' . $typeDocument->getId()
                 ]
             ]);

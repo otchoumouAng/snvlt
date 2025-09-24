@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const rowData = table.row('#row_' + id).data();
             if (rowData) {
                 form.querySelector('#libelle').value = rowData.libelle;
+
+                if (entityName === 'app_types_document' && form.querySelector('#fichierSpecial')) {
+                    form.querySelector('#fichierSpecial').checked = rowData.fichierSpecial;
+                }
+
                 // Add hidden ID field
                 const hiddenInput = document.createElement('input');
                 hiddenInput.type = 'hidden';

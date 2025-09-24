@@ -20,6 +20,19 @@
             </div>
         </div>
 
+        {% if entityName == 'app_types_document' %}
+        <div class="row">
+            <div class="col-12">
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="fichierSpecial" name="fichierSpecial" value="1">
+                    <label class="form-check-label" for="fichierSpecial">
+                        Fichier spécial ?
+                    </label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="row mt-4">
             <div class="col-12 text-end">
                 <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Annuler</button>

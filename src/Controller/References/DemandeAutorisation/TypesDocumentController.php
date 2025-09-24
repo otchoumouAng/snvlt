@@ -38,6 +38,7 @@ class TypesDocumentController extends BaseReferenceController
         return [
             'id' => $item->getId(),
             'libelle' => $item->getDesignation(), // On utilise getDesignation()
+            'fichierSpecial' => $item->isFichierSpecial(),
             'DT_RowId' => 'row_' . $item->getId()
         ];
     }
@@ -59,6 +60,10 @@ class TypesDocumentController extends BaseReferenceController
             throw new \InvalidArgumentException('La désignation est requise');
         }
         $item->setDesignation($label); // On utilise setDesignation()
+
+        $fichierSpecial = $data['fichierSpecial'] ?? false;
+        $item->setFichierSpecial((bool)$fichierSpecial);
+
         return $item;
     }
 
