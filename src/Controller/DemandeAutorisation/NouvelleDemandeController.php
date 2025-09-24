@@ -477,7 +477,7 @@ class NouvelleDemandeController extends AbstractController
                 // Re-submission
                 foreach ($etapes as $etape) {
                     $etape->setStatut('En cours');
-                    $etape->setDateTraitement(null);
+                    $etape->setDateTraitement(new \DateTime());
                     $etape->setDetails(null);
                     $this->entityManager->persist($etape);
                 }

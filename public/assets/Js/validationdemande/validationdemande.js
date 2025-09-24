@@ -265,8 +265,9 @@ getStatusBadge(status) {
                 <label for="demande-status" class="form-label">Changer le statut de la demande</label>
                 <select id="demande-status" class="form-select">
                     <option>--Changer--</option>
-                    <option value="En cours" ${details.statut === 'En cours' ? 'selected' : ''}>En cours de traitement</option>
-                    <option value="Signé" ${details.statut === 'Signé' ? 'selected' : ''}>Demande signée et disponible</option>
+                    <option value="Soumis">Soumis</option>
+                    <option value="En cours">En cours de traitement</option>
+                    <option value="Signé">Demande signée et disponible</option>
                 </select>
             </div>
 
