@@ -187,6 +187,7 @@ class NouvelleDemandeController extends AbstractController
                         'nom_fichier' => $uploadedDocuments[$typeDocId]['nom'],
                         'path' => $uploadedDocuments[$typeDocId]['path'],
                         'dateAjout' => $uploadedDocuments[$typeDocId]['dateAjout'],
+                        'fichierSpecial' => $typeDocument->isFichierSpecial(),
                     ];
                 } else {
                     // Document is missing
@@ -197,7 +198,8 @@ class NouvelleDemandeController extends AbstractController
                         'document_id' => null,
                         'nom_fichier' => null,
                         'path' => null,
-                        'dateAjout' => null
+                        'dateAjout' => null,
+                        'fichierSpecial' => $typeDocument->isFichierSpecial(),
                     ];
                 }
             }

@@ -189,10 +189,6 @@ class NouvelleDemandeApp {
             this.handleFileUpload(e.target.files, docTypeId);
         });
 
-        $('#details-panel').on('change', '#excel-upload-panel', (e) => {
-            this.handleExcelUpload(e.target.files);
-        });
-
         $('#details-panel').on('click', '.view', (e) => {
             const docPath = $(e.currentTarget).closest('.document-item-new').data('doc-path');
             if (docPath) {
@@ -454,8 +450,7 @@ async displayDocumentPanel(demandeData) {
 
         // Add the hidden file input
         const fullHtml = contentHtml +
-        '<input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" />' +
-        '<input type="file" id="excel-upload-panel" accept=".xls,.xlsx" style="display: none;" />';
+        '<input type="file" id="pdf-upload-panel" accept=".pdf,.xls,.xlsx" style="display: none;" />';
 
         // Replace spinner with content
         $('#details-content').html(fullHtml);
@@ -516,38 +511,25 @@ async displayDocumentPanel(demandeData) {
 // Fichier : nouvelledemande.js
 
 buildDocumentsHtml(details) {
-
-    let specialExcelHtml = '';
-    let excelActionsHtml = '';
-    if (details.document_excel_path) {
-        excelActionsHtml = `<button class="action-btn view" title="Visualiser le document Excel" data-doc-path="${details.document_excel_path}">
-                               <i class="ph-fill ph-eye"></i>
-                           </button>`;
-    } else {
-        excelActionsHtml = `<button class="action-btn upload" id="upload-special-excel-btn" title="Charger le document Excel">
-                               <i class="ph-fill ph-upload-simple"></i>
-                           </button>`;
-    }
-
-    specialExcelHtml = `
-        <li class="document-item-new" data-doc-path="${details.document_excel_path || ''}">
-            <i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42;"></i>
-            <div class="doc-info">Document Spécial Excel</div>
-            <div class="doc-status">${details.document_excel_path ? '<span class="status-badge-sm status-fourni">Chargé</span>' : '<span class="status-badge-sm status-non-fourni">Non chargé</span>'}</div>
-            <div class="doc-actions">${excelActionsHtml}</div>
-        </li>
-    `;
-
-
     // Si la demande n'a pas de documents requis, on affiche un message.
     if (!details.documents || details.documents.length === 0) {
-        return `<ul class="document-requirements-list">${specialExcelHtml}</ul>`;
+        return `<div class="text-center p-5"><i class="ph-light ph-folder-simple-dashed" style="font-size: 3rem; color: #ced4da;"></i><h6 class="mt-3">Aucun document requis</h6><p class="text-muted small">Ce type de demande ne nécessite aucun document à fournir.</p></div>`;
     }
+
+    // Trier les documents pour que le fichier spécial soit toujours en premier
+    details.documents.sort((a, b) => {
+        if (a.fichierSpecial && !b.fichierSpecial) return -1;
+        if (!a.fichierSpecial && b.fichierSpecial) return 1;
+        return 0;
+    });
 
     // On construit la liste des documents à fournir
     let documentsListHtml = details.documents.map(doc => {
         let statutHtml = '';
         let actionsHtml = '';
+        let iconHtml = doc.fichierSpecial
+            ? '<i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42;"></i>'
+            : '<i class="ph-fill ph-file-text doc-icon"></i>';
 
         // Définir le badge de STATUT
         switch (doc.statut) {
@@ -561,8 +543,6 @@ buildDocumentsHtml(details) {
                 statutHtml = '<span class="status-badge-sm status-rejete">Rejeté</span>';
                 break;
             case 'Non chargé':
-                statutHtml = '<span class="status-badge-sm status-non-fourni">Non chargé</span>';
-                break;
             default:
                 statutHtml = '<span class="status-badge-sm status-non-fourni">Non chargé</span>';
         }
@@ -580,8 +560,8 @@ buildDocumentsHtml(details) {
 
         // Assembler le HTML final pour cet item
         return `
-            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}" data-doc-id="${doc.document_id}" data-doc-path="${doc.path || ''}">
-                <i class="ph-fill ph-file-text doc-icon"></i>
+            <li class="document-item-new" data-doc-type-id="${doc.type_document_id}" data-doc-id="${doc.document_id || ''}" data-doc-path="${doc.path || ''}">
+                ${iconHtml}
                 <div class="doc-info">${doc.nom}</div>
                 <div class="doc-status">${statutHtml}</div>
                 <div class="doc-actions">${actionsHtml}</div>
@@ -590,7 +570,7 @@ buildDocumentsHtml(details) {
     }).join('');
 
     // On retourne la liste complète
-    return `<ul class="document-requirements-list">${specialExcelHtml}${documentsListHtml}</ul>`;
+    return `<ul class="document-requirements-list">${documentsListHtml}</ul>`;
 }
 
 // Fonctions de gestion des états du panneau
@@ -656,44 +636,6 @@ showDetailsPlaceholder() {
             
         } catch (error) {
             this.notification.error('Erreur lors de la suppression');
-            console.error(error);
-        }
-    }
-
-    async handleExcelUpload(files) {
-        if (!this.selectedDemandeId) {
-            this.notification.warning('Veuillez sélectionner une demande');
-            return;
-        }
-
-        const demandeId = this.selectedDemandeId;
-        const file = files[0];
-        const allowedTypes = ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-        if (!allowedTypes.includes(file.type)) {
-            this.notification.warning('Seuls les fichiers Excel sont acceptés');
-            return;
-        }
-
-        if (file.size > 10 * 1024 * 1024) { // 10MB limit
-            this.notification.warning('Le fichier ne doit pas dépasser 10 Mo');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('document', file);
-
-        try {
-            await this.apiService.addExcelDocument(demandeId, formData);
-            this.notification.success('Document Excel ajouté avec succès');
-
-            // Reload the document panel
-            const rowData = this.dataTable.row({ selected: true }).data();
-            if (rowData) {
-                this.displayDocumentPanel(rowData);
-            }
-
-        } catch (error) {
-            this.notification.error('Erreur lors de l\'ajout du document Excel');
             console.error(error);
         }
     }

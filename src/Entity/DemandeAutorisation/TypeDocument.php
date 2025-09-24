@@ -33,6 +33,9 @@ class TypeDocument
     #[Groups(['document:list', 'demande:details'])]
     private ?string $designation = null;
 
+    #[ORM\Column(name: 'fichier_special', type: 'boolean', options: ['default' => false])]
+    private ?bool $fichierSpecial = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -46,6 +49,18 @@ class TypeDocument
     public function setDesignation(string $designation): static
     {
         $this->designation = $designation;
+        return $this;
+    }
+
+    public function isFichierSpecial(): ?bool
+    {
+        return $this->fichierSpecial;
+    }
+
+    public function setFichierSpecial(bool $fichierSpecial): static
+    {
+        $this->fichierSpecial = $fichierSpecial;
+
         return $this;
     }
 }
