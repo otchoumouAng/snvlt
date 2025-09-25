@@ -50,7 +50,11 @@ class NouvelleDemandeApp {
             ],
             order: [[0, 'desc']],
             pageLength: 10,
-            lengthMenu: [5, 10, 25, 50]
+            lengthMenu: [5, 10, 25, 50],
+            select: {
+                style: 'single',
+                info: false
+            }
         });
 
         
@@ -203,7 +207,12 @@ class NouvelleDemandeApp {
         });
 
         $(document).on('click', '#view-signed-doc-portal-btn', (e) => {
-            this.showTrackingPortal(this.selectedDemandeId);
+            const signedDocPath = $(e.currentTarget).data('signed-doc-path');
+            if (signedDocPath) {
+                window.open(signedDocPath, '_blank');
+            } else {
+                this.notification.error('Chemin du document signé non trouvé.');
+            }
         });
 
     }
@@ -391,6 +400,7 @@ setupModalWithData(mode, data) {
 async displayDocumentPanel(demandeData) {
     this.showLoader();
 
+    const details = await this.apiService.getDemandeDetails(demandeData.id);
     const status = demandeData.statut;
     let buttonHtml = '';
 
@@ -403,7 +413,7 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn">
+        buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn" data-signed-doc-path="${details.signed_document_path}">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {
