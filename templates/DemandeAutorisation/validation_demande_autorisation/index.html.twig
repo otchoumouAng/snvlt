@@ -56,6 +56,11 @@
         display: flex;
         flex-direction: column;
     }
+    .table-container {
+        height: 600px; /* Hauteur fixe */
+        overflow-y: auto; /* Scroll vertical */
+        padding: 1rem;
+    }
 
     .pro-card-header {
         padding: 1rem 1.5rem;
@@ -542,22 +547,61 @@
                     </div>
                 </div>
                 <div class="card-body p-0 d-flex flex-column">
-                    <div class="table-responsive p-3"> 
-                    <table id="demandesTable" class="table table-hover" style="width:100%">
-                        <thead>
-                            <tr>
-                                <th></th> <!-- Colonne pour l'icône de contrôle responsive -->
-                                <th>ID</th>
-                                <th>Type de Demande</th>
-                                <th>Société</th>
-                                <th>Statut Demande</th>
-                                <th class="none">Étape Actuelle</th>
-                                <th class="none">Date Demande</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+                    <ul class="nav nav-tabs" id="demandeTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="en-cours-tab" data-bs-toggle="tab" data-bs-target="#en-cours" type="button" role="tab" aria-controls="en-cours" aria-selected="true">Demandes en cours</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="traitees-tab" data-bs-toggle="tab" data-bs-target="#traitees" type="button" role="tab" aria-controls="traitees" aria-selected="false">Demandes traitées</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="demandeTabsContent">
+                        <div class="tab-pane fade show active" id="en-cours" role="tabpanel" aria-labelledby="en-cours-tab">
+                            <div class="d-flex justify-content-end p-2">
+                                <button id="refresh-demandes-en-cours" class="btn btn-sm btn-outline-primary">
+                                    <i class="ph ph-arrows-clockwise"></i> Actualiser
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table id="demandesTable" class="table table-hover" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ID</th>
+                                            <th>Type de Demande</th>
+                                            <th>Société</th>
+                                            <th>Statut Demande</th>
+                                            <th class="none">Étape Actuelle</th>
+                                            <th class="none">Date Demande</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="traitees" role="tabpanel" aria-labelledby="traitees-tab">
+                            <div class="d-flex justify-content-end p-2">
+                                <button id="refresh-demandes-traitees" class="btn btn-sm btn-outline-primary">
+                                    <i class="ph ph-arrows-clockwise"></i> Actualiser
+                                </button>
+                            </div>
+                            <div class="table-container">
+                                <table id="demandesTraiteesTable" class="table table-hover" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>ID</th>
+                                            <th>Type de Demande</th>
+                                            <th>Société</th>
+                                            <th>Statut Demande</th>
+                                            <th class="none">Date Traitement</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

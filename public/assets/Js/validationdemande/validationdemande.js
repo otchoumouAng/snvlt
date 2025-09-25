@@ -4,10 +4,12 @@ class ValidationDemandeApp {
         this.notification = window.notificationSystem;
         this.selectedDemandeId = null;
         this.dataTable = null;
+        this.dataTableTraitees = null;
     }
 
     init() {
         this.initDataTable();
+        this.initDataTableTraitees();
         this.bindEvents();
         this.loadDemandes();
     }
@@ -116,6 +118,15 @@ getStatusBadge(status) {
             }
         });
 
+        $('#refresh-demandes-en-cours').on('click', () => this.loadDemandes());
+        $('#refresh-demandes-traitees').on('click', () => this.loadDemandesTraitees());
+
+        $('button[data-bs-toggle="tab"]').on('shown.bs.tab', (event) => {
+            if (event.target.id === 'traitees-tab') {
+                this.loadDemandesTraitees();
+            }
+        });
+
         this.dataTable.on('deselect', (e, dt, type, indexes) => {
             if (type === 'row') {
                 this.selectedDemandeId = null;
@@ -175,16 +186,51 @@ getStatusBadge(status) {
 
     async loadDemandes() {
         try {
-            this.notification.info('Chargement des demandes...', 2000);
-            // We'll need a new API endpoint for this
+            this.notification.info('Chargement des demandes en cours...', 2000);
             const demandes = await this.apiService.getDemandesForValidation();
             this.dataTable.clear().rows.add(demandes).draw();
             this.selectedDemandeId = null;
             this.showDetailsPlaceholder();
         } catch (error) {
-            this.notification.error('Erreur lors du chargement des demandes');
+            this.notification.error('Erreur lors du chargement des demandes en cours');
             console.error(error);
         }
+    }
+
+    async loadDemandesTraitees() {
+        try {
+            this.notification.info('Chargement des demandes traitées...', 2000);
+            const demandes = await this.apiService.get('/admin/validation_demande_autorisation/liste-traitees');
+            this.dataTableTraitees.clear().rows.add(demandes).draw();
+        } catch (error) {
+            this.notification.error('Erreur lors du chargement des demandes traitées');
+            console.error(error);
+        }
+    }
+
+    initDataTableTraitees() {
+        this.dataTableTraitees = new DataTable('#demandesTraiteesTable', {
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
+            },
+            columns: [
+                { data: null, defaultContent: '', className: 'dtr-control', orderable: false },
+                { data: 'id', title: 'ID' },
+                { data: 'titre', title: 'Type de Demande' },
+                { data: 'societe', title: 'Société' },
+                {
+                    data: 'statut',
+                    title: 'Statut Demande',
+                    render: (data, type, row) => this.getStatusBadge(data)
+                },
+                { data: 'dateTraitement', title: 'Date Traitement', className: 'none' }
+            ],
+            responsive: true,
+            select: false,
+            order: [[5, 'desc']],
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50]
+        });
     }
 
     getDocumentStatusBadge(status) {

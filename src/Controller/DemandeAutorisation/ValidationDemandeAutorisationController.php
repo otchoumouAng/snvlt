@@ -81,23 +81,13 @@ class ValidationDemandeAutorisationController extends AbstractController
             return new JsonResponse(['error' => 'User not authenticated'], 401);
         }
 
-        // Find steps that are 'en_attente' and for which the previous step is 'validé'
-        // This is a simplified logic. A more robust implementation would be needed.
-        // For now, we'll just fetch all steps assigned to the user's direction/service that are pending.
-
         $userDirection = $currentUser->getCodeDirection();
-
-        //$currentUser->setCodeService(1001);
-        // 1. On cherche l'entité ServiceMinef qui a l'ID 1001
         $serviceEntity = $this->serviceMinefRepository->find(1001);
         if (!$serviceEntity) {
             return new JsonResponse(['error' => 'Service non trouvé pour l\'ID 1001'], 404);
         }
-
         $currentUser->setCodeService($serviceEntity);
         $userService = $currentUser->getCodeService();
-        //echo $userService;
-        //dd($userService);
 
         $pendingSteps = $this->etapeValidationRepository->findPendingStepsForUser($userDirection, $userService);
 
@@ -111,11 +101,36 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'id' => $demande->getId(),
                 'etape_id' => $etape->getId(),
                 'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
-                'description' => $etape->getNom(), // Show the step name as description
+                'description' => $etape->getNom(),
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                 'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
                 'societe' => $societe
+            ];
+        }
+
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/liste-traitees", name="app_validation_demande_autorisation_liste_traitees")
+     */
+    public function getListeDemandesTraitees(): JsonResponse
+    {
+        $demandesTraitees = $this->nouvelleDemandeRepository->findBy(['statut' => 'Signé']);
+
+        $data = [];
+        foreach ($demandesTraitees as $demande) {
+            $operateur = $demande->getOperateur();
+            $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
+            $derniereEtape = $this->etapeValidationRepository->findOneBy(['demande' => $demande], ['dateTraitement' => 'DESC']);
+
+            $data[] = [
+                'id' => $demande->getId(),
+                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
+                'societe' => $societe,
+                'statut' => $demande->getStatut(),
+                'dateTraitement' => $derniereEtape && $derniereEtape->getDateTraitement() ? $derniereEtape->getDateTraitement()->format('d/m/Y') : 'N/A',
             ];
         }
 
