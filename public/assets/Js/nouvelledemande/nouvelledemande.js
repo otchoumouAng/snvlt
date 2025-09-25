@@ -33,45 +33,22 @@ class NouvelleDemandeApp {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
             columns: [
-                { data: 'id' },
-                { data: 'titre' },
-                { data: 'typeDemande' },
-                { data: 'dateCreation' },
-                { 
-                    data: 'statut',
-                    render: function(data, type, row) {
-                        return NouvelleDemandeApp.getStatusBadge(data);
-                    }
-                }
+                { data: 'id', title: 'ID' },
+                { data: 'titre', title: 'Type' },
+                { data: 'typeDemande', title: 'Nature' },
+                { data: 'statut', title: 'Statut', render: (data) => NouvelleDemandeApp.getStatusBadge(data) },
+                { data: 'numero_pef', title: 'N° PEF', className: 'none' },
+                { data: 'produit', title: 'Produit', className: 'none' },
+                { data: 'dateCreation', title: 'Date', className: 'none' }
             ],
-
-            dom: "<'dataTables_top'l f> t <'dataTables_bottom' i p>",
-            
-            select: {
-                style: 'single',
-                info: false
-            },
             responsive: true,
-            
             columnDefs: [
-            // --- Priorités d'affichage mises à jour ---
-            { responsivePriority: 1, targets: 0 }, // Priorité 1 (la plus haute) pour "ID"
-            { responsivePriority: 2, targets: 2 }, // Priorité 2 pour "Nature"
-            { responsivePriority: 3, targets: 3 }, // Priorité 3 pour "Date"
-            { responsivePriority: 4, targets: 4 }, // Priorité 4 pour "Statut"
-
-            // La colonne qui sera masquée en premier
-            { responsivePriority: 101, targets: 1 }, // Priorité la plus basse pour "Paiement"
-            
-            // --- Comportement du bouton d'expansion (+) ---
-            {
-                className: 'dtr-control',
-                orderable: false,
-                targets: 0 // Le bouton (+) reste sur la colonne ID
-            }
-        ],
-
-            order: [[3, 'desc']],
+                { responsivePriority: 1, targets: 0 },
+                { responsivePriority: 2, targets: 1 },
+                { responsivePriority: 3, targets: 2 },
+                { responsivePriority: 4, targets: 3 }
+            ],
+            order: [[0, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });

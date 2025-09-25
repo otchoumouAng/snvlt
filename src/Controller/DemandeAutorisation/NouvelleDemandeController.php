@@ -130,7 +130,9 @@ class NouvelleDemandeController extends AbstractController
                 'statut' => $demande->getStatut(),
                 'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                 'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-                'societe' => $societe
+                'societe' => $societe,
+                'numero_pef' => $demande->getNumeroPef() ?? 'N/A',
+                'produit' => $demande->getProduit() ?? 'N/A'
             ];
         }
 
