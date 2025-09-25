@@ -121,9 +121,24 @@ getStatusBadge(status) {
         $('#refresh-demandes-en-cours').on('click', () => this.loadDemandes());
         $('#refresh-demandes-traitees').on('click', () => this.loadDemandesTraitees());
 
+        this.dataTableTraitees.on('select', (e, dt, type, indexes) => {
+            if (type === 'row') {
+                const data = this.dataTableTraitees.row(indexes).data();
+                if (data) {
+                    this.selectedDemandeId = data.id;
+                    this.displayDetails(data.id, null, true); // Le troisième paramètre indique que c'est une demande traitée
+                }
+            }
+        });
+
         $('button[data-bs-toggle="tab"]').on('shown.bs.tab', (event) => {
-            if (event.target.id === 'traitees-tab') {
+            const tabId = event.target.id;
+            const titleElement = $('.pro-card-title span');
+            if (tabId === 'traitees-tab') {
                 this.loadDemandesTraitees();
+                titleElement.text("Demandes d'Autorisations Traitées");
+            } else if (tabId === 'en-cours-tab') {
+                titleElement.text("Demandes d'Autorisations à Valider");
             }
         });
 
@@ -226,7 +241,10 @@ getStatusBadge(status) {
                 { data: 'dateTraitement', title: 'Date Traitement', className: 'none' }
             ],
             responsive: true,
-            select: false,
+            select: {
+                style: 'single',
+                info: false
+            },
             order: [[5, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
@@ -246,120 +264,110 @@ getStatusBadge(status) {
         }
     }
 
-    async displayDetails(demandeId, etapeId) {
-    try {
-        const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
-        const detailsContent = $('#details-content');
-        const placeholder = $('#details-placeholder');
+    async displayDetails(demandeId, etapeId, isTraitee = false) {
+        try {
+            const details = await this.apiService.getDemandeDetailsForValidation(demandeId);
+            const detailsContent = $('#details-content');
+            const placeholder = $('#details-placeholder');
 
-        placeholder.hide();
+            placeholder.hide();
 
-        // 1. Logique pour les documents
-        let documentsHtml = '';
-        this.refusedDocuments = {};
-        if (details.documents && details.documents.length > 0) {
-            documentsHtml = details.documents.map(doc => {
-                let actionButtons = '';
-                let docName = doc.nom;
-                let icon = '';
-
-                if (doc.type_document_id === 'excel_special') {
-                    actionButtons = `<a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
-                    icon = `<i class="ph-fill ph-file-xls doc-icon" style="color: #1D6F42; vertical-align: middle; margin-right: 8px;"></i>`;
-                } else if (doc.statut === 'Chargé') {
-                    actionButtons = `
-                        <a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>
-                        <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>
+            // Logique pour les documents
+            let documentsHtml = '';
+            this.refusedDocuments = {};
+            if (details.documents && details.documents.length > 0) {
+                documentsHtml = details.documents.map(doc => {
+                    let actionButtons = `<a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
+                    if (!isTraitee && doc.statut === 'Chargé') {
+                        actionButtons += ` <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>`;
+                    }
+                    return `
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
+                            <div class="d-flex align-items-center">
+                                ${this.getDocumentStatusBadge(doc.statut)}
+                                ${actionButtons}
+                            </div>
+                        </li>
                     `;
-                }
-
-                return `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span class="text-truncate" style="max-width: 70%;">${icon}${docName}</span>
-                        <div class="d-flex align-items-center">
-                            ${this.getDocumentStatusBadge(doc.statut)}
-                            ${actionButtons}
-                        </div>
-                    </li>
-                `;
-            }).join('');
-        }
-
-        if(documentsHtml === ''){
-            documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
-        }
-
-        // 2. Logique pour le circuit de validation
-        let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
-        if (details.etapes_validation && details.etapes_validation.length > 0) {
-            etapesHtml = details.etapes_validation.map(etape => `
-                <li class="list-group-item d-flex justify-content-between align-items-center ${etape.id === etapeId ? 'active' : ''}">
-                    <span>${etape.ordre}. ${etape.nom}</span>
-                    <span class="badge bg-info">${etape.statut}</span>
-                </li>
-            `).join('');
-        }
-
-        // 3. Construction du HTML final pour le panneau de détails
-        const contentHtml = `
-            <div class="mb-3">
-                <h5 class="fw-bold mb-1">${details.titre}</h5>
-                <p class="text-muted mb-2">Société: ${details.societe}</p>
-                ${this.getStatusBadge(details.statut)}
-            </div>
-
-            <div class="mb-3">
-                <label for="demande-status" class="form-label">Changer le statut de la demande</label>
-                <select id="demande-status" class="form-select">
-                    <option>--Changer--</option>
-                    <option value="Soumis">Soumis</option>
-                    <option value="En cours">En cours de traitement</option>
-                    <option value="Signé">Demande signée et disponible</option>
-                </select>
-            </div>
-
-            <div id="file-upload-container" class="mb-3" style="display: none;">
-                <label for="signed-document" class="form-label">Charger le document signé</label>
-                <input type="file" id="signed-document" class="form-control">
-            </div>
-
-            <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
-            <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
-
-            <h6 class="text-muted small fw-bold text-uppercase mt-4 mb-2">Circuit de Validation</h6>
-            <ul class="list-group list-group-flush mb-4">${etapesHtml}</ul>
-
-            <div id="justification-form" class="mt-3" style="display: none;">
-                <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification du refus</h6>
-                <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification..."></textarea>
-            </div>
-
-            <div id="validation-actions" class="mt-3">
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}" data-etape-id="${etapeId}">
-                        <i class="ph ph-check-circle"></i> Valider
-                    </button>
-                </div>
-            </div>
-        `;
-
-        detailsContent.html(contentHtml).addClass('visible');
-
-        // Add event listener for the status change
-        $('#demande-status').on('change', function() {
-            if ($(this).val() === 'Signé') {
-                $('#file-upload-container').slideDown();
+                }).join('');
             } else {
-                $('#file-upload-container').slideUp();
+                documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
             }
-        });
 
-    } catch (error) {
-        this.notification.error("Erreur lors de l'affichage des détails.");
-        console.error(error);
-        this.showDetailsPlaceholder();
+            // Logique pour le circuit de validation
+            let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
+            if (details.etapes_validation && details.etapes_validation.length > 0) {
+                etapesHtml = details.etapes_validation.map(etape => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center ${etape.id === etapeId ? 'active' : ''}">
+                        <span>${etape.ordre}. ${etape.nom}</span>
+                        <span class="badge bg-info">${etape.statut}</span>
+                    </li>
+                `).join('');
+            }
+
+            // Construction du HTML final
+            let validationSectionHtml = '';
+            if (!isTraitee) {
+                validationSectionHtml = `
+                    <div class="mb-3">
+                        <label for="demande-status" class="form-label">Changer le statut de la demande</label>
+                        <select id="demande-status" class="form-select">
+                            <option>--Changer--</option>
+                            <option value="Soumis">Soumis</option>
+                            <option value="En cours">En cours de traitement</option>
+                            <option value="Signé">Demande signée et disponible</option>
+                        </select>
+                    </div>
+                    <div id="file-upload-container" class="mb-3" style="display: none;">
+                        <label for="signed-document" class="form-label">Charger le document signé</label>
+                        <input type="file" id="signed-document" class="form-control">
+                    </div>
+                    <div id="justification-form" class="mt-3" style="display: none;">
+                        <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification du refus</h6>
+                        <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification..."></textarea>
+                    </div>
+                    <div id="validation-actions" class="mt-3">
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}" data-etape-id="${etapeId}">
+                                <i class="ph ph-check-circle"></i> Valider
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const contentHtml = `
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-1">${details.titre}</h5>
+                    <p class="text-muted mb-2">Société: ${details.societe}</p>
+                    ${this.getStatusBadge(details.statut)}
+                </div>
+                <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
+                <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
+                <h6 class="text-muted small fw-bold text-uppercase mt-4 mb-2">Circuit de Validation</h6>
+                <ul class="list-group list-group-flush mb-4">${etapesHtml}</ul>
+                ${validationSectionHtml}
+            `;
+
+            detailsContent.html(contentHtml).addClass('visible');
+
+            if (!isTraitee) {
+                $('#demande-status').on('change', function() {
+                    if ($(this).val() === 'Signé') {
+                        $('#file-upload-container').slideDown();
+                    } else {
+                        $('#file-upload-container').slideUp();
+                    }
+                });
+            }
+
+        } catch (error) {
+            this.notification.error("Erreur lors de l'affichage des détails.");
+            console.error(error);
+            this.showDetailsPlaceholder();
+        }
     }
-}
 
 
 
