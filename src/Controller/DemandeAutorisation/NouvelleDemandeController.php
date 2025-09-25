@@ -437,13 +437,17 @@ class NouvelleDemandeController extends AbstractController
             if ($etapes->isEmpty()) {
                 // First submission
                 $this->createValidationCircuit($demande);
+                /*echo "Première condition";
+                dd($etapes);*/
             } else {
+                
                 // Re-submission
                 foreach ($etapes as $etape) {
                     $etape->setStatut('En cours');
-                    $etape->setDateTraitement(new \DateTime());
+                    $etape->setDateTraitement();
                     $etape->setDetails(null);
                     $this->entityManager->persist($etape);
+
                 }
 
                 // Notify first validator again
@@ -528,7 +532,7 @@ class NouvelleDemandeController extends AbstractController
 
         $detailsModele = $modele->getDetailsModeles();
 
-        $EtapeSpecial = ['Soumis','En cours de traiment','Demande signée et disponible'];
+        $EtapeSpecial = ['Soumis','En cours de traitement','Demande signée et disponible'];
 
         $i = 0;
 
@@ -546,6 +550,10 @@ class NouvelleDemandeController extends AbstractController
                 $nomEtape = $EtapeSpecial[$i]; #$detail->getCodeService()->getLibelleService();
             }
             $etapeValidation->setNom($nomEtape);
+
+            /*echo "Sequence: ".$detail->getNumseq();
+            echo "Etape: ".$nomEtape;
+            continue;*/
 
             $etapeValidation->setStatut('En cours');
             $this->entityManager->persist($etapeValidation);

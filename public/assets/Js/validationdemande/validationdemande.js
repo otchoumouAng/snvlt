@@ -96,7 +96,8 @@ getStatusBadge(status) {
         case 'En cours':
             return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
         case 'Soumis':
-            return `<span class="status-badge">${status}</span>`;
+            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>Soumis</span></span>';
+            //return `<span class="status-badge">${status}</span>`;
         case 'refuser':
         case 'Rejetée':
             return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';

@@ -193,7 +193,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         $documentsDir = $this->getParameter('documents_directory');
         $webPath = str_replace($publicDir, '', $documentsDir);
 
-        if ($demande->getDocumentExcelPath()) {
+        /*if ($demande->getDocumentExcelPath()) {
             array_unshift($requiredDocuments, [
                 'type_document_id' => 'excel_special',
                 'nom' => 'Fichier Spécial Excel',
@@ -202,7 +202,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'path' => $webPath . '/' . $demande->getDocumentExcelPath(),
                 'dateAjout' => null,
             ]);
-        }
+        }*/
 
         $data = [
             'id' => $demande->getId(),
@@ -258,6 +258,12 @@ class ValidationDemandeAutorisationController extends AbstractController
         if ($etape->getDemande()->getId() !== $demande->getId()) {
             return new JsonResponse(['error' => 'Cette étape n\'appartient pas à la demande sélectionnée.'], 400);
         }
+
+        /*echo "Demande Status: " .$newStatus. "</br>";
+        echo "Id Etape" .$etapeId. "</br>";
+        echo "Etape: " .$etape->getNom(). "</br>";
+        */
+
 
         $etape->setStatut('Validé');
         $etape->setDateTraitement(new \DateTime());

@@ -426,7 +426,7 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-primary" id="view-signed-doc-portal-btn">
+        buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {
