@@ -207,12 +207,7 @@ class NouvelleDemandeApp {
         });
 
         $(document).on('click', '#view-signed-doc-portal-btn', (e) => {
-            const signedDocPath = $(e.currentTarget).data('signed-doc-path');
-            if (signedDocPath) {
-                window.open(signedDocPath, '_blank');
-            } else {
-                this.notification.error('Chemin du document signé non trouvé.');
-            }
+            this.showTrackingPortal(this.selectedDemandeId);
         });
 
     }
@@ -413,7 +408,7 @@ async displayDocumentPanel(demandeData) {
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
     } else if (status === 'Signé') {
-        buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn" data-signed-doc-path="${details.signed_document_path}">
+        buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
     } else {

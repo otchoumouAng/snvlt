@@ -82,11 +82,6 @@ class ValidationDemandeAutorisationController extends AbstractController
         }
 
         $userDirection = $currentUser->getCodeDirection();
-        $serviceEntity = $this->serviceMinefRepository->find(1001);
-        if (!$serviceEntity) {
-            return new JsonResponse(['error' => 'Service non trouvé pour l\'ID 1001'], 404);
-        }
-        $currentUser->setCodeService($serviceEntity);
         $userService = $currentUser->getCodeService();
 
         $pendingSteps = $this->etapeValidationRepository->findPendingStepsForUser($userDirection, $userService);
