@@ -567,6 +567,11 @@ class NouvelleDemandeController extends AbstractController
             continue;*/
 
             $etapeValidation->setStatut('En cours');
+            //Fonction spécial, activation du premier niveau du circuit
+            if ($i== 0) {
+                $etapeValidation->setStatut('Validé');
+                $etapeValidation->setDateTraitement(new \DateTime());
+            }
             $this->entityManager->persist($etapeValidation);
 
             // Send notification for the first step

@@ -21,7 +21,7 @@ class TypesServiceController extends BaseReferenceController
     {
         $this->entityClass = TypesService::class;
         $this->entityName = 'app_types_service';
-        $this->title = 'Types de Service';
+        $this->title = 'Types de Gatégorie';
     }
 
     #[Route('/', name: 'app_types_service_index', methods: ['GET'])]

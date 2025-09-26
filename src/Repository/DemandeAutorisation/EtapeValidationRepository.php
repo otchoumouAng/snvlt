@@ -44,7 +44,7 @@ class EtapeValidationRepository extends ServiceEntityRepository
     /**
      * @return EtapeValidation[]
      */
-    public function findPendingStepsForUser(?Direction $direction, ?ServiceMinef $service): array
+    /*public function findPendingStepsForUser(?Direction $direction, ?ServiceMinef $service): array
     {
         
 
@@ -66,6 +66,27 @@ class EtapeValidationRepository extends ServiceEntityRepository
         return $qb->orderBy('e.id', 'DESC')
             ->getQuery()
             ->getResult();
+    }*/
+
+    public function findPendingStepsForUser(?Direction $direction, ?ServiceMinef $service): array
+    {
+        $subQueryBuilder = $this->createQueryBuilder('e2');
+        $subQuery = $subQueryBuilder
+            ->select('MIN(e2.id)')
+            ->join('e2.demande', 'd2')
+            ->where('d2.statut != :statut_signe')
+            ->andWhere('e2.statut = :statut')
+            ->groupBy('e2.demande')
+            ->getDQL();
+
+        $queryBuilder = $this->createQueryBuilder('e');
+        $query = $queryBuilder
+            ->where($queryBuilder->expr()->in('e.id', $subQuery))
+            ->setParameter('statut_signe', 'Signé')
+            ->setParameter('statut', 'En cours')
+            ->orderBy('e.id', 'DESC');
+
+        return $query->getQuery()->getResult();
     }
 
 
