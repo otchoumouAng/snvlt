@@ -52,7 +52,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         if(!$request->getSession()->has('user_session')){
             return $this->redirectToRoute('app_login');
         } else {
-            if ($this->isGranted('ROLE_AGENT_INSPECTEUR') or $this->isGranted('ROLE_ADMIN'))
+            if ($this->isGranted('ROLE_MINEF') or $this->isGranted('ROLE_ADMIN') or $this->isGranted('ROLE_DPIF'))
             {
                 $user = $userRepository->find($this->getUser());
                 $code_groupe = $user->getCodeGroupe()->getId();
@@ -91,17 +91,18 @@ class ValidationDemandeAutorisationController extends AbstractController
             $demande = $etape->getDemande();
             $operateur = $demande->getOperateur();
             $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
-
-            $data[] = [
-                'id' => $demande->getId(),
-                'etape_id' => $etape->getId(),
-                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
-                'description' => $etape->getNom(),
-                'statut' => $demande->getStatut(),
-                'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-                'societe' => $societe
-            ];
+            /*if ($demande->getStatut() != "Signé") {
+            }*/
+                $data[] = [
+                    'id' => $demande->getId(),
+                    'etape_id' => $etape->getId(),
+                    'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
+                    'description' => $etape->getNom(),
+                    'statut' => $demande->getStatut(),
+                    'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
+                    'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                    'societe' => $societe
+                ];
         }
 
         return new JsonResponse($data);
@@ -125,8 +126,12 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
                 'societe' => $societe,
                 'statut' => $demande->getStatut(),
+                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                'pef' => $demande->getNumeroPef() ? $demande->getNumeroPef() : 'N/A',
+                'produit' => $demande->getProduit() ? $demande->getProduit(): 'N/A',
                 'dateTraitement' => $derniereEtape && $derniereEtape->getDateTraitement() ? $derniereEtape->getDateTraitement()->format('d/m/Y') : 'N/A',
             ];
+
         }
 
         return new JsonResponse($data);
@@ -230,6 +235,7 @@ class ValidationDemandeAutorisationController extends AbstractController
 
    
 
+
     //**************
 
 
@@ -261,6 +267,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         }
 
         $etape = $this->etapeValidationRepository->find($etapeId);
+
         if (!$etape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
         }
@@ -281,6 +288,19 @@ class ValidationDemandeAutorisationController extends AbstractController
         $demande->setStatut($newStatus);
 
         if ($newStatus === 'Signé' && $uploadedFile) {
+
+            /*$etape = $this->etapeValidationRepository->findLastEtapeByDemande($demande);
+
+            if (!$etape) {
+                return new JsonResponse(['error' => 'Aucune étape de validation trouvée pour cette demande.'], 404);
+            }
+
+            $etape->setStatut('Validé');
+            $etape->setDateTraitement(new \DateTime());*/
+
+
+
+
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move(
                 $this->getParameter('documents_directory'),

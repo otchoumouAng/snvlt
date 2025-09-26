@@ -32,7 +32,7 @@ class NouvelleDemandeApp {
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
-            columns: [
+            /*columns: [
                 { data: 'id', title: 'ID' },
                 { data: 'titre', title: 'Type' },
                 { data: 'typeDemande', title: 'Nature' },
@@ -40,6 +40,28 @@ class NouvelleDemandeApp {
                 { data: 'numero_pef', title: 'N° PEF', className: 'none' },
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'dateCreation', title: 'Date', className: 'none' }
+            ],*/
+            columns: [
+                // 1. La colonne de contrôle responsive (qui manquait)
+                {
+                    data: null,
+                    defaultContent: '',
+                    className: 'dtr-control',
+                    orderable: false
+                },
+                // 2. Le reste des colonnes, dans le bon ordre
+                { data: 'id', title: 'ID' },
+                { data: 'typeDemande', title: 'Type de Demande' }, // ou 'titre' selon ce que vous voulez afficher
+                { data: 'societe', title: 'Société' }, // La colonne "Société" ajoutée
+                {
+                    data: 'statut',
+                    title: 'Statut Demande',
+                    render: (data) => NouvelleDemandeApp.getStatusBadge(data)
+                },
+                { data: 'numero_pef', title: 'Nº PEF', className: 'none' }, 
+                { data: 'produit', title: 'Produit', className: 'none' }, 
+                { data: 'description', title: 'Description', className: 'none' }, 
+                { data: 'dateCreation', title: 'Date Demande', className: 'none' }
             ],
             responsive: true,
             columnDefs: [
@@ -403,7 +425,7 @@ async displayDocumentPanel(demandeData) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'En cours') {
+    } else if (status === 'En cours'|| status === 'Soumis') {
         buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;

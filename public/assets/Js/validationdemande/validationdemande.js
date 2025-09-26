@@ -14,6 +14,7 @@ class ValidationDemandeApp {
         this.loadDemandes();
     }
 
+
    /* initDataTable() {
         this.dataTable = new DataTable('#demandesTable', {
             language: {
@@ -58,11 +59,11 @@ class ValidationDemandeApp {
                 orderable: false
             },
             { data: 'id', title: 'ID' },
-            { data: 'titre', title: 'Type de Demande' },
+            { data: 'typeDemande', title: 'Type de Demande' },
             { data: 'societe', title: 'Société' },
             {
                 data: 'statut',
-                title: 'Statut Demande',
+                title: 'Statut',
                 render: (data, type, row) => {
                     return this.getStatusBadge(data);
                 }
@@ -113,7 +114,9 @@ getStatusBadge(status) {
                 const data = this.dataTable.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
+                    console.log(data.etape_id)
                     this.displayDetails(data.id, data.etape_id);
+
                 }
             }
         });
@@ -231,13 +234,16 @@ getStatusBadge(status) {
             columns: [
                 { data: null, defaultContent: '', className: 'dtr-control', orderable: false },
                 { data: 'id', title: 'ID' },
-                { data: 'titre', title: 'Type de Demande' },
+                { data: 'titre', title: 'Type' },
                 { data: 'societe', title: 'Société' },
                 {
                     data: 'statut',
                     title: 'Statut Demande',
                     render: (data, type, row) => this.getStatusBadge(data)
                 },
+                { data: 'pef', title: 'Nº PEF', className: 'none' },
+                { data: 'produit', title: 'Produit', className: 'none' },
+                { data: 'typeDemande', title: 'Nature', className: 'none' },
                 { data: 'dateTraitement', title: 'Date Traitement', className: 'none' }
             ],
             responsive: true,

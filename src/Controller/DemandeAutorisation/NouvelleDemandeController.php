@@ -432,7 +432,8 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
-            $demande->setStatut('En cours');
+            //$demande->setStatut('En cours');
+            $demande->setStatut('Soumis');
 
             $etapes = $demande->getEtapesValidation();
 
@@ -535,22 +536,30 @@ class NouvelleDemandeController extends AbstractController
         $detailsModele = $modele->getDetailsModeles();
 
         $EtapeSpecial = ['Soumis','En cours de traitement','Demande signée et disponible'];
+        //$Sequence = ['Soumis','En cours de traitement','Demande signée et disponible'];
 
         $i = 0;
 
         foreach ($detailsModele as $detail) {
             $etapeValidation = new EtapeValidation();
             $etapeValidation->setDemande($nouvelleDemande);
-            $etapeValidation->setOrdre($detail->getNumseq());
+            //$etapeValidation->setOrdre($detail->getNumseq());
+            $etapeValidation->setOrdre($i);
 
             $nomEtape = 'Étape inconnue';
-            if ($detail->getTypeService() === 'DIRECTION' && $detail->getCodeDirection()) {
+
+           /* if ($detail->getTypeService() === 'DIRECTION' && $detail->getCodeDirection()) {
                 $nomEtape = $detail->getCodeDirection()->getDenomination();
             } elseif ($detail->getTypeService() === 'SERVICE' && $detail->getCodeService()) {
                 $nomEtape = $detail->getCodeService()->getLibelleService();
             } elseif ($detail->getTypeService() === 'SPECIAL' && $detail->getCodeService()) {
                 $nomEtape = $EtapeSpecial[$i]; #$detail->getCodeService()->getLibelleService();
+            }*/
+
+            if ($detail->getTypeService() === 'SPECIAL'){
+                $nomEtape = $EtapeSpecial[$i]; 
             }
+
             $etapeValidation->setNom($nomEtape);
 
             /*echo "Sequence: ".$detail->getNumseq();

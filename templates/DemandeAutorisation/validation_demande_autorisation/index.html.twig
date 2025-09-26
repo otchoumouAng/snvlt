@@ -12,6 +12,7 @@
 <!-- Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+
 <!-- Custom CSS -->
 <style>
     /* --- FONDATIONS & DESIGN SYSTEM --- */
@@ -45,6 +46,48 @@
         background-color: var(--color-background);
         font-family: var(--font-family-base);
         color: var(--color-text-primary);
+    }
+
+    /* --- ONGLET DE NAVIGATION AMÉLIORÉ (NAV TABS) --- */
+    .nav-tabs-container {
+        padding: 1rem 1.5rem 0 1.5rem; /* Ajoute de l'espace autour des onglets */
+    }
+
+    .nav-tabs {
+        border-bottom: none; /* Supprime la ligne de bordure par défaut */
+        background-color: var(--color-background); /* Léger fond pour le conteneur */
+        padding: 0.5rem;
+        border-radius: var(--border-radius); /* Bords arrondis comme les cartes */
+        display: inline-flex; /* Assure que le fond ne prend que la largeur nécessaire */
+        gap: 0.5rem; /* Espace entre les onglets */
+    }
+
+    .nav-tabs .nav-item {
+        margin: 0;
+    }
+
+    .nav-tabs .nav-link {
+        border: none !important; /* Supprime toutes les bordures par défaut */
+        border-radius: 8px !important; /* Arrondi plus doux pour chaque onglet */
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease-in-out;
+        background-color: transparent;
+    }
+
+    /* Style de l'onglet inactif au survol */
+    .nav-tabs .nav-link:not(.active):hover {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary-dark);
+    }
+
+    /* Style de l'onglet actif */
+    .nav-tabs .nav-link.active {
+        background-color: var(--color-primary) !important;
+        color: white !important;
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px); /* Léger effet de surélévation */
     }
 
     /* --- CARTE PRINCIPALE (PRO-CARD) --- */
@@ -533,13 +576,17 @@
         padding-top: 1.5rem;
         border-top: 1px solid var(--color-border);
     }
+    .custumiz{
+        height: 350px;
+        overflow: auto;
+    }
 </style>
 
 <div class="container-fluid px-4 py-4">
     <div class="row g-4">
         <!-- Left Column: DataTable -->
         <div class="col-lg-7">
-            <div class="card pro-card h-100 wow-fadeIn">
+            <div class="card pro-card h-100 wow-fadeIn custumiz">
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
@@ -566,13 +613,13 @@
                                 <table id="demandesTable" class="table table-hover" style="width:100%">
                                     <thead>
                                         <tr>
-                                            <th></th>
+                                            <!-- <th></th>
                                             <th>ID</th>
                                             <th>Type de Demande</th>
                                             <th>Société</th>
                                             <th>Statut Demande</th>
                                             <th class="none">Étape Actuelle</th>
-                                            <th class="none">Date Demande</th>
+                                            <th class="none">Date Demande</th> -->
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -603,6 +650,8 @@
                         </div>
                     </div>
                 </div>
+
+
             </div>
         </div>
 
