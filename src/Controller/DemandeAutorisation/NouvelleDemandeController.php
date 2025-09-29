@@ -123,15 +123,8 @@ class NouvelleDemandeController extends AbstractController
         $data = [];
         foreach ($demandes as $demande) {
             $operateur = $demande->getOperateur();
-            $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
-            $hasRejectedDocuments = false;
-            foreach ($demande->getDemandeDocuments() as $demandeDocument) {
-                if ($demandeDocument->getDocument()->getStatut() === 'Rejeté') {
-                    $hasRejectedDocuments = true;
-                    break;
-                }
-            }
+            $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
 
             $data[] = [
                 'id' => $demande->getId(),
@@ -142,8 +135,7 @@ class NouvelleDemandeController extends AbstractController
                 'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
                 'societe' => $societe,
                 'numero_pef' => $demande->getNumeroPef() ?? 'N/A',
-                'produit' => $demande->getProduit() ?? 'N/A',
-                'hasRejectedDocuments' => $hasRejectedDocuments,
+                'produit' => $demande->getProduit() ?? 'N/A'
             ];
         }
 
@@ -230,26 +222,6 @@ class NouvelleDemandeController extends AbstractController
         ];
 
         return new JsonResponse($data);
-    }
-
-    /**
-     * @Route("/{id}/rejected-documents", name="app_nouvelle_demande_rejected_documents", methods={"GET"})
-     */
-    public function getRejectedDocuments(NouvelleDemande $demande): JsonResponse
-    {
-        $rejectedDocuments = [];
-        foreach ($demande->getDemandeDocuments() as $demandeDocument) {
-            $document = $demandeDocument->getDocument();
-            if ($document->getStatut() === 'Rejeté') {
-                $rejectedDocuments[] = [
-                    'nom_original' => $document->getNom(),
-                    'type_document' => $document->getTypeDocument()->getDesignation(),
-                    'date_ajout' => $document->getCreatedAt()->format('d/m/Y H:i'),
-                ];
-            }
-        }
-
-        return new JsonResponse($rejectedDocuments);
     }
 
     /**

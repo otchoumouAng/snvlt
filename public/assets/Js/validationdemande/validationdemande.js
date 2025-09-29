@@ -46,51 +46,41 @@ class ValidationDemandeApp {
     }*/
 
     initDataTable() {
-    this.dataTable = new DataTable('#demandesTable', {
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
-        },
-        columns: [
-            {
-                // Colonne pour l'icône de contrôle responsive (laissée vide)
-                data: null,
-                defaultContent: '',
-                className: 'dtr-control',
-                orderable: false
-            },
-            { data: 'id', title: 'ID' },
-            { data: 'typeDemande', title: 'Type de Demande' },
-            { data: 'societe', title: 'Société' },
-            {
-                data: 'statut',
-                title: 'Statut',
-                render: (data, type, row) => {
-                    return this.getStatusBadge(data);
-                }
-            },
-            { data: 'description', title: 'Étape Actuelle', className: 'none' },
-            { data: 'dateCreation', title: 'Date Demande', className: 'none' }
-        ],
-        responsive: true,
-        columnDefs: [
-            { 
-                responsivePriority: 1, 
-                targets: 1  // Priorité maximale sur la colonne Type de Demande
-            },
-            { 
-                responsivePriority: 2, 
-                targets: 3 // La colonne Statut est la 2e plus importante
-            }
-        ],
-        select: {
-            style: 'single',
-            info: false
-        },
-        order: [[5, 'desc']], // Tri par date de demande décroissante (colonne 5)
-        pageLength: 10,
-        lengthMenu: [5, 10, 25, 50]
-    });
-}
+        this.dataTable = new DataTable('#demandesTable', {
+            language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json' },
+            columns: [
+                { data: null, defaultContent: '', className: 'dtr-control', orderable: false },
+                { data: 'id', title: 'ID' },
+                { data: 'typeDemande', title: 'Type de Demande' },
+                { data: 'societe', title: 'Société' },
+                { data: 'statut', title: 'Statut', render: (data) => this.getStatusBadge(data) },
+                {
+                    data: null,
+                    title: 'Infos',
+                    orderable: false,
+                    className: 'text-center',
+                    render: (data, type, row) => {
+                        if (row.hasRejectedDocuments) {
+                            return `<a href="#" class="view-rejected-docs" data-id="${row.id}" title="Voir les documents rejetés" style="color: #6c757d; text-decoration: underline; font-size: 0.8rem;">rejet</a>`;
+                        }
+                        return '';
+                    }
+                },
+                { data: 'description', title: 'Étape Actuelle', className: 'none' },
+                { data: 'dateCreation', title: 'Date Demande', className: 'none' }
+            ],
+            responsive: true,
+            columnDefs: [
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: 4 },
+                { responsivePriority: 3, targets: 5 }
+            ],
+            select: { style: 'single', info: false },
+            order: [[6, 'desc']],
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50]
+        });
+    }
 
 getStatusBadge(status) {
     switch (status) {
@@ -198,8 +188,42 @@ getStatusBadge(status) {
                 return;
             }
             this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification);
-            //this.validateDemande(demandeId, newStatus, this.refusedDocuments, justification);
         });
+
+        $('#demandesTable tbody').on('click', '.view-rejected-docs', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Prevent row selection
+            const demandeId = $(e.currentTarget).data('id');
+            this.showRejectedDocumentsModal(demandeId);
+        });
+    }
+
+    async showRejectedDocumentsModal(demandeId) {
+        try {
+            const rejectedDocs = await this.apiService.get(`/admin/validation_demande_autorisation/${demandeId}/rejected-documents`);
+            const tableBody = $('#rejectedDocsTableBody');
+            tableBody.empty();
+
+            if (rejectedDocs && rejectedDocs.length > 0) {
+                rejectedDocs.forEach(doc => {
+                    const row = `
+                        <tr>
+                            <td>${doc.type_document || 'N/A'}</td>
+                            <td>${doc.nom_original || 'N/A'}</td>
+                            <td>${doc.date_ajout || 'N/A'}</td>
+                        </tr>`;
+                    tableBody.append(row);
+                });
+            } else {
+                tableBody.append('<tr><td colspan="3" class="text-center">Aucun document rejeté pour cette demande.</td></tr>');
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('rejectedDocsModal'));
+            modal.show();
+        } catch (error) {
+            this.notification.error('Erreur lors du chargement des documents rejetés.');
+            console.error(error);
+        }
     }
 
     async loadDemandes() {

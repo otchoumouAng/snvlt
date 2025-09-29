@@ -91,18 +91,26 @@ class ValidationDemandeAutorisationController extends AbstractController
             $demande = $etape->getDemande();
             $operateur = $demande->getOperateur();
             $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
-            /*if ($demande->getStatut() != "Signé") {
-            }*/
-                $data[] = [
-                    'id' => $demande->getId(),
-                    'etape_id' => $etape->getId(),
-                    'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
-                    'description' => $etape->getNom(),
-                    'statut' => $demande->getStatut(),
-                    'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                    'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-                    'societe' => $societe
-                ];
+
+            $hasRejectedDocuments = false;
+            foreach ($demande->getDemandeDocuments() as $demandeDocument) {
+                if ($demandeDocument->getDocument()->getStatut() === 'Rejeté') {
+                    $hasRejectedDocuments = true;
+                    break;
+                }
+            }
+
+            $data[] = [
+                'id' => $demande->getId(),
+                'etape_id' => $etape->getId(),
+                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
+                'description' => $etape->getNom(),
+                'statut' => $demande->getStatut(),
+                'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
+                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                'societe' => $societe,
+                'hasRejectedDocuments' => $hasRejectedDocuments,
+            ];
         }
 
         return new JsonResponse($data);
@@ -233,7 +241,26 @@ class ValidationDemandeAutorisationController extends AbstractController
         return new JsonResponse($data);
     }
 
-   
+    /**
+     * @Route("/{id}/rejected-documents", name="app_validation_demande_rejected_documents", methods={"GET"})
+     */
+    public function getRejectedDocuments(NouvelleDemande $demande): JsonResponse
+    {
+        $rejectedDocuments = [];
+        // It's better to query the repository for this, but for simplicity, we iterate here.
+        foreach ($demande->getDemandeDocuments() as $demandeDocument) {
+            $document = $demandeDocument->getDocument();
+            if ($document->getStatut() === 'Rejeté') {
+                $rejectedDocuments[] = [
+                    'nom_original' => $document->getNom(),
+                    'type_document' => $document->getTypeDocument()->getDesignation(),
+                    'date_ajout' => $document->getCreatedAt()->format('d/m/Y H:i'),
+                ];
+            }
+        }
+
+        return new JsonResponse($rejectedDocuments);
+    }
 
 
     //**************
@@ -282,23 +309,25 @@ class ValidationDemandeAutorisationController extends AbstractController
         */
 
 
-        $validationAction = new ValidationAction();
-
-        // Si des documents sont refusés, l'étape est considérée comme rejetée.
-        if (!empty($refusedDocuments)) {
-            $etape->setStatut('Rejeté');
-            $etape->setDetails($justification);
-            $demande->setStatut('En cours'); // Le statut de la demande reste "En cours" pour correction
-            $validationAction->setStatut('Rejeté'); // L'action de validation est un rejet
-        } else {
-            $etape->setStatut('Validé');
-            $demande->setStatut($newStatus);
-            $validationAction->setStatut($newStatus);
-        }
+        $etape->setStatut('Validé');
         $etape->setDateTraitement(new \DateTime());
 
+        $demande->setStatut($newStatus);
 
         if ($newStatus === 'Signé' && $uploadedFile) {
+
+            /*$etape = $this->etapeValidationRepository->findLastEtapeByDemande($demande);
+
+            if (!$etape) {
+                return new JsonResponse(['error' => 'Aucune étape de validation trouvée pour cette demande.'], 404);
+            }
+
+            $etape->setStatut('Validé');
+            $etape->setDateTraitement(new \DateTime());*/
+
+
+
+
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move(
                 $this->getParameter('documents_directory'),
@@ -314,33 +343,15 @@ class ValidationDemandeAutorisationController extends AbstractController
             }
         }
 
+        $validationAction = new ValidationAction();
         $validationAction->setDemande($demande);
         $validationAction->setValidator($this->getUser());
+        $validationAction->setStatut($newStatus);
         $validationAction->setNote($justification);
         $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
-
-        // --- Notifications ---
-        // Notifier si des documents sont rejetés
-        if (!empty($refusedDocuments)) {
-            $this->notificationService->notifyApplicant(
-                $demande,
-                'Documents refusés pour votre demande',
-                'emails/document_refused.html.twig',
-                ['justification' => $justification]
-            );
-        }
-
-        // Notifier si la demande est signée
-        if ($newStatus === 'Signé') {
-            $this->notificationService->notifyApplicant(
-                $demande,
-                'Votre demande a été approuvée et signée',
-                'emails/demande_signed.html.twig'
-            );
-        }
 
         return new JsonResponse(['success' => true]);
     }
