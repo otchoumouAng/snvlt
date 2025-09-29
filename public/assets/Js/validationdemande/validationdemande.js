@@ -14,37 +14,6 @@ class ValidationDemandeApp {
         this.loadDemandes();
     }
 
-
-   /* initDataTable() {
-        this.dataTable = new DataTable('#demandesTable', {
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
-            },
-            columns: [
-                { data: 'etape_id', title: 'ID Etape' },
-                { data: 'titre', title: 'Titre de la Demande' },
-                { data: 'description', title: 'Étape Actuelle' },
-                { data: 'societe', title: 'Société' },
-                { data: 'dateCreation', title: 'Date Demande' },
-                {
-                    data: 'statut',
-                    title: 'Statut Demande',
-                    render: (data, type, row) => {
-                        return this.getStatusBadge(data);
-                    }
-                }
-            ],
-            select: {
-                style: 'single',
-                info: false
-            },
-            responsive: true,
-            order: [[4, 'desc']],
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50]
-        });
-    }*/
-
     initDataTable() {
     this.dataTable = new DataTable('#demandesTable', {
         language: {
@@ -52,7 +21,6 @@ class ValidationDemandeApp {
         },
         columns: [
             {
-                // Colonne pour l'icône de contrôle responsive (laissée vide)
                 data: null,
                 defaultContent: '',
                 className: 'dtr-control',
@@ -75,18 +43,18 @@ class ValidationDemandeApp {
         columnDefs: [
             {
                 responsivePriority: 1,
-                targets: 1  // Priorité maximale sur la colonne Type de Demande
+                targets: 1
             },
             {
                 responsivePriority: 2,
-                targets: 3 // La colonne Statut est la 2e plus importante
+                targets: 3
             }
         ],
         select: {
             style: 'single',
             info: false
         },
-        order: [[5, 'desc']], // Tri par date de demande décroissante (colonne 5)
+        order: [[5, 'desc']],
         pageLength: 10,
         lengthMenu: [5, 10, 25, 50]
     });
@@ -100,7 +68,6 @@ getStatusBadge(status) {
             return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
         case 'Soumis':
             return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>Soumis</span></span>';
-            //return `<span class="status-badge">${status}</span>`;
         case 'refuser':
         case 'Rejetée':
             return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
@@ -114,9 +81,7 @@ getStatusBadge(status) {
                 const data = this.dataTable.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
-                    console.log(data.etape_id)
                     this.displayDetails(data.id, data.etape_id);
-
                 }
             }
         });
@@ -129,7 +94,7 @@ getStatusBadge(status) {
                 const data = this.dataTableTraitees.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
-                    this.displayDetails(data.id, null, true); // Le troisième paramètre indique que c'est une demande traitée
+                    this.displayDetails(data.id, null, true);
                 }
             }
         });
@@ -150,29 +115,6 @@ getStatusBadge(status) {
                 this.selectedDemandeId = null;
                 this.showDetailsPlaceholder();
             }
-        });
-
-        $(document).on('click', '#approve-step-btn', (e) => {
-            const etapeId = $(e.currentTarget).data('etape-id');
-            this.approveStep(etapeId);
-        });
-
-        $(document).on('click', '#reject-step-btn', () => {
-            $('#validation-actions').hide();
-            $('#rejection-form').slideDown();
-        });
-
-        $(document).on('click', '#cancel-rejection-btn', () => {
-            $('#rejection-form').slideUp(() => {
-                $('#validation-actions').show();
-                $('#rejection-comment').val('');
-            });
-        });
-
-        $(document).on('click', '#confirm-rejection-btn', (e) => {
-            const etapeId = $(e.currentTarget).data('etape-id');
-            const comment = $('#rejection-comment').val();
-            this.rejectStep(etapeId, comment);
         });
 
         $(document).on('click', '.refuse-doc-btn', (e) => {
@@ -200,7 +142,6 @@ getStatusBadge(status) {
             this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification);
         });
 
-        // Event listener for the new link
         $(document).on('click', '.view-rejected-docs', (e) => {
             e.preventDefault();
             const demandeId = $(e.currentTarget).data('id');
@@ -216,11 +157,12 @@ getStatusBadge(status) {
 
             if (rejectedDocs && rejectedDocs.length > 0) {
                 rejectedDocs.forEach(doc => {
+                    const viewButton = `<a href="${doc.path}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="ph ph-eye"></i> Visualiser</a>`;
                     const row = `
                         <tr>
                             <td>${doc.type_document || 'N/A'}</td>
                             <td>${doc.nom_original || 'N/A'}</td>
-                            <td>${doc.date_ajout || 'N/A'}</td>
+                            <td>${viewButton}</td>
                         </tr>`;
                     tableBody.append(row);
                 });
@@ -349,8 +291,10 @@ getStatusBadge(status) {
             let rejectedLinkHtml = '';
             if (hasRejectedDocuments) {
                 rejectedLinkHtml = `
-                    <div class="mb-3 text-center">
-                        <a href="#" class="view-rejected-docs" data-id="${demandeId}" style="color: #6c757d; text-decoration: underline; font-weight: 500;">Voir les documents rejetés</a>
+                    <div class="d-grid gap-2 mb-3">
+                        <button class="btn btn-sm btn-outline-danger view-rejected-docs" data-id="${demandeId}">
+                            <i class="ph-fill ph-warning-circle"></i> Voir les documents rejetés
+                        </button>
                     </div>`;
             }
 
@@ -413,8 +357,6 @@ getStatusBadge(status) {
             this.showDetailsPlaceholder();
         }
     }
-
-
 
     showDetailsPlaceholder() {
         const detailsContent = $('#details-content');

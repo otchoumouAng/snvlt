@@ -239,13 +239,17 @@ class ValidationDemandeAutorisationController extends AbstractController
     public function getRejectedDocuments(NouvelleDemande $demande): JsonResponse
     {
         $rejectedDocuments = [];
+        $publicDir = $this->getParameter('kernel.project_dir') . '/public';
+        $documentsDir = $this->getParameter('documents_directory');
+        $webPath = str_replace($publicDir, '', $documentsDir);
+
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $document = $demandeDocument->getDocument();
             if ($document->getStatut() === 'Rejeté') {
                 $rejectedDocuments[] = [
                     'nom_original' => $document->getNom(),
                     'type_document' => $document->getTypeDocument()->getDesignation(),
-                    'date_ajout' => $document->getCreatedAt()->format('d/m/Y H:i'),
+                    'path' => $webPath . '/' . $document->getPath(),
                 ];
             }
         }
