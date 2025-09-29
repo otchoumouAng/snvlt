@@ -91,26 +91,18 @@ class ValidationDemandeAutorisationController extends AbstractController
             $demande = $etape->getDemande();
             $operateur = $demande->getOperateur();
             $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
-
-            $hasRejectedDocuments = false;
-            foreach ($demande->getDemandeDocuments() as $demandeDocument) {
-                if ($demandeDocument->getDocument()->getStatut() === 'Rejeté') {
-                    $hasRejectedDocuments = true;
-                    break;
-                }
-            }
-
-            $data[] = [
-                'id' => $demande->getId(),
-                'etape_id' => $etape->getId(),
-                'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
-                'description' => $etape->getNom(),
-                'statut' => $demande->getStatut(),
-                'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
-                'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
-                'societe' => $societe,
-                'hasRejectedDocuments' => $hasRejectedDocuments,
-            ];
+            /*if ($demande->getStatut() != "Signé") {
+            }*/
+                $data[] = [
+                    'id' => $demande->getId(),
+                    'etape_id' => $etape->getId(),
+                    'titre' => $demande->getTypePaiement() ? $demande->getTypePaiement()->getLibelle() : 'N/A',
+                    'description' => $etape->getNom(),
+                    'statut' => $demande->getStatut(),
+                    'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
+                    'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                    'societe' => $societe
+                ];
         }
 
         return new JsonResponse($data);
@@ -247,7 +239,6 @@ class ValidationDemandeAutorisationController extends AbstractController
     public function getRejectedDocuments(NouvelleDemande $demande): JsonResponse
     {
         $rejectedDocuments = [];
-        // It's better to query the repository for this, but for simplicity, we iterate here.
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $document = $demandeDocument->getDocument();
             if ($document->getStatut() === 'Rejeté') {
