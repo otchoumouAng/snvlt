@@ -16,6 +16,7 @@ use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use App\Service\Paiement\PdfService;
 use App\Entity\Paiement\Transaction;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PaiementWorkflowController extends AbstractController
 {
@@ -93,7 +94,7 @@ class PaiementWorkflowController extends AbstractController
         $code_groupe = $user->getCodeGroupe()->getId();
 
 
-        $rolesAutorises = ['ROLE_EXPLOITANT', 'ROLE_EXPORTATEUR','ROLE_INDUSTRIEL'];
+        $rolesAutorises = ['ROLE_EXPLOITANT', 'ROLE_EXPORTATEUR','ROLE_INDUSTRIEL','ROLE_ADMIN'];
 
         if (!$user || empty(array_intersect($rolesAutorises, $user->getRoles()))) {
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
