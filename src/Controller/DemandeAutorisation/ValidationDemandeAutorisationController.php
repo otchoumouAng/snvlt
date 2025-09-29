@@ -286,7 +286,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         if (!empty($refusedDocuments)) {
             $etape->setStatut('Rejeté');
             $etape->setDetails($justification); // Stocker la justification dans les détails de l'étape
-            $demande->setStatut('Rejeté'); // Mettre à jour le statut global de la demande
+            $demande->setStatut('rejetee'); // Mettre à jour le statut global de la demande
         } else {
             $etape->setStatut('Validé');
             $demande->setStatut($newStatus);
