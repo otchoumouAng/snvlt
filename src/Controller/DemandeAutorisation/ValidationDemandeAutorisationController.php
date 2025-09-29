@@ -282,14 +282,18 @@ class ValidationDemandeAutorisationController extends AbstractController
         */
 
 
+        $validationAction = new ValidationAction();
+
         // Si des documents sont refusés, l'étape est considérée comme rejetée.
         if (!empty($refusedDocuments)) {
             $etape->setStatut('Rejeté');
-            $etape->setDetails($justification); // Stocker la justification dans les détails de l'étape
-            $demande->setStatut('rejetee'); // Mettre à jour le statut global de la demande
+            $etape->setDetails($justification);
+            $demande->setStatut('En cours'); // Le statut de la demande reste "En cours" pour correction
+            $validationAction->setStatut('Rejeté'); // L'action de validation est un rejet
         } else {
             $etape->setStatut('Validé');
             $demande->setStatut($newStatus);
+            $validationAction->setStatut($newStatus);
         }
         $etape->setDateTraitement(new \DateTime());
 
@@ -310,10 +314,8 @@ class ValidationDemandeAutorisationController extends AbstractController
             }
         }
 
-        $validationAction = new ValidationAction();
         $validationAction->setDemande($demande);
         $validationAction->setValidator($this->getUser());
-        $validationAction->setStatut($newStatus);
         $validationAction->setNote($justification);
         $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
 
