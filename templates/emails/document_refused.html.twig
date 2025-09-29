@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Mise à jour de votre demande</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 90%; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .header { background-color: #f8d7da; color: #721c24; padding: 10px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { padding: 20px 0; }
+        .justification { background-color: #fefefe; border: 1px solid #eee; padding: 15px; border-radius: 4px; margin-top: 15px; }
+        .footer { margin-top: 20px; font-size: 0.9em; color: #777; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Mise à jour de votre demande</h2>
+        </div>
+        <div class="content">
+            <p>Bonjour,</p>
+            <p>
+                Nous vous informons que votre demande N° <strong>{{ demande.codeSuivie }}</strong> a été mise à jour.
+                Un ou plusieurs documents ont été refusés.
+            </p>
+            <div class="justification">
+                <strong>Motif du refus :</strong>
+                <p>{{ justification|nl2br }}</p>
+            </div>
+            <p>
+                Veuillez vous connecter à votre espace pour corriger les documents et soumettre à nouveau votre demande.
+            </p>
+            <p>Merci.</p>
+        </div>
+        <div class="footer">
+            <p>Ceci est un email automatique, merci de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>

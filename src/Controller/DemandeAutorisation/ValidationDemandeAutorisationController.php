@@ -282,25 +282,19 @@ class ValidationDemandeAutorisationController extends AbstractController
         */
 
 
-        $etape->setStatut('Validé');
+        // Si des documents sont refusés, l'étape est considérée comme rejetée.
+        if (!empty($refusedDocuments)) {
+            $etape->setStatut('Rejeté');
+            $etape->setDetails($justification); // Stocker la justification dans les détails de l'étape
+            $demande->setStatut('Rejeté'); // Mettre à jour le statut global de la demande
+        } else {
+            $etape->setStatut('Validé');
+            $demande->setStatut($newStatus);
+        }
         $etape->setDateTraitement(new \DateTime());
 
-        $demande->setStatut($newStatus);
 
         if ($newStatus === 'Signé' && $uploadedFile) {
-
-            /*$etape = $this->etapeValidationRepository->findLastEtapeByDemande($demande);
-
-            if (!$etape) {
-                return new JsonResponse(['error' => 'Aucune étape de validation trouvée pour cette demande.'], 404);
-            }
-
-            $etape->setStatut('Validé');
-            $etape->setDateTraitement(new \DateTime());*/
-
-
-
-
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move(
                 $this->getParameter('documents_directory'),
@@ -325,6 +319,26 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
+
+        // --- Notifications ---
+        // Notifier si des documents sont rejetés
+        if (!empty($refusedDocuments)) {
+            $this->notificationService->notifyApplicant(
+                $demande,
+                'Documents refusés pour votre demande',
+                'emails/document_refused.html.twig',
+                ['justification' => $justification]
+            );
+        }
+
+        // Notifier si la demande est signée
+        if ($newStatus === 'Signé') {
+            $this->notificationService->notifyApplicant(
+                $demande,
+                'Votre demande a été approuvée et signée',
+                'emails/demande_signed.html.twig'
+            );
+        }
 
         return new JsonResponse(['success' => true]);
     }

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Votre demande a été approuvée</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 90%; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .header { background-color: #d4edda; color: #155724; padding: 10px; text-align: center; border-radius: 5px 5px 0 0; }
+        .content { padding: 20px 0; }
+        .footer { margin-top: 20px; font-size: 0.9em; color: #777; text-align: center; }
+        .button { display: inline-block; padding: 10px 20px; margin-top: 15px; background-color: #28a745; color: #fff; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Votre demande a été approuvée !</h2>
+        </div>
+        <div class="content">
+            <p>Bonjour,</p>
+            <p>
+                Excellente nouvelle ! Votre demande N° <strong>{{ demande.codeSuivie }}</strong> a été traitée et approuvée.
+            </p>
+            <p>
+                Le document signé est maintenant disponible dans votre espace personnel. Vous pouvez le télécharger en cliquant sur le bouton ci-dessous ou en vous connectant à la plateforme.
+            </p>
+            <p style="text-align: center;">
+                <a href="{{ url('app_login') }}" class="button">Accéder à mon espace</a>
+            </p>
+            <p>Merci de votre confiance.</p>
+        </div>
+        <div class="footer">
+            <p>Ceci est un email automatique, merci de ne pas y répondre.</p>
+        </div>
+    </div>
+</body>
+</html>
