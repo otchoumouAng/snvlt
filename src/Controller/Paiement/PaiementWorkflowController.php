@@ -92,6 +92,13 @@ class PaiementWorkflowController extends AbstractController
         $user = $userRepository->find($this->getUser());
         $code_groupe = $user->getCodeGroupe()->getId();
 
+
+        $rolesAutorises = ['ROLE_EXPLOITANT', 'ROLE_EXPORTATEUR','ROLE_INDUSTRIEL'];
+
+        if (!$user || empty(array_intersect($rolesAutorises, $user->getRoles()))) {
+            return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
+        }
+
         $userInfo = [
             'nom' => $user->getNomUtilisateur(),
             'prenom' => $user->getPrenomsUtilisateur(),
