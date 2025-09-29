@@ -42,9 +42,12 @@ class NouvelleDemandeController extends AbstractController
     {
         $user = $this->getUser();
 
-        if (!$user || !in_array('ROLE_EXPLOITANT', $user->getRoles())) {
+        $rolesAutorises = ['ROLE_EXPLOITANT', 'ROLE_EXPORTATEUR','ROLE_INDUSTRIEL'];
+
+        if (!$user || empty(array_intersect($rolesAutorises, $user->getRoles()))) {
             return new JsonResponse(['error' => 'Accès non autorisé ou utilisateur non valide'], 403);
         }
+
 
         $exploitant = $user->getCodeexploitant();
         if (!$exploitant) {
