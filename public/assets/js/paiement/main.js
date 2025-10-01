@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // --- ÉTAT DE L'APPLICATION ---
     let state = {
         currentStep: 1,
-        summaryReady: false,
         typeDemandeId: null,
         typeDemandeLabel: null,
         isReprisePef: false,
@@ -63,40 +62,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /** Met à jour l'affichage global (stepper, contenu, boutons) */
     function updateUI() {
-        // Déterminer l'étape visuelle pour le stepper, qui peut être en avance sur le contenu affiché.
-        let visualStep = state.currentStep;
-        if (state.currentStep === 1 && state.summaryReady) {
-            visualStep = 2; // Le résumé est prêt, on montre l'étape 2 comme active.
-        } else if (state.currentStep === 2) {
-            visualStep = 3; // On est sur le formulaire de confirmation, on montre l'étape 3 comme active.
-        }
-
-        // Mettre à jour la barre de progression en fonction de l'étape visuelle.
-        const progress = ((visualStep - 1) / (dom.steps.length - 1)) * 100;
+        // Mettre à jour la barre de progression
+        const progress = ((state.currentStep - 1) / (dom.steps.length - 1)) * 100;
         dom.progressBar.style.width = `${progress}%`;
 
-        // Mettre à jour les icônes du stepper en fonction de l'étape visuelle.
+        // Mettre à jour les icônes du stepper
         dom.steps.forEach(step => {
             const stepNum = parseInt(step.dataset.step, 10);
             step.classList.remove('active', 'completed');
-            if (stepNum < visualStep) {
-                step.classList.add('completed');
-            } else if (stepNum === visualStep) {
-                step.classList.add('active');
-            }
+            if (stepNum < state.currentStep) step.classList.add('completed');
+            else if (stepNum === state.currentStep) step.classList.add('active');
         });
 
-        // Afficher le contenu de l'étape REELLE (currentStep).
+        // Afficher le contenu de l'étape active
         dom.stepContents.forEach(content => {
             content.style.display = parseInt(content.dataset.step) === state.currentStep ? 'block' : 'none';
         });
 
-        // Gérer la visibilité des boutons.
+        // Gérer la visibilité des boutons
         dom.buttons.prev.style.display = state.currentStep > 1 ? 'inline-block' : 'none';
         dom.buttons.next.style.display = state.currentStep === 1 ? 'inline-block' : 'none';
         dom.buttons.submit.style.display = state.currentStep === 2 ? 'inline-block' : 'none';
         
-        // Pré-remplir le formulaire de confirmation.
+        // Pré-remplir le formulaire de confirmation
         if (state.currentStep === 2) {
             dom.clientNomInput.value = workflowContainer.dataset.userNom || '';
             dom.clientPrenomInput.value = workflowContainer.dataset.userPrenom || '';
@@ -129,6 +117,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /** Affiche le résumé du service ou une erreur */
     function renderSummary() {
         dom.summaryCard.style.display = 'block';
+        console.log(state)
         if (state.service && state.service.montant !== undefined) {
             let html = `
                 <h5 class="mb-3">Résumé de votre demande</h5>
@@ -152,13 +141,10 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             dom.summaryContent.innerHTML = html;
             dom.buttons.next.disabled = false;
-            state.summaryReady = true;
         } else {
             dom.summaryContent.innerHTML = `<div class="alert alert-warning mb-0">Aucun service correspondant n'a été trouvé pour votre sélection.</div>`;
             dom.buttons.next.disabled = true;
-            state.summaryReady = false;
         }
-        updateUI();
     }
 
     // --- LOGIQUE MÉTIER ---
@@ -188,16 +174,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     console.error("Erreur lors de la récupération des détails du service:", error);
                     dom.summaryContent.innerHTML = '<div class="alert alert-danger mb-0">Erreur de communication avec le serveur.</div>';
                     dom.buttons.next.disabled = true;
-                    state.summaryReady = false;
-                    updateUI();
                 });
         } else {
              dom.summaryCard.style.display = 'none';
              dom.buttons.next.disabled = true;
-             if (state.summaryReady) {
-                state.summaryReady = false;
-                updateUI();
-             }
         }
     }
 
@@ -223,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         state.typeDemandeLabel = selectedOption.text;
         // La vérification se fait sur le libellé, à adapter si un ID ou flag est disponible
-        if (state.typeDemandeLabel.toLowerCase().includes("reprise d'activité pef")) {
+        if (state.typeDemandeLabel.toLowerCase().includes("reprise d'activité")) {
             state.isReprisePef = true;
             dom.pefContainer.innerHTML = '<span class="text-muted">Chargement des PEF...</span>';
             dom.pefContainer.style.display = 'block';
@@ -341,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function resetWorkflow() {
-        state = { currentStep: 1, summaryReady: false, typeDemandeId: null, typeDemandeLabel: null, isReprisePef: false, pefId: null, pefLabel: null, typePaiementId: null, service: null };
+        state = { currentStep: 1, typeDemandeId: null, typeDemandeLabel: null, isReprisePef: false, pefId: null, pefLabel: null, typePaiementId: null, service: null };
         
         if (dom.typeDemandeSelect.tomselect) {
             dom.typeDemandeSelect.tomselect.clear();

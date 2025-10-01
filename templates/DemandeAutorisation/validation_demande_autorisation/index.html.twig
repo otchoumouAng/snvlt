@@ -678,6 +678,38 @@
     </div>
 </div>
 
+<!-- Rejected Documents Modal -->
+<div class="modal fade" id="rejectedDocsModal" tabindex="-1" aria-labelledby="rejectedDocsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectedDocsModalLabel"><i class="ph-fill ph-file-x"></i> Documents Rejetés</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>La liste ci-dessous présente les documents qui ont été rejetés pour cette demande.</p>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Type de Document</th>
+                                <th>Nom du Fichier</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rejectedDocsTableBody">
+                            <!-- Le contenu sera injecté par JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="{{ asset('assets/node_modules/jquery/dist/jquery.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/lemonadejs/dist/lemonade.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@lemonadejs/signature/dist/index.min.js"></script>

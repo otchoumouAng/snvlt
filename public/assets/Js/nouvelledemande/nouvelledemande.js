@@ -41,6 +41,7 @@ class NouvelleDemandeApp {
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'dateCreation', title: 'Date', className: 'none' }
             ],*/
+
             columns: [
                 // 1. La colonne de contrôle responsive (qui manquait)
                 {
@@ -58,9 +59,9 @@ class NouvelleDemandeApp {
                     title: 'Statut Demande',
                     render: (data) => NouvelleDemandeApp.getStatusBadge(data)
                 },
-                { data: 'numero_pef', title: 'Nº PEF', className: 'none' }, 
-                { data: 'produit', title: 'Produit', className: 'none' }, 
-                { data: 'description', title: 'Description', className: 'none' }, 
+                { data: 'numero_pef', title: 'Nº PEF', className: 'none' },
+                { data: 'produit', title: 'Produit', className: 'none' },
+                { data: 'description', title: 'Description', className: 'none' },
                 { data: 'dateCreation', title: 'Date Demande', className: 'none' }
             ],
             responsive: true,
@@ -79,7 +80,7 @@ class NouvelleDemandeApp {
             }
         });
 
-        
+
         this.dataTable.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
                 const data = this.dataTable.row(indexes).data();
@@ -240,7 +241,7 @@ class NouvelleDemandeApp {
         try {
             // Idéalement, votre API retourne le HTML pré-rempli
             const trackingHtml = await this.apiService.getTrackingView(demandeId);
-            
+
             // Remplacer le contenu de la page
             // Assurez-vous d'avoir un conteneur global, ex: <div id="page-wrapper">
             $('#page_content').fadeOut(200, function() {
@@ -286,12 +287,12 @@ class NouvelleDemandeApp {
             this.notification.info('Chargement des demandes...', 2000);
             const demandes = await this.apiService.getDemandes();
             this.dataTable.clear().rows.add(demandes).draw();
-            
+
             // Réinitialiser la sélection
             this.selectedDemandeId = null;
             $('#editBtn').prop('disabled', true);
             this.showDetailsPlaceholder();
-            
+
         } catch (error) {
             this.notification.error('Erreur lors du chargement des demandes');
             console.error(error);
@@ -302,7 +303,7 @@ class NouvelleDemandeApp {
         try {
             this.selectedDemandeId = id;
             $('#editBtn').prop('disabled', false);
-            
+
             const details = await this.apiService.getDemandeDetails(id);
             this.displayDetails(details);
         } catch (error) {
@@ -327,16 +328,16 @@ class NouvelleDemandeApp {
         if (!formHtml) {
             throw new Error(`Template non trouvé pour le mode: ${mode}`);
         }
-        
+
         $('#modalContainer').html(formHtml);
-        
+
         // Initialiser le modal Bootstrap
         const modalElement = document.getElementById('demandeModal');
         this.modal = new bootstrap.Modal(modalElement);
         this.modal.show();
-        
+
         this.currentMode = mode;
-        
+
         // Si nous avons un ID, charger les données
         if (id) {
             // Utiliser les données du DataTable si disponibles
@@ -353,7 +354,7 @@ class NouvelleDemandeApp {
             //this.setupModal(mode, null);
             this.setupModalWithData(mode, {});
         }
-        
+
     } catch (error) {
         this.notification.error('Erreur lors de l\'ouverture du modal');
         console.error(error);
@@ -369,24 +370,24 @@ setupModalWithData(mode, data) {
     const form = modal.find('#demandeForm');
     // On cible la section des documents
     const documentsSection = modal.find('#documents-section');
-    
+
     // Remplir le formulaire avec les données
     form.find('#demandeId').val(data.id);
     form.find('#typePaiement').val(data.typePaiementId); // Updated
     form.find('#description').val(data.description);
     form.find('#typeDemande').val(data.typeDemandeId).trigger('change'); // Corrected from typeDocument
-    
+
     // Set mode-specific configurations
     switch(mode) {
         case 'new':
             title.text('Nouvelle Demande');
             icon.attr('class', 'ph-fill ph-file-plus');
-            saveBtn.show().text('Créer');
+            saveBtn.show().text('Initier');
             deleteBtn.hide();
             documentsSection.hide(); // La section est déjà cachée pour 'new'
             form.find('input, select, textarea').prop('disabled', false);
             break;
-            
+
         case 'edit':
             title.text('Modifier la Demande');
             icon.attr('class', 'ph-fill ph-pencil-simple');
@@ -394,11 +395,11 @@ setupModalWithData(mode, data) {
             deleteBtn.show();
             documentsSection.hide(); // CHANGEMENT : On cache la section
             form.find('input, select, textarea').prop('disabled', false);
-            
+
             // SUPPRIMÉ : On ne charge plus les documents dans la modale
             // this.loadDocuments(data.id);
             break;
-            
+
         case 'read':
             title.text('Détails de la Demande');
             icon.attr('class', 'ph-fill ph-eye');
@@ -406,7 +407,7 @@ setupModalWithData(mode, data) {
             deleteBtn.hide();
             documentsSection.hide(); // CHANGEMENT : On cache la section
             form.find('input, select, textarea').prop('disabled', true);
-            
+
             // SUPPRIMÉ : On ne charge plus les documents dans la modale
             // this.loadDocuments(data.id);
             break;
@@ -591,7 +592,7 @@ showDetailsPlaceholder() {
 
 
 
-    
+
 
     async saveDemande() {
         try {
@@ -611,7 +612,7 @@ showDetailsPlaceholder() {
             }
             
             const result = await this.apiService.saveDemande(formData);
-            
+
             if (result.success) {
                 this.notification.success('Demande enregistrée avec succès');
                 $('#demandeModal').modal('hide');
@@ -629,15 +630,15 @@ showDetailsPlaceholder() {
         if (!confirm('Êtes-vous sûr de vouloir supprimer cette demande ? Cette action est irréversible.')) {
             return;
         }
-        
+
         try {
             const demandeId = $('#demandeId').val();
             // Implémentez la suppression côté serveur et appez l'API ici
             this.notification.info('Fonctionnalité de suppression à implémenter');
-            
+
             // Pour l'instant, on ferme juste le modal
             $('#demandeModal').modal('hide');
-            
+
         } catch (error) {
             this.notification.error('Erreur lors de la suppression');
             console.error(error);
@@ -706,17 +707,17 @@ showDetailsPlaceholder() {
             this.notification.error('Aucune demande sélectionnée');
             return;
         }
-        
+
         if (!confirm('Êtes-vous sûr de vouloir retirer ce document ?')) {
             return;
         }
-        
+
         const demandeId = this.selectedDemandeId || $('#demandeId').val();
-        
+
         try {
             await this.apiService.removeDocument(demandeId, documentId);
             this.notification.success('Document retiré avec succès');
-            
+
             // Reload the data
             if (this.currentMode) {
                 this.loadDemandeData(demandeId);
@@ -755,16 +756,16 @@ showDetailsPlaceholder() {
 
     static getDocumentStatusBadge(status) {
         switch (status) {
-            case 'provided': 
+            case 'provided':
             case 'fourni':
                 return '<span class="badge bg-success-subtle text-success-emphasis"><i class="ph-fill ph-check-circle me-1"></i>Fourni</span>';
-            case 'missing': 
+            case 'missing':
             case 'manquant':
                 return '<span class="badge bg-danger-subtle text-danger-emphasis"><i class="ph-fill ph-x-circle me-1"></i>Manquant</span>';
-            case 'validating': 
+            case 'validating':
             case 'en_validation':
                 return '<span class="badge bg-warning-subtle text-warning-emphasis"><i class="ph-fill ph-hourglass me-1"></i>En validation</span>';
-            default: 
+            default:
                 return '<span class="badge bg-secondary">' + status + '</span>';
         }
     }
