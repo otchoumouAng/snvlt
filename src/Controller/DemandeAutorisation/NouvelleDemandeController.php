@@ -448,12 +448,20 @@ class NouvelleDemandeController extends AbstractController
             } else {
                 
                 // Re-submission
+                $etapes = $this->etapeValidationRepository->findBy(['demande' => $demande], ['ordre' => 'ASC']);
                 foreach ($etapes as $etape) {
-                    $etape->setStatut('En cours');
-                    $etape->setDateTraitement();
+                    $etape->setDateTraitement(null);
                     $etape->setDetails(null);
-                    $this->entityManager->persist($etape);
 
+                    if ($etape->getOrdre() == 0) {
+                        $etape->setStatut('Validé');
+                        $etape->setDateTraitement(new \DateTime());
+                    } elseif ($etape->getOrdre() == 1) {
+                        $etape->setStatut('En cours');
+                    } else {
+                        $etape->setStatut('En attente');
+                    }
+                    $this->entityManager->persist($etape);
                 }
 
                 // Notify first validator again
@@ -569,11 +577,13 @@ class NouvelleDemandeController extends AbstractController
             echo "Etape: ".$nomEtape;
             continue;*/
 
-            $etapeValidation->setStatut('En cours');
-            //Fonction spécial, activation du premier niveau du circuit
-            if ($i== 0) {
+            if ($i == 0) {
                 $etapeValidation->setStatut('Validé');
                 $etapeValidation->setDateTraitement(new \DateTime());
+            } elseif ($i == 1) {
+                $etapeValidation->setStatut('En cours');
+            } else {
+                $etapeValidation->setStatut('En attente');
             }
             $this->entityManager->persist($etapeValidation);
 

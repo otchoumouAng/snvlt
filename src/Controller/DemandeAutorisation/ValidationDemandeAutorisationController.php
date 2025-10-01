@@ -304,10 +304,22 @@ class ValidationDemandeAutorisationController extends AbstractController
         */
 
 
+        $originalStatus = $demande->getStatut();
         $etape->setStatut('Validé');
         $etape->setDateTraitement(new \DateTime());
 
         $demande->setStatut($newStatus);
+
+        if ($originalStatus !== $newStatus) {
+            $nextEtape = $this->etapeValidationRepository->findOneBy([
+                'demande' => $demande,
+                'ordre' => $etape->getOrdre() + 1
+            ]);
+
+            if ($nextEtape) {
+                $nextEtape->setStatut('En cours');
+            }
+        }
 
         if ($newStatus === 'Signé' && $uploadedFile) {
 
