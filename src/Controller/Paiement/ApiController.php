@@ -27,6 +27,7 @@ class ApiController extends AbstractController
     }
 
     #[Route('/services_by_type_and_category', name: 'api_get_services_by_type_and_category', methods: ['GET'])]
+ 
     public function getServicesByTypeAndCategory(Request $request, CatalogueServicesRepository $repo): JsonResponse
     {
         $criteria = [];
@@ -40,7 +41,12 @@ class ApiController extends AbstractController
             $criteria['type_demandeur'] = $request->query->get('type_demandeur_id');
         }
 
-        $services = $repo->findBy($criteria);
+        if ($request->query->get('pef_id')) {
+            // tu peux adapter ici selon la logique métier
+            $services = $repo->findBy(['typeDemande' => $criteria['typeDemande'] ?? null]);
+        } else {
+            $services = $repo->findBy($criteria);
+        }
 
         $data = [];
         foreach ($services as $service) {
@@ -50,6 +56,8 @@ class ApiController extends AbstractController
                 'montant' => $service->getMontantFcfa(),
             ];
         }
+
         return $this->json($data);
     }
+
 }

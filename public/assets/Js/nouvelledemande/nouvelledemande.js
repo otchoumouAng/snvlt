@@ -41,6 +41,7 @@ class NouvelleDemandeApp {
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'dateCreation', title: 'Date', className: 'none' }
             ],*/
+
             columns: [
                 // 1. La colonne de contrôle responsive (qui manquait)
                 {
@@ -381,7 +382,7 @@ setupModalWithData(mode, data) {
         case 'new':
             title.text('Nouvelle Demande');
             icon.attr('class', 'ph-fill ph-file-plus');
-            saveBtn.show().text('Créer');
+            saveBtn.show().text('Initier');
             deleteBtn.hide();
             documentsSection.hide(); // La section est déjà cachée pour 'new'
             form.find('input, select, textarea').prop('disabled', false);

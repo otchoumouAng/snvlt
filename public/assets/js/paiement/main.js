@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         state.typeDemandeLabel = selectedOption.text;
         // La vérification se fait sur le libellé, à adapter si un ID ou flag est disponible
-        if (state.typeDemandeLabel.toLowerCase().includes("reprise d'activité pef")) {
+        if (state.typeDemandeLabel.toLowerCase().includes("reprise d'activité")) {
             state.isReprisePef = true;
             dom.pefContainer.innerHTML = '<span class="text-muted">Chargement des PEF...</span>';
             dom.pefContainer.style.display = 'block';
