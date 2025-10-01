@@ -538,7 +538,8 @@ class NouvelleDemandeController extends AbstractController
 
         $detailsModele = $modele->getDetailsModeles();
 
-        $EtapeSpecial = ['Soumis','En cours de traitement','Demande signée et disponible'];
+        #$EtapeSpecial = ['Soumis','En cours de traitement','Demande signée et disponible'];
+        $EtapeSpecial = ['Soumis','En cours','Signé'];
         //$Sequence = ['Soumis','En cours de traitement','Demande signée et disponible'];
 
         $i = 0;
@@ -578,7 +579,7 @@ class NouvelleDemandeController extends AbstractController
             $this->entityManager->persist($etapeValidation);
 
             // Send notification for the first step
-            if ($detail->getNumseq() === 1) {
+            if ($detail->getNumseq() === 0) {
                 $this->notificationService->sendNotificationForStep($nouvelleDemande, $detail, $this->getUser());
             }
 
