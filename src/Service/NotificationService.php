@@ -4,19 +4,54 @@ namespace App\Service;
 
 use App\Entity\Administration\Notification;
 use App\Entity\DemandeAutorisation\NouvelleDemande;
+use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Twig\Environment;
 
 class NotificationService
 {
-    private $entityManager;
-    private $userRepository;
-
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository)
-    {
-        $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private UserRepository $userRepository,
+        private MailerInterface $mailer,
+        private Environment $twig
+    ) {
     }
+
+    public function createNotification(User $toUser, string $subject, string $description, ?string $emailTemplate = null, array $emailContext = []): void
+    {
+        // 1. In-app notification
+        $notification = new Notification();
+        $notification->setSujet($subject);
+        $notification->setDescription($description);
+        $notification->setToUser($toUser);
+        $notification->setCreatedAt(new \DateTimeImmutable());
+        $notification->setLu(false);
+        // It might be useful to set fromUser and related entity if available
+        // $notification->setFromUser($this->getUser());
+        // $notification->setRelatedToEntity('NouvelleDemande');
+        // $notification->setRelatedToId($demande->getId());
+        $this->entityManager->persist($notification);
+
+        // 2. Email notification
+        if ($emailTemplate) {
+            $html = $this->twig->render($emailTemplate, $emailContext);
+
+            $email = (new Email())
+                ->from('no-reply@votreplateforme.com')
+                ->to($toUser->getEmail())
+                ->subject($subject)
+                ->html($html);
+
+            $this->mailer->send($email);
+        }
+
+        $this->entityManager->flush();
+    }
+
 
     public function sendNotificationForStep(NouvelleDemande $demande, $detail, $currentUser): void
     {
