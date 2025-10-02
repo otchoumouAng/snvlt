@@ -228,7 +228,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const isRejected = item.classList.contains("rejected");
             const isCompleted = item.classList.contains("completed");
 
-            if (isCompleted || item.classList.contains("active")) {
+            if (isCompleted || item.classList.contains("active") || isRejected) {
                 let detailsHtml = '';
                 if (isRejected) {
                     const details = item.dataset.details;
