@@ -247,8 +247,8 @@ document.addEventListener("DOMContentLoaded", () => {
                      <p>Date: ${item.querySelector(".stepper-date")?.innerText || "—"}</p>
                      ${detailsHtml}`;
 
-                $('#step-details-placeholder').hide();
-                $('#step-details-content').show();
+                document.getElementById('step-details-placeholder').style.display = 'none';
+                document.getElementById('step-details-content').style.display = 'block';
             }
         });
     });
