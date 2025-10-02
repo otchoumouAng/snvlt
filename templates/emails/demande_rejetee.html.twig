@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Demande Rejetée</title>
+</head>
+<body>
+    <h1>Information concernant votre demande</h1>
+    <p>Bonjour {{ demande.operateur.nomUtilisateur }},</p>
+    <p>
+        Nous vous informons que votre demande d'autorisation <strong>{{ demande.typeDemande.designation }}</strong> avec le code de suivi <strong>{{ demande.codeSuivie }}</strong> a été examinée et nécessite votre attention.
+    </p>
+    <p>
+        <strong>Motif du rejet :</strong>
+    </p>
+    <blockquote>
+        <p>{{ justification }}</p>
+    </blockquote>
+    <p>
+        Nous vous invitons à corriger les éléments indiqués et à soumettre à nouveau votre demande depuis votre espace personnel.
+    </p>
+    <p>
+        <a href="{{ url('admin_nouvelle_demande_suivi', {'id': demande.id}) }}">Voir les détails de ma demande</a>
+    </p>
+    <p>
+        Cordialement,<br>
+        L'équipe de la plateforme
+    </p>
+</body>
+</html>

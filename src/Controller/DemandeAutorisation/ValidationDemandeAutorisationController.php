@@ -338,7 +338,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
 
-        // Send notification for approval
+        // Send notification for approval or rejection
         if ($finalStatus === 'Signé') {
             $this->notificationService->sendNotification(
                 $demande->getOperateur(),
@@ -346,6 +346,14 @@ class ValidationDemandeAutorisationController extends AbstractController
                 "Votre demande N°" . $demande->getCodeSuivie() . " a été validée et le document signé est maintenant disponible.",
                 'emails/demande_validee.html.twig',
                 ['demande' => $demande]
+            );
+        } elseif ($finalStatus === 'Rejeté') {
+            $this->notificationService->sendNotification(
+                $demande->getOperateur(),
+                "Votre demande a été rejetée",
+                "Votre demande N°" . $demande->getCodeSuivie() . " a été rejetée. Motif : " . $justification,
+                'emails/demande_rejetee.html.twig',
+                ['demande' => $demande, 'justification' => $justification]
             );
         }
 
