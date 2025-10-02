@@ -262,7 +262,10 @@ getStatusBadge(status) {
                     if (doc.statut === 'Rejeté') {
                         hasRejectedDocuments = true;
                     }
-                    let actionButtons = `<a href="${doc.path || '#'}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
+                    let actionButtons = '';
+                    if (doc.path) {
+                        actionButtons = `<a href="${doc.path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
+                    }
                     if (!isTraitee && doc.statut === 'Chargé') {
                         actionButtons += ` <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>`;
                     }

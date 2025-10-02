@@ -499,6 +499,9 @@ class NouvelleDemandeController extends AbstractController
      */
     private function determineEtapeStatus(EtapeValidation $etape, string $demandeStatut, bool &$etapeActiveTrouvee): array
     {
+        if ($etape->getStatut() === 'Rejeté') {
+            return ['rejected', false];
+        }
         // Si l'étape a une date de traitement, elle est complétée.
         if ($etape->getDateTraitement() !== null) {
             return ['completed', false];
@@ -511,7 +514,7 @@ class NouvelleDemandeController extends AbstractController
 
         // La première étape sans date de traitement est l'étape "active".
         // Sauf si la demande est déjà terminée (approuvée/rejetée).
-        if ($demandeStatut === 'Accepté' || $demandeStatut === 'rejetee') {
+        if ($demandeStatut === 'Accepté' || $demandeStatut === 'rejetee' || $demandeStatut === 'Rejeté') {
             return ['', false];
         }
 

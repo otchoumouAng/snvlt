@@ -18,13 +18,21 @@
 
     <div class="mt-4">
         <h5 class="details-subtitle">Informations Complémentaires</h5>
-        <p class="details-text">
-            {{ etape.details|default('Aucun détail fourni pour cette étape.')|nl2br }}
-        </p>
+        <div class="details-text {% if etape.statut == 'Rejeté' %}rejected-info{% endif %}">
+            <p>{{ etape.details|default('Aucun détail fourni pour cette étape.')|nl2br }}</p>
+        </div>
     </div>
 </div>
 
 <style>
+    .rejected-info {
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+        color: #721c24;
+        padding: 1rem;
+        border-left-width: 4px;
+        border-left-style: solid;
+    }
     .step-details-content {
         padding: 1rem;
     }

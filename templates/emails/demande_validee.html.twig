@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Demande Validée</title>
+</head>
+<body>
+    <h1>Votre demande a été validée</h1>
+    <p>Bonjour {{ demande.operateur.nomUtilisateur }},</p>
+    <p>
+        Bonne nouvelle ! Votre demande d'autorisation <strong>{{ demande.typeDemande.designation }}</strong> avec le code de suivi <strong>{{ demande.codeSuivie }}</strong> a été traitée et validée par nos services.
+    </p>
+    <p>
+        Le document signé est désormais disponible dans votre espace personnel. Vous pouvez le consulter et le télécharger en accédant à la page de suivi de votre demande.
+    </p>
+    <p>
+        <a href="{{ url('admin_nouvelle_demande_suivi', {'id': demande.id}) }}">Voir ma demande</a>
+    </p>
+    <p>
+        Cordialement,<br>
+        L'équipe de la plateforme
+    </p>
+</body>
+</html>

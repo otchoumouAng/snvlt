@@ -269,90 +269,83 @@ class ValidationDemandeAutorisationController extends AbstractController
         $newStatus = $request->request->get('newStatus');
         $refusedDocuments = json_decode($request->request->get('refusedDocuments', '[]'), true);
         $justification = $request->request->get('justification');
-
-
-        //$etapeId = $request->request->get('etapeId');
-
+        $etapeId = $request->request->get('etapeId');
         $uploadedFile = $request->files->get('signedDocument');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
-
-        /*if (empty($etapeId)) {
+        if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
-        }*/
-
+        }
         if (!empty($refusedDocuments) && empty($justification)) {
             return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
-
         if ($newStatus === 'Signé' && !$uploadedFile) {
             return new JsonResponse(['error' => 'Le document signé est obligatoire.'], 400);
         }
 
-        //$etape = $this->etapeValidationRepository->find($etapeId);
-        $etape = $this->etapeValidationRepository->findOneBy(['nom'=>$newStatus, 'demande'=>$demande]);
-
-        //dd($etape);
-
-        if (!$etape) {
+        $currentEtape = $this->etapeValidationRepository->find($etapeId);
+        if (!$currentEtape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
         }
 
-        if ($etape->getDemande()->getId() !== $demande->getId()) {
-            return new JsonResponse(['error' => 'Cette étape n\'appartient pas à la demande sélectionnée.'], 400);
-        }
+        // --- Main Logic ---
+        $finalStatus = $newStatus;
 
-        /*echo "Demande Status: " .$newStatus. "</br>";
-        echo "Id Etape" .$etapeId. "</br>";
-        echo "Etape: " .$etape->getNom(). "</br>";
-        */
+        if (!empty($refusedDocuments)) {
+            // If docs are refused, the step is rejected.
+            $currentEtape->setStatut('Rejeté');
+            $currentEtape->setDetails($justification);
+            $finalStatus = 'Rejeté'; // The whole demand is rejected.
 
-
-        $etape->setStatut('Validé');
-        $etape->setDateTraitement(new \DateTime());
-
-        $demande->setStatut($newStatus);
-
-        if ($newStatus === 'Signé' && $uploadedFile) {
-
-            /*$etape = $this->etapeValidationRepository->findLastEtapeByDemande($demande);
-
-            if (!$etape) {
-                return new JsonResponse(['error' => 'Aucune étape de validation trouvée pour cette demande.'], 404);
+            foreach ($refusedDocuments as $docId => $status) {
+                $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
+                if ($document) {
+                    $document->setStatut('Rejeté');
+                }
             }
-
-            $etape->setStatut('Validé');
-            $etape->setDateTraitement(new \DateTime());*/
-
-
-
-
-            $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-            $uploadedFile->move(
-                $this->getParameter('documents_directory'),
-                $newFilename
-            );
-            $demande->setDocumentSignePath($newFilename);
+        } else {
+            // If everything is fine, the current step is validated.
+            $currentEtape->setStatut('Validé');
         }
+        $currentEtape->setDateTraitement(new \DateTime());
+        $demande->setStatut($finalStatus);
 
-        foreach ($refusedDocuments as $docId => $status) {
-            $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
-            if ($document) {
-                $document->setStatut('Rejeté');
+        if ($finalStatus === 'Signé' && $uploadedFile) {
+            $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
+            $uploadedFile->move($this->getParameter('documents_directory'), $newFilename);
+            $demande->setDocumentSignePath($newFilename);
+
+            // Also mark the "Signé" step itself as validated
+            $etapeSigne = $this->etapeValidationRepository->findOneBy(['nom' => 'Signé', 'demande' => $demande]);
+            if($etapeSigne) {
+                $etapeSigne->setStatut('Validé');
+                $etapeSigne->setDateTraitement(new \DateTime());
+                $this->entityManager->persist($etapeSigne);
             }
         }
 
         $validationAction = new ValidationAction();
         $validationAction->setDemande($demande);
         $validationAction->setValidator($this->getUser());
-        $validationAction->setStatut($newStatus);
+        $validationAction->setStatut($finalStatus); // Use the determined final status
         $validationAction->setNote($justification);
         $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
+
+        // Send notification for approval
+        if ($finalStatus === 'Signé') {
+            $this->notificationService->sendNotification(
+                $demande->getOperateur(),
+                "Votre demande a été validée",
+                "Votre demande N°" . $demande->getCodeSuivie() . " a été validée et le document signé est maintenant disponible.",
+                'emails/demande_validee.html.twig',
+                ['demande' => $demande]
+            );
+        }
 
         return new JsonResponse(['success' => true]);
     }
