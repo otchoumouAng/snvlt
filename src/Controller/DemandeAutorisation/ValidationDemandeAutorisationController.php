@@ -269,15 +269,15 @@ class ValidationDemandeAutorisationController extends AbstractController
         $newStatus = $request->request->get('newStatus');
         $refusedDocuments = json_decode($request->request->get('refusedDocuments', '[]'), true);
         $justification = $request->request->get('justification');
-        $etapeId = $request->request->get('etapeId');
+        //$etapeId = $request->request->get('etapeId');
         $uploadedFile = $request->files->get('signedDocument');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
-        if (empty($etapeId)) {
+        /*if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
-        }
+        }*/
         if (!empty($refusedDocuments) && empty($justification)) {
             return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
@@ -285,7 +285,9 @@ class ValidationDemandeAutorisationController extends AbstractController
             return new JsonResponse(['error' => 'Le document signé est obligatoire.'], 400);
         }
 
-        $currentEtape = $this->etapeValidationRepository->find($etapeId);
+        //$currentEtape = $this->etapeValidationRepository->find($etapeId);
+        $currentEtape = $this->etapeValidationRepository->findOneBy(['nom' => $newStatus, 'demande'=>$demande]);
+
         if (!$currentEtape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
         }
@@ -310,7 +312,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             $currentEtape->setStatut('Validé');
         }
         $currentEtape->setDateTraitement(new \DateTime());
-        $demande->setStatut($finalStatus);
+        $demande->setStatut($newStatus);
 
         if ($finalStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
