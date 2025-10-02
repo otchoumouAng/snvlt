@@ -338,7 +338,7 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         // Send notification for approval or rejection
         if ($finalStatus === 'Signé') {
-            $this->notificationService->sendNotification(
+            $this->notificationService->createNotification(
                 $demande->getOperateur(),
                 "Votre demande a été validée",
                 "Votre demande N°" . $demande->getCodeSuivie() . " a été validée et le document signé est maintenant disponible.",
@@ -346,7 +346,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 ['demande' => $demande]
             );
         } elseif ($finalStatus === 'Rejeté') {
-            $this->notificationService->sendNotification(
+            $this->notificationService->createNotification(
                 $demande->getOperateur(),
                 "Votre demande a été rejetée",
                 "Votre demande N°" . $demande->getCodeSuivie() . " a été rejetée. Motif : " . $justification,
