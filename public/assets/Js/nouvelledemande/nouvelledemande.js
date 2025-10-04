@@ -224,9 +224,34 @@ class NouvelleDemandeApp {
             this.showMainView();
         });
 
-        $(document).on('click', '.stepper-item.completed', (e) => {
+        $(document).on('click', '.stepper-item.completed:not(.rejected)', (e) => {
             const stepId = $(e.currentTarget).data('step-id');
             this.loadStepDetails(this.selectedDemandeId, stepId);
+        });
+
+        $(document).on('click', '.stepper-item.rejected', (e) => {
+            const item = $(e.currentTarget);
+            const details = item.data('details');
+            const title = item.find(".stepper-title").text();
+            const date = item.find(".stepper-date")?.text() || "—";
+
+            if (details) {
+                const detailsHtml = `
+                    <div style="margin-top: 15px; padding: 10px; border-radius: 5px; background-color: #f8d7da; border: 1px solid #f5c2c7;">
+                        <h5 style="color: #842029; margin-bottom: 5px;">Motif du Rejet :</h5>
+                        <p style="margin: 0;">${details}</p>
+                    </div>
+                `;
+
+                $('#step-details-content').html(
+                    `<h4 style="color:#c0392b">🔎 Étape: ${title}</h4>
+                     <p>Date: ${date}</p>
+                     ${detailsHtml}`
+                );
+
+                $('#step-details-placeholder').hide();
+                $('#step-details-content').show();
+            }
         });
 
         $(document).on('click', '#view-signed-doc-portal-btn', (e) => {
