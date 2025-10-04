@@ -6,9 +6,10 @@
         <div class="tracking-title">
             <h1>Suivi de la Demande</h1>
             <p>
-                Demande #<span id="tracking-demande-id">{{ demande.id }}</span> - {{ demande.typePaiement ? demande.typePaiement.libelle : 'N/A' }}
+                Demande #<span id="tracking-demande-id">{{ demande.codeSuivie }}</span> - {{ demande.typePaiement ? demande.typePaiement.libelle : 'N/A' }}
             </p>
         </div>
+
         {% if demande.statut == 'Signé' and demande.documentSignePath %}
             <div class="ms-auto">
                 <a href="{{ asset('uploads/documents/' ~ demande.documentSignePath) }}" target="_blank" class="btn btn-success">
@@ -243,7 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
                 document.getElementById("step-details-content").innerHTML =
-                    `<h4 style="color:#2196f3">🔎 Étape: ${item.querySelector(".stepper-title").innerText}</h4>
+                    `<h4>Étape: ${item.querySelector(".stepper-title").innerText}</h4>
                      <p>Date: ${item.querySelector(".stepper-date")?.innerText || "—"}</p>
                      ${detailsHtml}`;
 

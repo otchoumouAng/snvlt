@@ -34,6 +34,12 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    # App\Service\WhatsappService:
+    #     arguments:
+    #         $whatsappApiToken: '%env(WHATSAPP_API_TOKEN)%'
+    #         $whatsappPhoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 

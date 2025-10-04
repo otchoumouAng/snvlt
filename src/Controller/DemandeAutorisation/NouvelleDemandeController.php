@@ -597,6 +597,30 @@ class NouvelleDemandeController extends AbstractController
      */
     public function generateEtatDepotPdf(NouvelleDemande $demande, \App\Service\Paiement\PdfService $pdfService, TypeDemandeDetailRepository $typeDemandeDetailRepository): Response
     {
+        // --- DEBUT DES AJOUTS ---
+
+        // 1. Obtenir le répertoire racine du projet pour construire un chemin absolu
+        $projectDir = $this->getParameter('kernel.project_dir');
+
+        // 2. Définir les chemins complets vers vos images
+        $pathLogoEauxForets = $projectDir . '/public/assets/images/logo_eaux_forets_etat_depot.png';
+        $pathLogoSnvlt = $projectDir . '/public/assets/images/SNVLT.png';
+
+        // 3. Lire les données des images et les encoder en Base64
+        // On vérifie si le fichier existe pour éviter les erreurs
+        $logoEauxForetsBase64 = null;
+        if (file_exists($pathLogoEauxForets)) {
+            $logoEauxForetsBase64 = base64_encode(file_get_contents($pathLogoEauxForets));
+        }
+
+        $logoSnvltBase64 = null;
+        if (file_exists($pathLogoSnvlt)) {
+            $logoSnvltBase64 = base64_encode(file_get_contents($pathLogoSnvlt));
+        }
+
+        // --- FIN DES AJOUTS ---
+
+
         $uploadedDocuments = [];
         foreach ($demande->getDemandeDocuments() as $demandeDocument) {
             $doc = $demandeDocument->getDocument();
@@ -618,7 +642,10 @@ class NouvelleDemandeController extends AbstractController
 
         $html = $this->renderView('DemandeAutorisation/nouvelle_demande/etat_depot.html.twig', [
             'demande' => $demande,
-            'documents' => $allDocuments
+            'documents' => $allDocuments,
+            // 4. Passer les images encodées au template Twig
+            'logo_eaux_forets_base64' => $logoEauxForetsBase64,
+            'logo_snvlt_base64' => $logoSnvltBase64
         ]);
 
         return new Response(

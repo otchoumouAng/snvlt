@@ -17,7 +17,8 @@ class NotificationService
         private EntityManagerInterface $entityManager,
         private UserRepository $userRepository,
         private MailerInterface $mailer,
-        private Environment $twig
+        private Environment $twig,
+        private WhatsappService $whatsappService
     ) {
     }
 
@@ -39,15 +40,20 @@ class NotificationService
         // 2. Email notification
         if ($emailTemplate) {
             $html = $this->twig->render($emailTemplate, $emailContext);
-
+            //snvlt@system2is.com
             $email = (new Email())
-                ->from('no-reply@votreplateforme.com')
+                ->from('no-reply@snvlt.com')
                 ->to($toUser->getEmail())
                 ->subject($subject)
                 ->html($html);
 
             $this->mailer->send($email);
         }
+
+        // 3. WhatsApp notification
+       /* if ($toUser->getMobile()) {
+            $this->whatsappService->sendMessage($toUser->getMobile(), $description);
+        }*/
 
         $this->entityManager->flush();
     }

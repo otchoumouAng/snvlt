@@ -2,63 +2,86 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Rapport de dépôt de dosier</title>
+    <title>Rapport de dépôt de dossier</title>
     <style>
-        /* Add some basic styling for the PDF */
-        body { font-family: sans-serif; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .content { margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #f2f2f2; }
-
-        [cite_start]body { font-family: sans-serif; [cite: 1, 2] }
-        [cite_start].header { text-align: center; margin-bottom: 20px; [cite: 3] }
-        [cite_start].content { margin-top: 20px; [cite: 4] }
-        [cite_start]table { width: 100%; border-collapse: collapse; [cite: 5] }
-        [cite_start]th, td { border: 1px solid #ddd; padding: 8px; [cite: 6] }
-        [cite_start]th { background-color: #f2f2f2; [cite: 7] }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between; 
-            align-items: center;
-            width: 100%;
+        /* Styles généraux */
+        body { 
+            font-family: sans-serif; 
+            font-size: 15px;
         }
-        .logo img {
-            max-width: 100px; 
+        .content { 
+            margin-top: 22px; 
+        }
+        
+        /* Styles pour le tableau principal (pièces jointes) */
+        .main-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .main-table th, .main-table td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+        }
+        .main-table th { 
+            background-color: #f2f2f2; 
+        }
+
+        /* Styles pour la table de l'en-tête */
+        .header-table {
+            width: 100%;
+            border: none; /* Pas de bordures pour la table de l'en-tête */
+            margin-bottom: 30px;
+        }
+        .header-table td {
+            border: none; /* Pas de bordures pour les cellules */
+            vertical-align: middle; /* Alignement vertical au centre */
+            padding: 0;
+        }
+        .header-table .logo-cell {
+            width: 20%; /* On donne une largeur aux cellules des logos */
+        }
+        .header-table .logo-cell.left {
+            text-align: left;
+        }
+        .header-table .logo-cell.right {
+            text-align: right;
+        }
+        .header-table .title-cell {
+            width: 60%;
+            text-align: center;
+        }
+        .header-table img {
+            max-width: 90px; /* Taille des logos */
             height: auto;
         }
-        .title-container {
-            flex-grow: 1; 
-            padding: 0 20px; 
+        .header-table h1 {
+             margin: 0;
+             font-size: 1.7em; /* Taille du titre principal */
         }
-        .title-container h1 {
-            margin: 0;
-            font-size: 1.5em; 
+         .header-table p {
+             margin: 5px 0 0;
+             font-size: 1.3em; /* Taille du sous-titre */
         }
-        .title-container p {
-            margin: 5px 0 0;
-            font-size: 1.2em; 
-        }
-
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">
-                <img src="{{asset('assets/images/logo_eaux_forets_etat_depot.png')}}" alt="Logo Eaux et Forêts">
-            </div>
-            <div class="title-container">
+
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell left">
+                <img src="data:image/png;base64,{{ logo_eaux_forets_base64 }}" alt="Logo Eaux et Forêts">
+            </td>
+
+            <td class="title-cell">
                 <h1>Rapport de dépôt de dossier pour</h1>
                 <p>{{ demande.typeDemande.designation }}</p>
-            </div>
-            <div class="logo">
-                <img src="{{asset('assets/images/SNVLT.png')}}" alt="Logo SNVLT">
-            </div>
-        </div>
-    </div>
+            </td>
+
+            <td class="logo-cell right">
+                <img src="data:image/png;base64,{{ logo_snvlt_base64 }}" alt="Logo SNVLT">
+            </td>
+        </tr>
+    </table>
 
     <div class="content">
         <p><strong>Code Suivi:</strong> {{ demande.codeSuivie }}</p>
@@ -76,19 +99,19 @@
         {% endif %}
 
         {% if demande.produit %}
-            <p><strong>Produit:</strong> {{ demande.produit }}</p>
+             <p><strong>Produit:</strong> {{ demande.produit }}</p>
         {% endif %}
 
         <p><strong>Description:</strong> {{ demande.description|nl2br }}</p>
 
         <hr>
 
-        <h3>Pièces jointes</h3>
-        <table>
+        <h3>Pièces à fournir</h3>
+        <table class="main-table">
             <thead>
                 <tr>
-                    <th>Fichier</th>
-                    <th>Statut</th>
+                    <th>Pièces</th>
+                    <th>Statuts</th>
                 </tr>
             </thead>
             <tbody>
@@ -103,7 +126,8 @@
                     </tr>
                 {% endfor %}
             </tbody>
-        </table>
+         </table>
     </div>
+
 </body>
 </html>
