@@ -32,15 +32,7 @@ class NouvelleDemandeApp {
             language: {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
-            /*columns: [
-                { data: 'id', title: 'ID' },
-                { data: 'titre', title: 'Type' },
-                { data: 'typeDemande', title: 'Nature' },
-                { data: 'statut', title: 'Statut', render: (data) => NouvelleDemandeApp.getStatusBadge(data) },
-                { data: 'numero_pef', title: 'N° PEF', className: 'none' },
-                { data: 'produit', title: 'Produit', className: 'none' },
-                { data: 'dateCreation', title: 'Date', className: 'none' }
-            ],*/
+
 
             columns: [
                 // 1. La colonne de contrôle responsive (qui manquait)
@@ -119,14 +111,6 @@ class NouvelleDemandeApp {
     this.dataTable.off('dblclick', 'tbody tr');
 
 
-        // Event for double-click remains the same
-        /*this.dataTable.on('dblclick', 'tbody tr', (e) => {
-            const row = this.dataTable.row(e.currentTarget);
-            const data = row.data();
-            if (data) {
-                this.openModal(data.id, 'read');
-            }
-        });*/
 
     }
 
@@ -244,7 +228,7 @@ class NouvelleDemandeApp {
                 `;
 
                 $('#step-details-content').html(
-                    `<h4 style="color:#c0392b">🔎 Étape: ${title}</h4>
+                    `<h4>Étape: ${title}</h4>
                      <p>Date: ${date}</p>
                      ${detailsHtml}`
                 );
@@ -491,54 +475,7 @@ async displayDocumentPanel(demandeData) {
     }
 }
 
-// NOUVELLE FONCTION pour construire le HTML du panneau
-// Fichier : nouvelledemande.js
 
-/*buildDocumentsHtml(details) {
-    let documentsListHtml = '';
-    if (details.documents && details.documents.length > 0) {
-        documentsListHtml = details.documents.map(doc => `
-            <li class="document-item" data-doc-id="${doc.id}">
-                <i class="ph-fill ph-file-pdf icon"></i>
-                <div class="info">
-                    <div class="name">${doc.nom}</div>
-                    <div class="meta">PDF Document</div>
-                </div>
-                ${NouvelleDemandeApp.getDocumentStatusBadge(doc.statut)}
-                <div class="actions ms-3">
-                    <a href="${doc.url || '#'}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Télécharger">
-                        <i class="ph-fill ph-download-simple"></i>
-                    </a>
-                    <button class="btn btn-sm btn-outline-danger remove-doc-btn" title="Retirer">
-                        <i class="ph-fill ph-trash-simple"></i>
-                    </button>
-                </div>
-            </li>
-        `).join('');
-    } else {
-        return `
-            <div class="text-center p-5 mt-3">
-                <i class="ph-light ph-file-magnifying-glass" style="font-size: 3rem; color: #ced4da;"></i>
-                <h6 class="mt-3">Aucun Document</h6>
-                <p class="text-muted small">Cette demande n'a pas encore de document attaché.</p>
-            </div>
-        `;
-    }
-
-    return `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="text-muted small fw-bold text-uppercase mb-0">Fichiers Attachés</h6>
-            <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="addDocumentBtnPanel">
-                <i class="ph-fill ph-plus-circle"></i> Ajouter
-            </button>
-            <input type="file" id="pdf-upload-panel" accept=".pdf" style="display: none;" multiple />
-        </div>
-        <ul class="document-list">${documentsListHtml}</ul>
-    `;
-}
-*/
-
-// Fichier : nouvelledemande.js
 
 buildDocumentsHtml(details) {
     // Si la demande n'a pas de documents requis, on affiche un message.
@@ -586,6 +523,11 @@ buildDocumentsHtml(details) {
             actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
                            </button>`;
+        }
+
+        // Interdiction de charger un document dans une demande SIGNÉ
+        if (details.statut === 'Signé' && doc.statut === 'Non chargé' || doc.statut === 'Rejeté' ) {
+            actionsHtml = `<span class="action-btn"><i class="ph ph-lock-key"></i></span>`;
         }
 
         // Assembler le HTML final pour cet item

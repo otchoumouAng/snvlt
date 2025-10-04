@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>État de Dépôt de Demande d'Autorisation</title>
+    <title>Rapport de dépôt de dosier</title>
     <style>
         /* Add some basic styling for the PDF */
         body { font-family: sans-serif; }
@@ -11,11 +11,53 @@
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #ddd; padding: 8px; }
         th { background-color: #f2f2f2; }
+
+        [cite_start]body { font-family: sans-serif; [cite: 1, 2] }
+        [cite_start].header { text-align: center; margin-bottom: 20px; [cite: 3] }
+        [cite_start].content { margin-top: 20px; [cite: 4] }
+        [cite_start]table { width: 100%; border-collapse: collapse; [cite: 5] }
+        [cite_start]th, td { border: 1px solid #ddd; padding: 8px; [cite: 6] }
+        [cite_start]th { background-color: #f2f2f2; [cite: 7] }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            width: 100%;
+        }
+        .logo img {
+            max-width: 100px; 
+            height: auto;
+        }
+        .title-container {
+            flex-grow: 1; 
+            padding: 0 20px; 
+        }
+        .title-container h1 {
+            margin: 0;
+            font-size: 1.5em; 
+        }
+        .title-container p {
+            margin: 5px 0 0;
+            font-size: 1.2em; 
+        }
+
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>État de Dépôt de Demande d'Autorisation</h1>
+        <div class="header-content">
+            <div class="logo">
+                <img src="{{asset('assets/images/logo_eaux_forets_etat_depot.png')}}" alt="Logo Eaux et Forêts">
+            </div>
+            <div class="title-container">
+                <h1>Rapport de dépôt de dossier pour</h1>
+                <p>{{ demande.typeDemande.designation }}</p>
+            </div>
+            <div class="logo">
+                <img src="{{asset('assets/images/SNVLT.png')}}" alt="Logo SNVLT">
+            </div>
+        </div>
     </div>
 
     <div class="content">
