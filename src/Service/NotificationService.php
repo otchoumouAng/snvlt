@@ -51,9 +51,9 @@ class NotificationService
         }
 
         // 3. WhatsApp notification
-       /* if ($toUser->getMobile()) {
+        if ($toUser->getMobile()) {
             $this->whatsappService->sendMessage($toUser->getMobile(), $description);
-        }*/
+        }
 
         $this->entityManager->flush();
     }

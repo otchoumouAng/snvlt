@@ -180,10 +180,15 @@ class ApiService {
         return this.get(`/admin/validation_demande_autorisation/details/${id}`);
     }
 
-    applyValidation(demandeId, data) {
+    /*applyValidation(demandeId, data) {
         this.cache.clear();
         // This should be a new endpoint
         return this.post(`/admin/validation_demande_autorisation/${demandeId}/validate`, data);
+    }*/
+
+    validateDemande(demandeId, formData) {
+        this.cache.clear(); 
+        return this.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, formData, true);
     }
 }
 

@@ -9,21 +9,18 @@
 {% endblock %}
 
 {% block page_content %}
-<!-- Phosphor Icons -->
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 
-<!-- Custom CSS -->
 <style>
     /* --- FONDATIONS & DESIGN SYSTEM --- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
     :root {
         --font-family-base: 'Inter', sans-serif;
-        --color-primary: #006400; /* Vert foncé au lieu de bleu */
-        --color-primary-light: #e6f4e6; /* Vert très clair */
-        --color-primary-lighter: #f2f9f2; /* Vert extrêmement clair */
-        --color-primary-dark: #004d00; /* Vert plus foncé */
+        --color-primary: #006400;
+        --color-primary-light: #e6f4e6;
+        --color-primary-lighter: #f2f9f2;
+        --color-primary-dark: #004d00;
         --color-text-primary: #212529;
         --color-text-secondary: #6c757d;
         --color-background: #f8f9fa;
@@ -38,7 +35,7 @@
         --status-rejected-text: #842029;
 
         --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-        --shadow-md: 0 4px 6px -1px rgba(0,100,0,0.07), 0 2px 4px -2px rgba(0,100,0,0.07); /* Ombre verte */
+        --shadow-md: 0 4px 6px -1px rgba(0,100,0,0.07), 0 2px 4px -2px rgba(0,100,0,0.07);
         --border-radius: 12px;
     }
 
@@ -49,26 +46,21 @@
     }
 
     /* --- ONGLET DE NAVIGATION AMÉLIORÉ (NAV TABS) --- */
-    .nav-tabs-container {
-        padding: 1rem 1.5rem 0 1.5rem; /* Ajoute de l'espace autour des onglets */
-    }
-
     .nav-tabs {
-        border-bottom: none; /* Supprime la ligne de bordure par défaut */
-        background-color: var(--color-background); /* Léger fond pour le conteneur */
+        border-bottom: none;
+        background-color: var(--color-background);
         padding: 0.5rem;
-        border-radius: var(--border-radius); /* Bords arrondis comme les cartes */
-        display: inline-flex; /* Assure que le fond ne prend que la largeur nécessaire */
-        gap: 0.5rem; /* Espace entre les onglets */
+        border-radius: var(--border-radius);
+        display: inline-flex;
+        gap: 0.5rem;
+        flex-shrink: 0; /* Empêche les onglets de se réduire */
     }
 
-    .nav-tabs .nav-item {
-        margin: 0;
-    }
+    .nav-tabs .nav-item { margin: 0; }
 
     .nav-tabs .nav-link {
-        border: none !important; /* Supprime toutes les bordures par défaut */
-        border-radius: 8px !important; /* Arrondi plus doux pour chaque onglet */
+        border: none !important;
+        border-radius: 8px !important;
         font-weight: 600;
         color: var(--color-text-secondary);
         padding: 0.75rem 1.5rem;
@@ -76,33 +68,31 @@
         background-color: transparent;
     }
 
-    /* Style de l'onglet inactif au survol */
     .nav-tabs .nav-link:not(.active):hover {
         background-color: var(--color-primary-light);
         color: var(--color-primary-dark);
     }
 
-    /* Style de l'onglet actif */
     .nav-tabs .nav-link.active {
         background-color: var(--color-primary) !important;
         color: white !important;
         box-shadow: var(--shadow-md);
-        transform: translateY(-2px); /* Léger effet de surélévation */
+        transform: translateY(-2px);
     }
-
-    /* --- CARTE PRINCIPALE (PRO-CARD) --- */
+    
+    /* --- CARTE PRINCIPALE (PRO-CARD) AVEC HAUTEUR FIXE --- */
     .pro-card {
         background-color: var(--color-surface);
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
         box-shadow: var(--shadow-md);
+        
+        /* ✅ CORRECTION (Hauteur) */
+        /* On force la carte à être un conteneur flex sur toute sa hauteur */
         display: flex;
         flex-direction: column;
-    }
-    .table-container {
-        height: 600px; /* Hauteur fixe */
-        overflow-y: auto; /* Scroll vertical */
-        padding: 1rem;
+        /* Hauteur fixe et responsive. Vous pouvez ajuster cette valeur (ex: 70vh, 85vh) */
+        height: 75vh; 
     }
 
     .pro-card-header {
@@ -111,6 +101,18 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+        flex-shrink: 0; /* Empêche l'en-tête de se réduire */
+    }
+    
+    .pro-card .card-body {
+        flex-grow: 1; /* Le corps de la carte prend toute la place verticale restante */
+        overflow-y: auto; /* Affiche une barre de défilement verticale si nécessaire */
+        min-height: 0; /* Astuce Flexbox cruciale pour que l'overflow fonctionne */
+        padding: 1rem;
+        
+        /* On transforme aussi le corps en conteneur flex pour mieux contrôler le contenu */
+        display: flex;
+        flex-direction: column;
     }
 
     .pro-card-title {
@@ -123,26 +125,43 @@
     }
     .pro-card-title i {
         font-size: 1.5rem;
-        color: var(--color-primary); /* Utilisation du vert */
+        color: var(--color-primary);
     }
 
-    .pro-card .card-body {
-        padding: 0.5rem 1.5rem 1.5rem 1.5rem;
+    /* --- GESTION DU CONTENU AVEC ONGLET --- */
+    .tab-content {
         flex-grow: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
     }
+    .tab-pane {
+        flex-grow: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    /* ✅ CORRECTION (Le "Train") */
+    /* C'est ce conteneur qui gère maintenant les deux barres de défilement */
+    .table-container {
+       flex-grow: 1;
+       overflow: auto; /* Gère le défilement vertical ET horizontal */
+       min-height: 0;
+    }
+
+    /* On nettoie les anciens styles qui ne sont plus nécessaires */
+    .custumiz { height: auto; overflow: visible; }
 
     /* --- DATATABLE AMÉLIORÉE --- */
-    .dataTables_wrapper {
-        padding: 0 !important;
-    }
+    .dataTables_wrapper { padding: 0 !important; }
 
     table.dataTable {
         border-collapse: separate !important;
-        border-spacing: 0 8px !important; /* Espace entre les lignes */
+        border-spacing: 0 8px !important;
         margin-top: -8px !important;
     }
 
-    /* En-tête du tableau */
     table.dataTable thead th {
         border-bottom: 1px solid var(--color-border) !important;
         color: var(--color-text-secondary);
@@ -152,11 +171,7 @@
         padding: 0.75rem 1rem !important;
     }
 
-    /* Lignes du tableau */
-    table.dataTable tbody tr {
-        background-color: transparent;
-        transition: all 0.3s ease;
-    }
+    table.dataTable tbody tr { transition: all 0.3s ease; }
 
     table.dataTable tbody td {
         background-color: var(--color-surface);
@@ -174,12 +189,6 @@
         border-top-right-radius: 8px;
         border-bottom-right-radius: 8px;
     }
-
-    /* Effets de survol et de sélection */
-    table.dataTable tbody tr {
-        transform: translateY(0);
-        transition: all 0.3s ease;
-    }
     
     table.dataTable tbody tr:hover {
         transform: translateY(-2px);
@@ -192,8 +201,8 @@
         box-shadow: 0 0 0 2px var(--color-primary);
     }
 
-    /* --- STYLES DES STATUTS AVEC SPÉCIFICITÉ ACCRUE --- */
-    #demandesTable .status-badge {
+    /* --- STYLES DES STATUTS --- */
+    #demandesTable .status-badge, #demandesTraiteesTable .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
@@ -201,63 +210,21 @@
         border-radius: 50px;
         font-weight: 600;
         font-size: 0.8rem;
-        box-shadow: var(--shadow-sm);
-        transition: all 0.3s ease;
-        animation: fadeIn 0.5s ease-out;
-        position: relative;
-        overflow: hidden;
     }
-    
-    #demandesTable .status-badge:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(255,255,255,0.2) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
+    #demandesTable .status-approved, #demandesTraiteesTable .status-approved { 
+        background-color: var(--status-approved-bg);
+        color: var(--status-approved-text);
     }
-    
-    #demandesTable .status-badge:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-md);
+    #demandesTable .status-pending, #demandesTraiteesTable .status-pending { 
+        background-color: var(--status-pending-bg);
+        color: var(--status-pending-text);
     }
-    
-    #demandesTable .status-badge:hover:before {
-        opacity: 1;
-    }
-    
-    #demandesTable .status-badge i { 
-        font-size: 1rem; 
-        z-index: 1;
-    }
-    
-    #demandesTable .status-badge span {
-        z-index: 1;
-    }
-    
-    #demandesTable .status-approved { 
-        background: linear-gradient(135deg, var(--status-approved-bg) 0%, #a8d5bb 50%) !important;
-        color: var(--status-approved-text) !important;
-        box-shadow: 0 4px 6px rgba(21, 128, 61, 0.15) !important;
-    }
-    
-    #demandesTable .status-pending { 
-        background: linear-gradient(135deg, var(--status-pending-bg) 0%, #ffe69c 50%) !important;
-        color: var(--status-pending-text) !important;
-        box-shadow: 0 4px 6px rgba(255, 193, 7, 0.15) !important;
-    }
-    
-    #demandesTable .status-rejected { 
-        background: linear-gradient(135deg, var(--status-rejected-bg) 0%, #f1b0b7 50%) !important;
-        color: var(--status-rejected-text) !important;
-        border: 1px solid rgba(132, 32, 41, 0.3) !important;
-        box-shadow: 0 4px 6px rgba(220, 53, 69, 0.15) !important;
+    #demandesTable .status-rejected, #demandesTraiteesTable .status-rejected { 
+        background-color: var(--status-rejected-bg);
+        color: var(--status-rejected-text);
     }
 
-    /* --- PANNEAU DE DROITE (DÉTAILS DE VALIDATION) --- */
+    /* --- PANNEAU DE DROITE (DÉTAILS) --- */
     .details-placeholder {
         display: flex;
         flex-direction: column;
@@ -270,20 +237,11 @@
         border-radius: var(--border-radius);
         background-color: #fcfcfc;
     }
-    .details-placeholder i {
-        font-size: 3rem;
-        color: #ced4da;
-    }
+    .details-placeholder i { font-size: 3rem; color: #ced4da; }
 
-    /* Contenu des détails */
-    #details-content {
-        transition: opacity 0.4s ease;
-    }
-    #details-content.visible {
-        opacity: 1;
-    }
+    #details-content { transition: opacity 0.4s ease; }
+    #details-content.visible { opacity: 1; }
 
-    /* Liste de documents améliorée */
     .document-list {
         list-style: none;
         padding: 0;
@@ -292,7 +250,6 @@
         flex-direction: column;
         gap: 0.75rem;
     }
-
     .document-list .list-group-item {
         display: flex;
         align-items: center;
@@ -308,200 +265,6 @@
         transform: translateX(5px);
     }
 
-    .document-list .badge {
-        font-size: 0.75rem;
-        padding: 0.3rem 0.6rem;
-    }
-
-    /* --- CONTRÔLES DATATABLES (RECHERCHE, ETC.) --- */
-    .dataTables_top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        padding: 0.5rem 0;
-    }
-
-    /* Sélecteur d'entrées */
-    .dataTables_length label {
-        color: var(--color-text-secondary);
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-
-    .dataTables_length select {
-        margin: 0 0.5rem;
-        padding: 0.5rem 2rem 0.5rem 0.75rem;
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
-        background-color: var(--color-surface);
-        font-weight: 500;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 0.75rem center;
-        background-size: 16px 12px;
-    }
-
-    /* Champ de recherche */
-    .dataTables_filter label {
-        position: relative;
-        font-size: 0; /* Masque le texte "Search:" */
-    }
-
-    .dataTables_filter label::before {
-        content: '';
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 18px;
-        height: 18px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c757d' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        opacity: 0.8;
-    }
-
-    .dataTables_filter input[type="search"] {
-        padding: 0.6rem 0.75rem 0.6rem 2.75rem;
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
-        background-color: var(--color-surface);
-        transition: all 0.3s ease;
-        min-width: 250px;
-    }
-    .dataTables_filter input[type="search"]:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px var(--color-primary-light);
-        background-color: var(--color-surface);
-    }
-
-    /* --- BOUTONS D'ACTION AMÉLIORÉS --- */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-        padding: 0.6rem 1.2rem;
-        border-radius: 8px;
-        border: 1px solid transparent;
-        transition: all 0.3s ease;
-    }
-    .btn i {
-        font-size: 1.2rem;
-    }
-
-    .btn-primary {
-        background-color: var(--color-primary);
-        color: white;
-        box-shadow: var(--shadow-sm);
-    }
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        background-color: var(--color-primary-dark);
-    }
-
-    .btn-outline-primary {
-        background-color: transparent;
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-    }
-    .btn-outline-primary:hover {
-        background-color: var(--color-primary-light);
-        border-color: var(--color-primary-light);
-        color: var(--color-primary-dark);
-    }
-
-    .btn:disabled {
-        transform: none;
-        box-shadow: none;
-        background-color: var(--color-background);
-        color: #adb5bd;
-        border-color: var(--color-border);
-        cursor: not-allowed;
-        opacity: 1;
-    }
-
-    /* --- DATATABLES RESPONSIVE AVEC ICÔNE PAR DÉFAUT --- */
-    /* Utilisation du style par défaut de DataTables pour l'icône de contrôle */
-    table.dataTable > tbody > tr > td.dtr-control {
-        text-align: center;
-        padding-left: 1rem !important;
-    }
-
-    /* Style de l'icône de contrôle avec la nouvelle couleur */
-    table.dataTable > tbody > tr > td.dtr-control:before {
-        border-color: var(--color-primary);
-        color: var(--color-primary);
-    }
-
-    table.dataTable > tbody > tr.parent > td.dtr-control:before {
-        background-color: var(--color-primary);
-        color: white;
-    }
-
-    /* --- ANIMATIONS WOW --- */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(-20px); }
-        to { opacity: 1; transform: translateX(0); }
-    }
-
-    .wow-fadeIn {
-        animation: fadeIn 0.6s ease-out;
-    }
-
-    .wow-pulse {
-        animation: pulse 0.5s ease-in-out;
-    }
-
-    .wow-slideIn {
-        animation: slideIn 0.4s ease-out;
-    }
-
-    /* Appliquer les animations aux éléments de la table */
-    table.dataTable tbody tr {
-        animation: fadeIn 0.5s ease-out;
-    }
-
-    table.dataTable tbody tr:nth-child(odd) {
-        animation-duration: 0.4s;
-    }
-
-    table.dataTable tbody tr:nth-child(even) {
-        animation-duration: 0.6s;
-    }
-
-    /* --- STYLES SPÉCIFIQUES POUR LA VALIDATION --- */
-    #validation-actions {
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--color-border);
-    }
-
-    #rejection-form {
-        margin-top: 1rem;
-        padding: 1rem;
-        background-color: var(--color-background);
-        border-radius: var(--border-radius);
-        border: 1px solid var(--color-border);
-        animation: slideIn 0.3s ease-out;
-    }
-
     /* Styles pour les badges de statut dans le panneau de détails */
     .badge {
         font-size: 0.75rem;
@@ -509,38 +272,23 @@
         border-radius: 50px;
         font-weight: 600;
     }
-
-    .badge.bg-secondary {
-        background-color: var(--color-text-secondary) !important;
-    }
-
     .badge.bg-info {
         background-color: var(--color-primary-light) !important;
         color: var(--color-primary) !important;
     }
-
-    /* Styles pour la liste des étapes de validation */
     .list-group-item.active {
         background-color: var(--color-primary-light) !important;
         color: var(--color-primary) !important;
         border-left: 4px solid var(--color-primary) !important;
-        animation: pulse 0.5s ease-in-out;
     }
 
-    .refuse-doc-btn {
-        display: none;
-    }
-
-    .list-group-item:hover .refuse-doc-btn {
-        display: inline-block;
-    }
-
+    /* --- STYLES SPÉCIFIQUES POUR LA VALIDATION --- */
+    .refuse-doc-btn { display: none; }
+    .list-group-item:hover .refuse-doc-btn { display: inline-block; }
     .list-group-item.refused {
         background-color: #f8d7da !important;
         border-color: #f5c2c7 !important;
     }
-
-    /* AJOUTER CES STYLES POUR LES BADGES DE DOCUMENTS */
     .doc-badge {
         display: inline-block;
         padding: 0.3rem 0.7rem;
@@ -550,43 +298,22 @@
         margin-right: 0.5rem;
         letter-spacing: 0.5px;
     }
-
-    .doc-status-loaded {
-        color: var(--status-approved-text);
-        background-color: var(--status-approved-bg);
-    }
-
-    .doc-status-pending {
-        color: var(--status-pending-text);
-        background-color: var(--status-pending-bg);
-    }
-
-    .doc-status-rejected {
-        color: var(--status-rejected-text);
-        background-color: var(--status-rejected-bg);
-    }
-
-    .doc-status-default {
-        color: var(--color-text-secondary);
-        background-color: var(--color-border);
-    }
+    .doc-status-loaded { color: var(--status-approved-text); background-color: var(--status-approved-bg); }
+    .doc-status-pending { color: var(--status-pending-text); background-color: var(--status-pending-bg); }
+    .doc-status-rejected { color: var(--status-rejected-text); background-color: var(--status-rejected-bg); }
+    .doc-status-default { color: var(--color-text-secondary); background-color: var(--color-border); }
 
     #validation-actions {
-        margin-top: 1.5rem;
+        margin-top: auto; /* Pousse les actions en bas */
         padding-top: 1.5rem;
         border-top: 1px solid var(--color-border);
-    }
-    .custumiz{
-        height: 350px;
-        overflow: auto;
     }
 </style>
 
 <div class="container-fluid px-4 py-4">
     <div class="row g-4">
-        <!-- Left Column: DataTable -->
         <div class="col-lg-7">
-            <div class="card pro-card h-100 wow-fadeIn custumiz">
+            <div class="card pro-card wow-fadeIn">
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
@@ -604,22 +331,10 @@
                     </ul>
                     <div class="tab-content" id="demandeTabsContent">
                         <div class="tab-pane fade show active" id="en-cours" role="tabpanel" aria-labelledby="en-cours-tab">
-                            <div class="d-flex justify-content-end p-2">
-                                <button id="refresh-demandes-en-cours" class="btn btn-sm btn-outline-primary">
-                                    <i class="ph ph-arrows-clockwise"></i> Actualiser
-                                </button>
-                            </div>
                             <div class="table-container">
                                 <table id="demandesTable" class="table table-hover" style="width:100%">
-                                    <thead>
+                                   <thead>
                                         <tr>
-                                            <!-- <th></th>
-                                            <th>ID</th>
-                                            <th>Type de Demande</th>
-                                            <th>Société</th>
-                                            <th>Statut Demande</th>
-                                            <th class="none">Étape Actuelle</th>
-                                            <th class="none">Date Demande</th> -->
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
@@ -627,11 +342,6 @@
                             </div>
                         </div>
                         <div class="tab-pane fade" id="traitees" role="tabpanel" aria-labelledby="traitees-tab">
-                            <div class="d-flex justify-content-end p-2">
-                                <button id="refresh-demandes-traitees" class="btn btn-sm btn-outline-primary">
-                                    <i class="ph ph-arrows-clockwise"></i> Actualiser
-                                </button>
-                            </div>
                             <div class="table-container">
                                 <table id="demandesTraiteesTable" class="table table-hover" style="width:100%">
                                     <thead>
@@ -655,30 +365,27 @@
             </div>
         </div>
 
-        <!-- Right Column: Details Panel -->
         <div class="col-lg-5">
-            <div class="card pro-card h-100 wow-slideIn">
+            <div class="card pro-card wow-slideIn">
                 <div class="pro-card-header">
-                     <div class="pro-card-title">
+                      <div class="pro-card-title">
                         <i class="ph-fill ph-folder-open"></i>
                         <span id="details-title-text">Détails de la Demande</span>
                     </div>
-                </div>
+                 </div>
                 <div class="card-body" id="details-panel">
                     <div id="details-placeholder" class="details-placeholder">
                         <i class="ph-light ph-file-search"></i>
-                        <p class="mt-3">Sélectionnez une demande pour voir ses détails.</p>
+                         <p class="mt-3">Sélectionnez une demande pour voir ses détails.</p>
                     </div>
                     <div id="details-content" class="details-content">
-                        <!-- Details will be populated by JavaScript -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Rejected Documents Modal -->
 <div class="modal fade" id="rejectedDocsModal" tabindex="-1" aria-labelledby="rejectedDocsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md modal-dialog-centered">
         <div class="modal-content">
@@ -689,24 +396,23 @@
             <div class="modal-body">
                 <p>La liste ci-dessous présente les documents qui ont été rejetés pour cette demande.</p>
                 <div class="table-responsive">
-                    <table class="table table-striped">
+                     <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th>Type de Document</th>
                                 <th>Nom du Fichier</th>
                                 <th>Action</th>
                             </tr>
-                        </thead>
+                         </thead>
                         <tbody id="rejectedDocsTableBody">
-                            <!-- Le contenu sera injecté par JavaScript -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
-        </div>
+         </div>
     </div>
 </div>
 

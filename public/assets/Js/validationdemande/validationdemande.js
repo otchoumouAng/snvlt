@@ -54,7 +54,8 @@ class ValidationDemandeApp {
             style: 'single',
             info: false
         },
-        order: [[5, 'desc']],
+        // ✅ CORRECTION : Tri par la colonne 'dateCreation' (index 6)
+        order: [[6, 'desc']],
         pageLength: 10,
         lengthMenu: [5, 10, 25, 50]
     });
@@ -86,9 +87,8 @@ getStatusBadge(status) {
             }
         });
 
-        $('#refresh-demandes-en-cours').on('click', () => this.loadDemandes());
-        $('#refresh-demandes-traitees').on('click', () => this.loadDemandesTraitees());
-
+        // ❌ SUPPRESSION des écouteurs pour les boutons 'Actualiser'
+        
         this.dataTableTraitees.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
                 const data = this.dataTableTraitees.row(indexes).data();
@@ -180,7 +180,6 @@ getStatusBadge(status) {
 
     async loadDemandes() {
         try {
-            this.notification.info('Chargement des demandes en cours...', 2000);
             const demandes = await this.apiService.getDemandesForValidation();
             this.dataTable.clear().rows.add(demandes).draw();
             this.selectedDemandeId = null;
@@ -193,7 +192,6 @@ getStatusBadge(status) {
 
     async loadDemandesTraitees() {
         try {
-            this.notification.info('Chargement des demandes traitées...', 2000);
             const demandes = await this.apiService.get('/admin/validation_demande_autorisation/liste-traitees');
             this.dataTableTraitees.clear().rows.add(demandes).draw();
         } catch (error) {
@@ -227,7 +225,8 @@ getStatusBadge(status) {
                 style: 'single',
                 info: false
             },
-            order: [[5, 'desc']],
+            // ✅ CORRECTION : Tri par la colonne 'dateTraitement' (index 8)
+            order: [[8, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });
@@ -369,31 +368,33 @@ getStatusBadge(status) {
     }
 
     async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification) {
-    const formData = new FormData();
-    formData.append('etapeId', etapeId);
-    formData.append('newStatus', newStatus);
-    formData.append('justification', justification);
-    formData.append('refusedDocuments', JSON.stringify(refusedDocuments));
+        const formData = new FormData();
+        formData.append('etapeId', etapeId);
+        formData.append('newStatus', newStatus);
+        formData.append('justification', justification);
+        formData.append('refusedDocuments', JSON.stringify(refusedDocuments));
 
-    if (newStatus === 'Signé') {
-        const fileInput = document.getElementById('signed-document');
-        if (fileInput.files.length > 0) {
-            formData.append('signedDocument', fileInput.files[0]);
-        } else {
-            this.notification.warning('Veuillez sélectionner un document signé.');
-            return;
+        if (newStatus === 'Signé') {
+            const fileInput = document.getElementById('signed-document');
+            if (fileInput.files.length > 0) {
+                formData.append('signedDocument', fileInput.files[0]);
+            } else {
+                this.notification.warning('Veuillez sélectionner un document signé.');
+                return;
+            }
+        }
+
+        try {
+            await this.apiService.validateDemande(demandeId, formData);
+            
+            this.notification.success('Demande validée avec succès.');
+            
+            this.loadDemandes();
+            this.loadDemandesTraitees();
+
+        } catch (error) {
+            this.notification.error(error.message || "Erreur lors de la validation de la demande.");
+            console.error(error);
         }
     }
-
-    try {
-        await this.apiService.post(`/admin/validation_demande_autorisation/${demandeId}/validate_demande`, formData, true); // true for sending FormData
-        this.notification.success('Demande validée avec succès.');
-        this.loadDemandes();
-    } catch (error) {
-        this.notification.error(error.message || "Erreur lors de la validation de la demande.");
-        console.error(error);
-    }
-}
-
-    
 }

@@ -78,9 +78,10 @@ class NouvelleDemandeApp {
                 const data = this.dataTable.row(indexes).data();
                 if (data) {
                     this.selectedDemandeId = data.id;
-                    // This logic will be moved to the new button handler
-                    // For now, just enable the buttons
-                    $('#editBtn').prop('disabled', false);
+
+                    // Activer le bouton 'Modifier' SEULEMENT si le statut est 'Créé'
+                    $('#editBtn').prop('disabled', data.statut !== 'Créé');
+
                     $('#trackBtn').prop('disabled', false);
 
                     this.displayDocumentPanel(data);
@@ -347,25 +348,25 @@ class NouvelleDemandeApp {
 
         this.currentMode = mode;
 
-        // Si nous avons un ID, charger les données
+        // Si nous avons un ID (mode 'edit'), charger les données
         if (id) {
-            // Utiliser les données du DataTable si disponibles
-            const row = this.dataTable.row(`#${id}`);
-            const rowData = row.data();
+            // ✅ FIX: Utiliser la sélection de la table pour obtenir les données de manière fiable
+            const rowData = this.dataTable.row({ selected: true }).data();
             
             if (rowData) {
                 this.setupModalWithData(mode, rowData);
             } else {
-                // Fallback: charger depuis l'API
-                await this.loadDemandeData(id);
+                // Ce fallback ne devrait plus être nécessaire, mais on le garde par sécurité
+                this.notification.error("Impossible de récupérer les données de la ligne sélectionnée.");
+                this.modal.hide();
             }
         } else {
-            //this.setupModal(mode, null);
+            // Pour le mode 'new', initialiser avec un objet vide
             this.setupModalWithData(mode, {});
         }
 
     } catch (error) {
-        this.notification.error('Erreur lors de l\'ouverture du modal');
+        this.notification.error("Erreur lors de l'ouverture du modal");
         console.error(error);
     }
 }
@@ -558,11 +559,15 @@ showDetailsPlaceholder() {
 }
 
 
-
-
-
+    // ✅ MODIFIÉ POUR EMPÊCHER LA DOUBLE SOUMISSION
     async saveDemande() {
+        const saveBtn = $('#saveBtn');
+        const originalBtnHtml = saveBtn.html();
+
         try {
+            saveBtn.prop('disabled', true);
+            saveBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Initiation...');
+
             const formData = {
                 id: $('#demandeId').val() || null,
                 typePaiementId: $('#typePaiement').val(),
@@ -575,7 +580,7 @@ showDetailsPlaceholder() {
             // Validation
             if (!formData.typePaiementId || !formData.typeDemandeId) {
                 this.notification.warning('Veuillez remplir tous les champs obligatoires');
-                return;
+                return; // Stop execution
             }
             
             const result = await this.apiService.saveDemande(formData);
@@ -585,11 +590,14 @@ showDetailsPlaceholder() {
                 $('#demandeModal').modal('hide');
                 this.loadDemandes();
             } else {
-                this.notification.error('Erreur lors de l\'enregistrement');
+                this.notification.error(result.error || 'Erreur lors de l\'enregistrement');
             }
         } catch (error) {
             this.notification.error('Erreur lors de l\'enregistrement: ' + error.message);
             console.error(error);
+        } finally {
+            saveBtn.prop('disabled', false);
+            saveBtn.html(originalBtnHtml);
         }
     }
 
@@ -627,8 +635,8 @@ showDetailsPlaceholder() {
                 continue;
             }
 
-            if (file.size > 10 * 1024 * 1024) { // 10MB limit
-                this.notification.warning('Le fichier ne doit pas dépasser 10 Mo');
+            if (file.size > 15 * 1024 * 1024) { // 15MB limit
+                this.notification.warning('Le fichier ne doit pas dépasser 15 Mo');
                 continue;
             }
 

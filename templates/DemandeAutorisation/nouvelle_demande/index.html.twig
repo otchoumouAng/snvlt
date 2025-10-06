@@ -56,6 +56,7 @@
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
         box-shadow: var(--shadow-md);
+        height: 75vh; 
         display: flex;
         flex-direction: column;
     }
@@ -81,8 +82,10 @@
     }
 
     .pro-card .card-body {
-        padding: 0.5rem 1.5rem 1.5rem 1.5rem;
-        flex-grow: 1;
+    padding: 1.5rem; 
+    flex-grow: 1;     
+    overflow: auto;   
+    min-height: 0;    
     }
 
     /* --- DATATABLE AMÉLIORÉE --- */
@@ -644,7 +647,7 @@
     <div class="row g-4">
         <!-- Left Column: DataTable -->
         <div class="col-lg-7">
-            <div class="card pro-card h-100">
+            <div class="card pro-card ">
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
@@ -690,7 +693,7 @@
 
         <!-- Right Column: Details Panel -->
         <div class="col-lg-5">
-            <div class="card pro-card h-100 d-flex flex-column">
+            <div class="card pro-card  d-flex flex-column">
                 <div class="pro-card-header">
                     <div class="pro-card-title">
                         <i class="ph-fill ph-files"></i>
