@@ -273,48 +273,46 @@ class ValidationDemandeAutorisationController extends AbstractController
         $uploadedFile = $request->files->get('signedDocument');
         $numeroAutorisation = $request->request->get('numeroAutorisation');
 
-        if (empty($newStatus)) {
-            return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
-        }
         if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
         }
-        if (!empty($refusedDocuments) && empty($justification)) {
-            return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
+        if ($newStatus === 'Suspendu' && empty($justification)) {
+            return new JsonResponse(['error' => 'La justification est obligatoire pour suspendre une demande.'], 400);
         }
         if ($newStatus === 'Signé' && !$uploadedFile) {
-            return new JsonResponse(['error' => 'Le document signé est obligatoire.'], 400);
+            return new JsonResponse(['error' => 'Le document signé est obligatoire pour ce statut.'], 400);
         }
 
         $currentEtape = $this->etapeValidationRepository->find($etapeId);
-
         if (!$currentEtape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
         }
 
         // --- Main Logic ---
 
-        // The demand's status is always what the agent selected.
+        // 1. Set the overall demand status based on agent's choice
         $demande->setStatut($newStatus);
         $currentEtape->setDateTraitement(new \DateTime());
 
-        if (!empty($refusedDocuments)) {
-            // If documents are refused, the current step is marked as 'Rejeté'.
-            $currentEtape->setStatut('Rejeté');
+        // 2. Handle the validation step's status based on the new demand status
+        if ($newStatus === 'Suspendu') {
+            $currentEtape->setStatut('Rejeté'); // As requested, 'Suspendu' makes the step red
             $currentEtape->setDetails($justification);
+        } else {
+            $currentEtape->setStatut('Validé'); // All other actions validate the current step
+        }
 
+        // 3. Handle individual document rejections (this is now independent)
+        if (!empty($refusedDocuments)) {
             foreach ($refusedDocuments as $docId => $status) {
                 $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
                 if ($document) {
                     $document->setStatut('Rejeté');
                 }
             }
-        } elseif ($newStatus !== 'Suspendu') {
-            // For 'En cours', 'Signé', etc., we validate the current step.
-            $currentEtape->setStatut('Validé');
         }
-        // If status is 'Suspendu' and no documents are refused, we just record the action.
 
+        // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move($this->getParameter('documents_directory'), $newFilename);

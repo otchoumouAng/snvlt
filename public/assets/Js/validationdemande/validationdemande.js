@@ -125,9 +125,6 @@ getStatusBadge(status) {
                 this.refusedDocuments[docId] = 'Refusé';
                 $(e.currentTarget).closest('.list-group-item').addClass('refused');
                 this.notification.info('Document marqué comme refusé.');
-                if (Object.keys(this.refusedDocuments).length > 0) {
-                    $('#justification-form').slideDown();
-                }
             }
         });
 
@@ -138,8 +135,8 @@ getStatusBadge(status) {
             const newStatus = $('#demande-status').val();
             const numeroAutorisation = $('#numero-autorisation').val();
 
-            if (Object.keys(this.refusedDocuments).length > 0 && !justification) {
-                this.notification.warning('La justification est obligatoire si vous refusez des documents.');
+            if (newStatus === 'Suspendu' && !justification) {
+                this.notification.warning('La justification est obligatoire pour suspendre une demande.');
                 return;
             }
             this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification, numeroAutorisation);
@@ -326,8 +323,8 @@ getStatusBadge(status) {
                         <input type="file" id="signed-document" class="form-control">
                     </div>
                     <div id="justification-form" class="mt-3" style="display: none;">
-                        <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification du refus</h6>
-                        <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification..."></textarea>
+                        <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification</h6>
+                        <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification pour la suspension..."></textarea>
                     </div>
                     <div id="validation-actions" class="mt-3">
                         <div class="d-flex justify-content-end">
@@ -354,12 +351,22 @@ getStatusBadge(status) {
 
             if (!isTraitee) {
                 $('#demande-status').on('change', function() {
-                    if ($(this).val() === 'Signé') {
+                    const selectedStatus = $(this).val();
+
+                    // Handle "Signé" status fields
+                    if (selectedStatus === 'Signé') {
                         $('#file-upload-container').slideDown();
                         $('#numero-autorisation-container').slideDown();
                     } else {
                         $('#file-upload-container').slideUp();
                         $('#numero-autorisation-container').slideUp();
+                    }
+
+                    // Handle "Suspendu" status justification
+                    if (selectedStatus === 'Suspendu') {
+                        $('#justification-form').slideDown();
+                    } else {
+                        $('#justification-form').slideUp();
                     }
                 });
             }
