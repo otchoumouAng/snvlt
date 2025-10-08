@@ -124,7 +124,27 @@ getStatusBadge(status) {
             if (confirm('Êtes-vous sûr de vouloir refuser ce document ?')) {
                 this.refusedDocuments[docId] = 'Refusé';
                 $(e.currentTarget).closest('.list-group-item').addClass('refused');
-                this.notification.info('Document marqué comme refusé.');
+                this.notification.info('Document marqué comme refusé. La justification n\'est requise que pour la suspension.');
+            }
+        });
+
+        $(document).on('change', '#demande-status', function() {
+            const selectedStatus = $(this).val();
+
+            // Handle "Signé" status fields
+            if (selectedStatus === 'Signé') {
+                $('#file-upload-container').slideDown();
+                $('#numero-autorisation-container').slideDown();
+            } else {
+                $('#file-upload-container').slideUp();
+                $('#numero-autorisation-container').slideUp();
+            }
+
+            // Handle "Suspendu" status justification
+            if (selectedStatus === 'Suspendu') {
+                $('#justification-form').slideDown();
+            } else {
+                $('#justification-form').slideUp();
             }
         });
 
@@ -349,27 +369,7 @@ getStatusBadge(status) {
 
             detailsContent.html(contentHtml).addClass('visible');
 
-            if (!isTraitee) {
-                $('#demande-status').on('change', function() {
-                    const selectedStatus = $(this).val();
-
-                    // Handle "Signé" status fields
-                    if (selectedStatus === 'Signé') {
-                        $('#file-upload-container').slideDown();
-                        $('#numero-autorisation-container').slideDown();
-                    } else {
-                        $('#file-upload-container').slideUp();
-                        $('#numero-autorisation-container').slideUp();
-                    }
-
-                    // Handle "Suspendu" status justification
-                    if (selectedStatus === 'Suspendu') {
-                        $('#justification-form').slideDown();
-                    } else {
-                        $('#justification-form').slideUp();
-                    }
-                });
-            }
+            // The change event is now handled by a delegated listener in bindEvents.
         } catch (error) {
             this.notification.error("Erreur lors de l'affichage des détails.");
             console.error(error);
