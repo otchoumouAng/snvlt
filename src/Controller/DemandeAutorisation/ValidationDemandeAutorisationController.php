@@ -293,14 +293,15 @@ class ValidationDemandeAutorisationController extends AbstractController
         }
 
         // --- Main Logic ---
-        $finalStatus = $newStatus;
+
+        // The demand's status is always what the agent selected.
+        $demande->setStatut($newStatus);
+        $currentEtape->setDateTraitement(new \DateTime());
 
         if (!empty($refusedDocuments)) {
-            // Highest priority: If docs are refused, the step and demand are rejected.
+            // If documents are refused, the current step is marked as 'Rejeté'.
             $currentEtape->setStatut('Rejeté');
             $currentEtape->setDetails($justification);
-            $currentEtape->setDateTraitement(new \DateTime());
-            $finalStatus = 'Rejeté';
 
             foreach ($refusedDocuments as $docId => $status) {
                 $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
@@ -308,18 +309,13 @@ class ValidationDemandeAutorisationController extends AbstractController
                     $document->setStatut('Rejeté');
                 }
             }
-        } elseif ($newStatus === 'Suspendu') {
-            // If the demand is suspended, we only update the demand's status.
-            // The step's status remains unchanged, but we record the action.
-        } else {
-            // For all other "positive" actions ('En cours', 'Signé'), we validate the step.
+        } elseif ($newStatus !== 'Suspendu') {
+            // For 'En cours', 'Signé', etc., we validate the current step.
             $currentEtape->setStatut('Validé');
-            $currentEtape->setDateTraitement(new \DateTime());
         }
+        // If status is 'Suspendu' and no documents are refused, we just record the action.
 
-        $demande->setStatut($finalStatus);
-
-        if ($finalStatus === 'Signé' && $uploadedFile) {
+        if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $uploadedFile->move($this->getParameter('documents_directory'), $newFilename);
             $demande->setDocumentSignePath($newFilename);
@@ -336,18 +332,18 @@ class ValidationDemandeAutorisationController extends AbstractController
         $validationAction = new ValidationAction();
         $validationAction->setDemande($demande);
         $validationAction->setValidator($this->getUser());
-        $validationAction->setStatut($finalStatus); // Use the determined final status
+        $validationAction->setStatut($newStatus); // The action status is the one selected by the agent
         $validationAction->setNote($justification);
         $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
-        if ($finalStatus === 'Signé') { // Only set numeroAutorisation when signing
+        if ($newStatus === 'Signé') {
             $validationAction->setNumeroAutorisation($numeroAutorisation);
         }
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
 
-        // Send notification for approval or rejection
-        if ($finalStatus === 'Signé') {
+        // Send notification based on the demand's new status
+        if ($newStatus === 'Signé') {
             $this->notificationService->createNotification(
                 $demande->getOperateur(),
                 "Votre demande a été validée",
@@ -355,12 +351,12 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'emails/demande_validee.html.twig',
                 ['demande' => $demande]
             );
-        } elseif ($finalStatus === 'Rejeté') {
+        } elseif ($newStatus === 'Suspendu') {
             $this->notificationService->createNotification(
                 $demande->getOperateur(),
-                "Votre demande a été rejetée",
-                "Votre demande N°" . $demande->getCodeSuivie() . " a été rejetée. Motif : " . $justification,
-                'emails/demande_rejetee.html.twig',
+                "Votre demande a été suspendue",
+                "Votre demande N°" . $demande->getCodeSuivie() . " a été suspendue. Motif : " . $justification,
+                'emails/demande_rejetee.html.twig', // Reusing the rejection template for now
                 ['demande' => $demande, 'justification' => $justification]
             );
         }
