@@ -44,6 +44,9 @@ class ValidationAction
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $signaturePath = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $numeroAutorisation = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -101,6 +104,17 @@ class ValidationAction
     public function setSignaturePath(?string $signaturePath): static
     {
         $this->signaturePath = $signaturePath;
+        return $this;
+    }
+
+    public function getNumeroAutorisation(): ?string
+    {
+        return $this->numeroAutorisation;
+    }
+
+    public function setNumeroAutorisation(?string $numeroAutorisation): static
+    {
+        $this->numeroAutorisation = $numeroAutorisation;
         return $this;
     }
 }

@@ -69,6 +69,8 @@ getStatusBadge(status) {
             return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
         case 'Soumis':
             return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>Soumis</span></span>';
+        case 'Suspendu':
+            return '<span class="status-badge status-suspended"><i class="ph-fill ph-pause-circle"></i><span>Suspendue</span></span>';
         case 'refuser':
         case 'Rejetée':
             return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
@@ -134,12 +136,13 @@ getStatusBadge(status) {
             const etapeId = $(e.currentTarget).data('etape-id');
             const justification = $('#justification-comment').val();
             const newStatus = $('#demande-status').val();
+            const numeroAutorisation = $('#numero-autorisation').val();
 
             if (Object.keys(this.refusedDocuments).length > 0 && !justification) {
                 this.notification.warning('La justification est obligatoire si vous refusez des documents.');
                 return;
             }
-            this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification);
+            this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification, numeroAutorisation);
         });
 
         $(document).on('click', '.view-rejected-docs', (e) => {
@@ -307,11 +310,16 @@ getStatusBadge(status) {
                     <div class="mb-3">
                         <label for="demande-status" class="form-label">Changer le statut de la demande</label>
                         <select id="demande-status" class="form-select">
-                            <option value="En cours">--Changer--</option>
+                            <option value="">--Changer--</option>
                             <option value="Soumis">Soumis</option>
+                            <option value="Suspendu">Suspendre la demande</option>
                             <option value="En cours">En cours de traitement</option>
                             <option value="Signé">Demande signée et disponible</option>
                         </select>
+                    </div>
+                    <div id="numero-autorisation-container" class="mb-3" style="display: none;">
+                        <label for="numero-autorisation" class="form-label">Nº Autorisation</label>
+                        <input type="text" id="numero-autorisation" class="form-control">
                     </div>
                     <div id="file-upload-container" class="mb-3" style="display: none;">
                         <label for="signed-document" class="form-label">Charger le document signé</label>
@@ -348,8 +356,10 @@ getStatusBadge(status) {
                 $('#demande-status').on('change', function() {
                     if ($(this).val() === 'Signé') {
                         $('#file-upload-container').slideDown();
+                        $('#numero-autorisation-container').slideDown();
                     } else {
                         $('#file-upload-container').slideUp();
+                        $('#numero-autorisation-container').slideUp();
                     }
                 });
             }
@@ -367,12 +377,13 @@ getStatusBadge(status) {
         placeholder.show();
     }
 
-    async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification) {
+    async validateDemande(demandeId, etapeId, newStatus, refusedDocuments, justification, numeroAutorisation) {
         const formData = new FormData();
         formData.append('etapeId', etapeId);
         formData.append('newStatus', newStatus);
         formData.append('justification', justification);
         formData.append('refusedDocuments', JSON.stringify(refusedDocuments));
+        formData.append('numeroAutorisation', numeroAutorisation);
 
         if (newStatus === 'Signé') {
             const fileInput = document.getElementById('signed-document');

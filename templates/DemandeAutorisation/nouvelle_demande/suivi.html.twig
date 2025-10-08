@@ -29,8 +29,8 @@
 
         <ol class="stepper">
             {% for etape in etapes %}
-                <li 
-                    class="stepper-item {{ etape.status }} {% if etape.statut == 'Rejeté' %}rejected{% endif %}"
+                <li
+                    class="stepper-item {{ etape.status }} {% if etape.statut == 'Rejeté' %}rejected{% elseif demande.statut == 'Suspendu' and etape.status == 'active' %}suspended{% endif %}"
                     data-step-id="{{ etape.id }}"
                     data-details="{{ etape.details|e('html_attr') }}"
                 >
@@ -39,6 +39,8 @@
                             ✓
                         {% elseif etape.statut == 'Rejeté' %}
                             ✗
+                        {% elseif demande.statut == 'Suspendu' and etape.status == 'active' %}
+                            <i class="ph-fill ph-pause" style="font-size: 18px;"></i>
                         {% endif %}
                     </div>
                     <h3 class="stepper-title">{{ etape.nom }}</h3>
@@ -153,8 +155,17 @@
     transform: scale(1.2);
     animation: bounce 0.6s;
 }
-.stepper-item.rejected .stepper-title {
+.stepper-item.rejected .stepper-title,
+.stepper-item.suspended .stepper-title {
     color: #c0392b;
+}
+
+.stepper-item.suspended .circle {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+    color: white;
+    transform: scale(1.2);
+    animation: bounce 0.6s;
 }
 
 

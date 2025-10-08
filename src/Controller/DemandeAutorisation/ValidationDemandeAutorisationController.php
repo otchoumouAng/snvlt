@@ -269,15 +269,16 @@ class ValidationDemandeAutorisationController extends AbstractController
         $newStatus = $request->request->get('newStatus');
         $refusedDocuments = json_decode($request->request->get('refusedDocuments', '[]'), true);
         $justification = $request->request->get('justification');
-        //$etapeId = $request->request->get('etapeId');
+        $etapeId = $request->request->get('etapeId');
         $uploadedFile = $request->files->get('signedDocument');
+        $numeroAutorisation = $request->request->get('numeroAutorisation');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Le nouveau statut est obligatoire.'], 400);
         }
-        /*if (empty($etapeId)) {
+        if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
-        }*/
+        }
         if (!empty($refusedDocuments) && empty($justification)) {
             return new JsonResponse(['error' => 'La justification est obligatoire si vous refusez des documents.'], 400);
         }
@@ -285,8 +286,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             return new JsonResponse(['error' => 'Le document signé est obligatoire.'], 400);
         }
 
-        //$currentEtape = $this->etapeValidationRepository->find($etapeId);
-        $currentEtape = $this->etapeValidationRepository->findOneBy(['nom' => $newStatus, 'demande'=>$demande]);
+        $currentEtape = $this->etapeValidationRepository->find($etapeId);
 
         if (!$currentEtape) {
             return new JsonResponse(['error' => 'Étape de validation non trouvée.'], 404);
@@ -296,10 +296,11 @@ class ValidationDemandeAutorisationController extends AbstractController
         $finalStatus = $newStatus;
 
         if (!empty($refusedDocuments)) {
-            // If docs are refused, the step is rejected.
+            // Highest priority: If docs are refused, the step and demand are rejected.
             $currentEtape->setStatut('Rejeté');
             $currentEtape->setDetails($justification);
-            $finalStatus = 'Rejeté'; // The whole demand is rejected.
+            $currentEtape->setDateTraitement(new \DateTime());
+            $finalStatus = 'Rejeté';
 
             foreach ($refusedDocuments as $docId => $status) {
                 $document = $this->entityManager->getRepository(\App\Entity\DemandeAutorisation\Document::class)->find($docId);
@@ -307,12 +308,16 @@ class ValidationDemandeAutorisationController extends AbstractController
                     $document->setStatut('Rejeté');
                 }
             }
+        } elseif ($newStatus === 'Suspendu') {
+            // If the demand is suspended, we only update the demand's status.
+            // The step's status remains unchanged, but we record the action.
         } else {
-            // If everything is fine, the current step is validated.
+            // For all other "positive" actions ('En cours', 'Signé'), we validate the step.
             $currentEtape->setStatut('Validé');
+            $currentEtape->setDateTraitement(new \DateTime());
         }
-        $currentEtape->setDateTraitement(new \DateTime());
-        $demande->setStatut($newStatus);
+
+        $demande->setStatut($finalStatus);
 
         if ($finalStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
@@ -334,6 +339,9 @@ class ValidationDemandeAutorisationController extends AbstractController
         $validationAction->setStatut($finalStatus); // Use the determined final status
         $validationAction->setNote($justification);
         $validationAction->setCreatedBy($this->getUser()->getUserIdentifier());
+        if ($finalStatus === 'Signé') { // Only set numeroAutorisation when signing
+            $validationAction->setNumeroAutorisation($numeroAutorisation);
+        }
 
         $this->entityManager->persist($validationAction);
         $this->entityManager->flush();
