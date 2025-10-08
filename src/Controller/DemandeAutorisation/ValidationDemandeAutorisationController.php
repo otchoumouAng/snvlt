@@ -294,12 +294,14 @@ class ValidationDemandeAutorisationController extends AbstractController
         $demande->setStatut($newStatus);
         $currentEtape->setDateTraitement(new \DateTime());
 
-        // 2. Handle the validation step's status based on the new demand status
+        // 2. Handle the validation step's status and details
         if ($newStatus === 'Suspendu') {
-            $currentEtape->setStatut('Rejeté'); // As requested, 'Suspendu' makes the step red
+            // The step's status does not change, as per the new requirement.
+            // Justification is stored in the step's details to be displayed in the UI.
             $currentEtape->setDetails($justification);
         } else {
-            $currentEtape->setStatut('Validé'); // All other actions validate the current step
+            // For all other actions (e.g., 'Signé', 'En cours'), validate the current step.
+            $currentEtape->setStatut('Validé');
         }
 
         // 3. Handle individual document rejections (this is now independent)

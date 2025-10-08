@@ -30,7 +30,7 @@
         <ol class="stepper">
             {% for etape in etapes %}
                 <li
-                    class="stepper-item {{ etape.status }} {% if etape.statut == 'Rejeté' %}rejected{% endif %}"
+                    class="stepper-item {{ etape.status }} {% if etape.statut == 'Rejeté' %}rejected{% elseif demande.statut == 'Suspendu' and etape.status == 'active' %}suspended{% endif %}"
                     data-step-id="{{ etape.id }}"
                     data-details="{{ etape.details|e('html_attr') }}"
                 >
@@ -39,6 +39,8 @@
                             ✓
                         {% elseif etape.statut == 'Rejeté' %}
                             ✗
+                        {% elseif demande.statut == 'Suspendu' and etape.status == 'active' %}
+                            <i class="ph-fill ph-pause" style="font-size: 18px;"></i>
                         {% endif %}
                     </div>
                     <h3 class="stepper-title">{{ etape.nom }}</h3>
@@ -153,8 +155,17 @@
     transform: scale(1.2);
     animation: bounce 0.6s;
 }
-.stepper-item.rejected .stepper-title {
+.stepper-item.rejected .stepper-title,
+.stepper-item.suspended .stepper-title {
     color: #c0392b;
+}
+
+.stepper-item.suspended .circle {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    border-color: #c0392b;
+    color: white;
+    transform: scale(1.2);
+    animation: bounce 0.6s;
 }
 
 
@@ -227,16 +238,18 @@ document.addEventListener("DOMContentLoaded", () => {
     items.forEach(item => {
         item.addEventListener("click", () => {
             const isRejected = item.classList.contains("rejected");
+            const isSuspended = item.classList.contains("suspended");
             const isCompleted = item.classList.contains("completed");
 
-            if (isCompleted || item.classList.contains("active") || isRejected) {
+            if (isCompleted || item.classList.contains("active") || isRejected || isSuspended) {
                 let detailsHtml = '';
-                if (isRejected) {
+                if (isRejected || isSuspended) {
                     const details = item.dataset.details;
+                    const title = isSuspended ? 'Justification de la Suspension' : 'Motif du Rejet';
                     if (details) {
                         detailsHtml = `
                             <div style="margin-top: 15px; padding: 10px; border-radius: 5px; background-color: #f8d7da; border: 1px solid #f5c2c7;">
-                                <h5 style="color: #842029; margin-bottom: 5px;">Motif du Rejet :</h5>
+                                <h5 style="color: #842029; margin-bottom: 5px;">${title} :</h5>
                                 <p style="margin: 0;">${details}</p>
                             </div>
                         `;
