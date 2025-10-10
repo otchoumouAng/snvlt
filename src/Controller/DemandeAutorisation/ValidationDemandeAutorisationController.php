@@ -130,6 +130,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'pef' => $demande->getNumeroPef() ? $demande->getNumeroPef() : 'N/A',
                 'produit' => $demande->getProduit() ? $demande->getProduit(): 'N/A',
                 'dateTraitement' => $derniereEtape && $derniereEtape->getDateTraitement() ? $derniereEtape->getDateTraitement()->format('d/m/Y') : 'N/A',
+                'documentSignePath' => $demande->getDocumentSignePath(),
             ];
 
         }

@@ -215,6 +215,18 @@ getStatusBadge(status) {
                     title: 'Statut Demande',
                     render: (data, type, row) => this.getStatusBadge(data)
                 },
+                {
+                    data: 'documentSignePath',
+                    title: 'Action',
+                    orderable: false,
+                    className: 'text-center',
+                    render: function(data, type, row) {
+                        if (data) {
+                            return `<a href="/uploads/documents/${data}" target="_blank" class="btn btn-sm btn-outline-primary" title="Visualiser le document"><i class="ph ph-eye"></i></a>`;
+                        }
+                        return '';
+                    }
+                },
                 { data: 'pef', title: 'Nº PEF', className: 'none' },
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'typeDemande', title: 'Nature', className: 'none' },
@@ -225,8 +237,7 @@ getStatusBadge(status) {
                 style: 'single',
                 info: false
             },
-            // ✅ CORRECTION : Tri par la colonne 'dateTraitement' (index 8)
-            order: [[8, 'desc']],
+            order: [[9, 'desc']],
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });
