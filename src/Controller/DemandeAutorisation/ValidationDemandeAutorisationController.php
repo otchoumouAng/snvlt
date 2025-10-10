@@ -273,6 +273,10 @@ class ValidationDemandeAutorisationController extends AbstractController
         $uploadedFile = $request->files->get('signedDocument');
         $numeroAutorisation = $request->request->get('numeroAutorisation');
 
+        if (empty($newStatus)) {
+            return new JsonResponse(['error' => 'Veuillez selectionner un statut valide'], 400);
+        }
+
         if (empty($etapeId)) {
             return new JsonResponse(['error' => 'L\'identifiant de l\'étape de validation est manquant.'], 400);
         }
@@ -292,15 +296,11 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         // 1. Set the overall demand status based on agent's choice
         $demande->setStatut($newStatus);
-        $currentEtape->setDateTraitement(new \DateTime());
 
         // 2. Handle the validation step's status and details
-        if ($newStatus === 'Suspendu') {
-            // The step's status does not change, as per the new requirement.
-            // Justification is stored in the step's details to be displayed in the UI.
-            $currentEtape->setDetails($justification);
-        } else {
+        if ($newStatus != 'Suspendu') {
             // For all other actions (e.g., 'Signé', 'En cours'), validate the current step.
+            $currentEtape->setDateTraitement(new \DateTime());
             $currentEtape->setStatut('Validé');
         }
 

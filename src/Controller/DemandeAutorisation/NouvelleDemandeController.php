@@ -29,12 +29,29 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\DemandeAutorisation\ValidationActionRepository; 
 
 /**
  * @Route("/admin/nouvelle_demande")
  */
 class NouvelleDemandeController extends AbstractController
 {
+    private $validationActionRepository;
+
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private EtapeValidationRepository $etapeValidationRepository,
+        private ModeleCommunicationRepository $modeleCommunicationRepository,
+        private UserRepository $userRepository,
+        private NotificationService $notificationService,
+        ValidationActionRepository $validationActionRepository
+
+    )
+    {
+        $this->validationActionRepository = $validationActionRepository;
+
+    }
+
     /**
      * @Route("/api/user/pefs", name="app_user_pefs_json", methods={"GET"})
      */
@@ -70,14 +87,7 @@ class NouvelleDemandeController extends AbstractController
 
         return new JsonResponse($pefs);
     }
-    public function __construct(
-        private EntityManagerInterface $entityManager,
-        private EtapeValidationRepository $etapeValidationRepository,
-        private ModeleCommunicationRepository $modeleCommunicationRepository,
-        private UserRepository $userRepository,
-        private NotificationService $notificationService
-    ) {
-    }
+
 
     /**
      * @Route("/", name="app_nouvelle_demande")
@@ -376,6 +386,7 @@ class NouvelleDemandeController extends AbstractController
     /**
      * @Route("/suivi/{id}", name="admin_nouvelle_demande_suivi", methods={"GET"})
      */
+   
     public function suivi(NouvelleDemande $demande): Response
     {
         // 1. Logique pour récupérer les étapes de validation de la demande
@@ -385,15 +396,43 @@ class NouvelleDemandeController extends AbstractController
         );
 
 
-        // 2. Préparer les données pour Twig (y compris le statut de chaque étape)
+        $justificationSuspension = null;
+
+        // 2. Si la demande est suspendue, on cherche la justification
+        if ($demande->getStatut() === 'Suspendu') {
+            $derniereActionSuspension = $this->validationActionRepository->findOneBy(
+                [
+                    'demande' => $demande,
+                    'statut' => 'Suspendu'
+                ],
+                ['id' => 'DESC'] // On prend la plus récente
+            );
+
+            if ($derniereActionSuspension) {
+                $justificationSuspension = $derniereActionSuspension->getNote();
+            }
+        }
+
+
+
+        // 3. Préparer les données pour Twig
         $etapesPourTwig = [];
-        $demandeStatut = $demande->getStatut(); // Statut global de la demande
+        $demandeStatut = $demande->getStatut();
         $etapeActiveTrouvee = false;
 
         foreach ($etapes as $etape) {
+            // Votre logique existante pour déterminer le statut CSS
             list($status, $isActive) = $this->determineEtapeStatus($etape, $demandeStatut, $etapeActiveTrouvee);
             if ($isActive) {
                 $etapeActiveTrouvee = true;
+            }
+
+            $detailsEtape = $etape->getDetails(); // On récupère les détails existants (pour un rejet par ex.)
+
+            // --- INJECTION DE LA JUSTIFICATION ---
+            // 4. Si l'étape est active et qu'on a une justification, on remplace les détails
+            if ($status === 'active' && $justificationSuspension !== null) {
+                $detailsEtape = $justificationSuspension;
             }
 
             $etapesPourTwig[] = [
@@ -402,11 +441,11 @@ class NouvelleDemandeController extends AbstractController
                 'date' => $etape->getDateTraitement(),
                 'statut' => $etape->getStatut(),
                 'status' => $status,
-                'details' => $etape->getDetails(),
+                'details' => $detailsEtape, 
             ];
         }
 
-        // 3. Rendre le template Twig et le retourner comme une réponse HTML
+        // 5. Rendre le template Twig avec les bonnes données
         return $this->render('DemandeAutorisation/nouvelle_demande/suivi.html.twig', [
             'demande' => $demande,
             'etapes' => $etapesPourTwig,

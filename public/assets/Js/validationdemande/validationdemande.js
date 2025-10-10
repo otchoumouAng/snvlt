@@ -124,7 +124,7 @@ getStatusBadge(status) {
             if (confirm('Êtes-vous sûr de vouloir refuser ce document ?')) {
                 this.refusedDocuments[docId] = 'Refusé';
                 $(e.currentTarget).closest('.list-group-item').addClass('refused');
-                this.notification.info('Document marqué comme refusé. La justification n\'est requise que pour la suspension.');
+                this.notification.info('Document marqué comme refusé.');
             }
         });
 
@@ -157,6 +157,10 @@ getStatusBadge(status) {
 
             if (newStatus === 'Suspendu' && !justification) {
                 this.notification.warning('La justification est obligatoire pour suspendre une demande.');
+                return;
+            }
+            if (!newStatus) {
+                this.notification.warning('Veuillez selectionner un statut valide');
                 return;
             }
             this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification, numeroAutorisation);

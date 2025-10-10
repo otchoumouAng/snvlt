@@ -22,6 +22,7 @@ class NotificationService
     ) {
     }
 
+
     public function createNotification(User $toUser, string $subject, string $description, ?string $emailTemplate = null, array $emailContext = []): void
     {
         // 1. In-app notification
@@ -42,7 +43,7 @@ class NotificationService
             $html = $this->twig->render($emailTemplate, $emailContext);
             //snvlt@system2is.com
             $email = (new Email())
-                ->from('no-reply@snvlt.com')
+                ->from('snvlt@system2is.com') #no-reply@snvlt.com
                 ->to($toUser->getEmail())
                 ->subject($subject)
                 ->html($html);

@@ -209,7 +209,7 @@ class NouvelleDemandeApp {
             this.showMainView();
         });
 
-        $(document).on('click', '.stepper-item.completed:not(.rejected)', (e) => {
+        /*$(document).on('click', '.stepper-item.completed:not(.rejected)', (e) => {
             const stepId = $(e.currentTarget).data('step-id');
             this.loadStepDetails(this.selectedDemandeId, stepId);
         });
@@ -236,6 +236,43 @@ class NouvelleDemandeApp {
 
                 $('#step-details-placeholder').hide();
                 $('#step-details-content').show();
+            }
+        });*/
+
+        $(document).on('click', '.stepper-item', (e) => {
+            const item = $(e.currentTarget);
+            const stepId = item.data('step-id');
+            
+            // On autorise le clic si l'étape est complétée, rejetée ou suspendue
+            if (item.hasClass('completed') || item.hasClass('rejected') || item.hasClass('suspended')) {
+                const details = item.data('details');
+                const title = item.find(".stepper-title").text();
+                const date = item.find(".stepper-date")?.text() || "—";
+                
+                // Si l'étape est rejetée ou suspendue, on affiche directement les détails depuis l'attribut data-details
+                if (item.hasClass('rejected') || item.hasClass('suspended')) {
+                    if (details) {
+                        const reasonTitle = item.hasClass('rejected') ? 'Motif du Rejet' : 'Motif de la Suspension';
+                        const detailsHtml = `
+                            <div style="margin-top: 15px; padding: 10px; border-radius: 5px; background-color: #f8d7da; border: 1px solid #f5c2c7;">
+                                <h5 style="color: #842029; margin-bottom: 5px;">${reasonTitle} :</h5>
+                                <p style="margin: 0;">${details}</p>
+                            </div>
+                        `;
+
+                        $('#step-details-content').html(
+                            `<h4>Étape: ${title}</h4>
+                             <p>Date: ${date}</p>
+                             ${detailsHtml}`
+                        );
+
+                        $('#step-details-placeholder').hide();
+                        $('#step-details-content').show();
+                    }
+                } else {
+                    // Pour les étapes complétées (non rejetées), on charge les détails via l'API
+                    this.loadStepDetails(this.selectedDemandeId, stepId);
+                }
             }
         });
 
@@ -527,7 +564,7 @@ buildDocumentsHtml(details) {
         }
 
         // Interdiction de charger un document dans une demande SIGNÉ
-        if (details.statut === 'Signé' && doc.statut === 'Non chargé' || doc.statut === 'Rejeté' ) {
+        if (details.statut === 'Signé' && doc.statut === 'Non chargé' || details.statut === 'Signé' && doc.statut === 'Rejeté' ) {
             actionsHtml = `<span class="action-btn"><i class="ph ph-lock-key"></i></span>`;
         }
 
