@@ -4,6 +4,8 @@ namespace App\Controller\Paiement;
 
 use App\Repository\DemandeAutorisation\TypeDemandeRepository;
 use App\Repository\Paiement\CatalogueServicesRepository;
+use App\Repository\Paiement\TransactionRepository;
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -60,4 +62,46 @@ class ApiController extends AbstractController
         return $this->json($data);
     }
 
+    #[Route('/transaction/{id}', name: 'api_get_transaction_details', methods: ['GET'])]
+    public function getTransactionDetails(int $id, TransactionRepository $transactionRepository, UserRepository $userRepository): JsonResponse
+    {
+        $transaction = $transactionRepository->find($id);
+
+        if (!$transaction) {
+            return $this->json(['error' => 'Transaction not found'], 404);
+        }
+
+        $user = $userRepository->findOneBy(['email' => $transaction->getCreatedBy()]);
+        $company = null;
+        if ($user) {
+            if ($user->getCodeexploitant()) {
+                $company = $user->getCodeexploitant()->getRaisonSociale();
+            } elseif ($user->getCodeindustriel()) {
+                $company = $user->getCodeindustriel()->getRaisonSociale();
+            } elseif ($user->getCodeExportateur()) {
+                $company = $user->getCodeExportateur()->getNomExportateur();
+            } elseif ($user->getCodeCommercant()) {
+                $company = $user->getCodeCommercant()->getNomCommercant();
+            }
+        }
+
+        $data = [
+            'identifiant' => $transaction->getIdentifiant(),
+            'service' => $transaction->getService() ? $transaction->getService()->getDesignation() : 'N/A',
+            'montant_fcfa' => $transaction->getMontantFcfa(),
+            'client_nom' => $transaction->getClientNom(),
+            'client_prenom' => $transaction->getClientPrenom(),
+            'telephone' => $transaction->getTelephone(),
+            'statut' => $transaction->getStatut(),
+            'tresorpay_receipt_reference' => $transaction->getTresorpayReceiptReference(),
+            'paid_at' => $transaction->getPaidAt() ? $transaction->getPaidAt()->format('d/m/Y H:i') : 'N/A',
+            'payer_phone' => $transaction->getPayerPhone(),
+            'paid_amount' => $transaction->getPaidAmount(),
+            'created_at' => $transaction->getCreatedAt()->format('d/m/Y H:i'),
+            'created_by' => $transaction->getCreatedBy(),
+            'company' => $company,
+        ];
+
+        return $this->json($data);
+    }
 }

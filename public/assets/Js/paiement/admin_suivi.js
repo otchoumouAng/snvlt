@@ -73,4 +73,46 @@ $(function() {
                 });
         },
     });
+
+    $('#datatable_admin_suivi tbody').on('dblclick', 'tr', function () {
+        var transactionId = $(this).data('id');
+        var modal = $('#transactionDetailsModal');
+        var modalLoader = modal.find('#modal-loader');
+        var modalContent = modal.find('#modal-content-details');
+
+        modalContent.hide();
+        modalLoader.show();
+        modal.modal('show');
+
+        $.ajax({
+            url: '/api/transaction/' + transactionId,
+            method: 'GET',
+            success: function (data) {
+                var detailsHtml = '<dl class="row">';
+                detailsHtml += '<dt class="col-sm-4">Avis de recette:</dt><dd class="col-sm-8">' + data.identifiant + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Service:</dt><dd class="col-sm-8">' + data.service + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Montant demandé:</dt><dd class="col-sm-8">' + data.montant_fcfa + ' FCFA</dd>';
+                detailsHtml += '<dt class="col-sm-4">Montant payé:</dt><dd class="col-sm-8">' + (data.paid_amount ? data.paid_amount + ' FCFA' : 'N/A') + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Statut:</dt><dd class="col-sm-8">' + data.statut + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Date de paiement:</dt><dd class="col-sm-8">' + data.paid_at + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Référence de paiement:</dt><dd class="col-sm-8">' + data.tresorpay_receipt_reference + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Numéro de paiement:</dt><dd class="col-sm-8">' + data.payer_phone + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Société:</dt><dd class="col-sm-8">' + (data.company ? data.company : 'N/A') + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Demandeur:</dt><dd class="col-sm-8">' + data.client_nom + ' ' + data.client_prenom + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Téléphone du demandeur:</dt><dd class="col-sm-8">' + data.telephone + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Créé le:</dt><dd class="col-sm-8">' + data.created_at + '</dd>';
+                detailsHtml += '<dt class="col-sm-4">Créé par:</dt><dd class="col-sm-8">' + data.created_by + '</dd>';
+                detailsHtml += '</dl>';
+
+                modalContent.html(detailsHtml);
+                modalLoader.hide();
+                modalContent.show();
+            },
+            error: function () {
+                modalContent.html('<p class="text-danger">Impossible de charger les détails de la transaction.</p>');
+                modalLoader.hide();
+                modalContent.show();
+            }
+        });
+    });
 });

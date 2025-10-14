@@ -38,7 +38,7 @@
                     <tbody>
                         {% for item in transactions %}
                             {% set transaction = item.transaction %}
-                            <tr>
+                            <tr data-id="{{ transaction.id }}">
                                 <td>{{ transaction.identifiant }}</td>
                                 <td>{{ transaction.service ? transaction.service.designation : 'N/A' }}</td>
                                 <td>{{ transaction.paidAmount ? (transaction.paidAmount | number_format(0, ',', ' ') ~ ' FCFA') : 'N/A' }}</td>
@@ -72,6 +72,31 @@
                         {% endfor %}
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="transactionDetailsModal" tabindex="-1" aria-labelledby="transactionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="transactionDetailsModalLabel">Détails de la transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modal-loader" class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <div id="modal-content-details" style="display: none;">
+                    <!-- Details will be injected here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
