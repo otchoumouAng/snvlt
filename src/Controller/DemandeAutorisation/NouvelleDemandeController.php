@@ -135,7 +135,8 @@ class NouvelleDemandeController extends AbstractController
                 'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
                 'societe' => $societe,
                 'numero_pef' => $demande->getNumeroPef() ?? 'N/A',
-                'produit' => $demande->getProduit() ?? 'N/A'
+                'produit' => $demande->getProduit() ?? 'N/A',
+                'anneeExercice' => $demande->getAnneeExercice() ?? 'N/A'
             ];
         }
 
@@ -253,6 +254,7 @@ class NouvelleDemandeController extends AbstractController
             $demande->setStatut($data['statut'] ?? 'Créé');
             $demande->setNumeroPef($data['numero_pef'] ?? null);
             $demande->setProduit($data['produit'] ?? null);
+            $demande->setAnneeExercice($data['anneeExercice'] ?? null);
 
             if (isset($data['typeDemandeId'])) {
                 $typeDemande = $this->entityManager->getReference(TypeDemande::class, $data['typeDemandeId']);
