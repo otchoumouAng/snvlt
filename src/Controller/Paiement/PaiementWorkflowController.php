@@ -17,6 +17,7 @@ use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use App\Service\Paiement\PdfService;
 use App\Entity\Paiement\Transaction;
+use App\Entity\User;
 
 
 class PaiementWorkflowController extends AbstractController
@@ -117,6 +118,52 @@ class PaiementWorkflowController extends AbstractController
             'liste_parent' => $permissions,
             'user_info' => $userInfo,
             'suivi_url' => $urlGenerator->generate('app_paiement_suivi'),
+        ]);
+    }
+
+    #[Route("/admin/paiements", name: "app_admin_paiements")]
+    public function adminPaiements(
+        MenuRepository $menus,
+        NotificationRepository $notification,
+        MenuPermissionRepository $permissions,
+        UserRepository $userRepository
+    ): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $transactions = $this->transactionRepository->findAll();
+        $transactionsWithDetails = [];
+
+        foreach ($transactions as $transaction) {
+            $user = $userRepository->findOneBy(['email' => $transaction->getCreatedBy()]);
+            $company = null;
+            if ($user) {
+                if ($user->getCodeexploitant()) {
+                    $company = $user->getCodeexploitant()->getRaisonSociale();
+                } elseif ($user->getCodeindustriel()) {
+                    $company = $user->getCodeindustriel()->getRaisonSociale();
+                } elseif ($user->getCodeExportateur()) {
+                    $company = $user->getCodeExportateur()->getNomExportateur();
+                } elseif ($user->getCodeCommercant()) {
+                    $company = $user->getCodeCommercant()->getNomCommercant();
+                }
+            }
+
+            $transactionsWithDetails[] = [
+                'transaction' => $transaction,
+                'company' => $company,
+            ];
+        }
+
+        return $this->render('paiement/admin_suivi.html.twig', [
+            'transactions' => $transactionsWithDetails,
+            'liste_menus' => $menus->findOnlyParent(),
+            "all_menus" => $menus->findAll(),
+            'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
+            'menus' => $permissions->findBy(['code_groupe_id' => $this->getUser()->getCodeGroupe()->getId()]),
+            'groupe' => $this->getUser()->getCodeGroupe()->getId(),
+            'titre' => 'Suivi des paiements',
+            'liste_parent' => $permissions,
         ]);
     }
 }
