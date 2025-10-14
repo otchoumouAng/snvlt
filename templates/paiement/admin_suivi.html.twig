@@ -24,6 +24,19 @@
                 <table id="datatable_admin_suivi" class="table table-hover table-striped">
                     <thead>
                         <tr>
+                            <th><i class="ph ph-file-text"></i> Avis de recette</th>
+                            <th><i class="ph ph-wrench"></i> Service</th>
+                            <th><i class="ph ph-wallet"></i> Montant payé</th>
+                            <th><i class="ph ph-phone"></i> Numéro de paiement</th>
+                            <th><i class="ph ph-receipt"></i> Reference Paiement</th>
+                            <th><i class="ph ph-calendar"></i> Date de paiement</th>
+                            <th><i class="ph ph-info"></i> Statut</th>
+                            <th><i class="ph ph-buildings"></i> Société</th>
+                            <th class="text-end"><i class="ph ph-list-checks"></i> Actions</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
                             <th>Avis de recette</th>
                             <th>Service</th>
                             <th>Montant payé</th>
@@ -32,9 +45,9 @@
                             <th>Date de paiement</th>
                             <th>Statut</th>
                             <th>Société</th>
-                            <th class="text-end">Actions</th>
+                            <th>Actions</th>
                         </tr>
-                    </thead>
+                    </tfoot>
                     <tbody>
                         {% for item in transactions %}
                             {% set transaction = item.transaction %}

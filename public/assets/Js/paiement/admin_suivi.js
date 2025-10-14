@@ -1,13 +1,11 @@
 $(function() {
-    // Setup - add a text input to each footer cell
-    $('#datatable_admin_suivi thead tr')
-        .clone(true)
-        .addClass('filters')
-        .appendTo('#datatable_admin_suivi thead');
+    // Add input footer
+    $('#datatable_admin_suivi tfoot th').each(function () {
+        var title = $(this).text();
+        $(this).html('<input type="text" class="form-control" placeholder="Filtrer par ' + title + '" />');
+    });
 
     var table = $('#datatable_admin_suivi').DataTable({
-        "orderCellsTop": true,
-        "fixedHeader": true,
         "order": [[ 5, "desc" ]],
         "scrollX": true,
         "lengthMenu": [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tout"]],
@@ -26,56 +24,26 @@ $(function() {
             }
         },
         initComplete: function () {
-            var api = this.api();
-
-            // For each column
-            api
+            // Apply the search
+            this.api()
                 .columns()
-                .eq(0)
-                .each(function (colIdx) {
-                    // Set the header cell to contain the input element
-                    var cell = $('.filters th').eq(
-                        $(api.column(colIdx).header()).index()
-                    );
-                    var title = $(cell).text();
-                    $(cell).html('<input type="text" class="form-control" placeholder="' + title + '" />');
+                .every(function () {
+                    var that = this;
 
-                    // On every keypress in this input
-                    $(
-                        'input',
-                        $('.filters th').eq($(api.column(colIdx).header()).index())
-                    )
-                        .off('keyup change')
-                        .on('keyup change', function (e) {
-                            e.stopPropagation();
-
-                            // Get the search value
-                            $(this).attr('title', $(this).val());
-                            var regexr = '({search})'; //$(this).parents('th').find('select').val();
-
-                            var cursorPosition = this.selectionStart;
-                            // Search the column for that value
-                            api
-                                .column(colIdx)
-                                .search(
-                                    this.value != ''
-                                        ? regexr.replace('{search}', '(((' + this.value + ')))')
-                                        : '',
-                                    this.value != '',
-                                    this.value == ''
-                                )
-                                .draw();
-
-                            $(this)
-                                .focus()[0]
-                                .setSelectionRange(cursorPosition, cursorPosition);
-                        });
+                    $('input', this.footer()).on('keyup change clear', function () {
+                        if (that.search() !== this.value) {
+                            that.search(this.value).draw();
+                        }
+                    });
                 });
         },
     });
 
     $('#datatable_admin_suivi tbody').on('dblclick', 'tr', function () {
         var transactionId = $(this).data('id');
+        if (!transactionId) {
+            return;
+        }
         var modal = $('#transactionDetailsModal');
         var modalLoader = modal.find('#modal-loader');
         var modalContent = modal.find('#modal-content-details');
@@ -89,19 +57,19 @@ $(function() {
             method: 'GET',
             success: function (data) {
                 var detailsHtml = '<dl class="row">';
-                detailsHtml += '<dt class="col-sm-4">Avis de recette:</dt><dd class="col-sm-8">' + data.identifiant + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Service:</dt><dd class="col-sm-8">' + data.service + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Montant demandé:</dt><dd class="col-sm-8">' + data.montant_fcfa + ' FCFA</dd>';
-                detailsHtml += '<dt class="col-sm-4">Montant payé:</dt><dd class="col-sm-8">' + (data.paid_amount ? data.paid_amount + ' FCFA' : 'N/A') + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Statut:</dt><dd class="col-sm-8">' + data.statut + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Date de paiement:</dt><dd class="col-sm-8">' + data.paid_at + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Référence de paiement:</dt><dd class="col-sm-8">' + data.tresorpay_receipt_reference + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Numéro de paiement:</dt><dd class="col-sm-8">' + data.payer_phone + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Société:</dt><dd class="col-sm-8">' + (data.company ? data.company : 'N/A') + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Demandeur:</dt><dd class="col-sm-8">' + data.client_nom + ' ' + data.client_prenom + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Téléphone du demandeur:</dt><dd class="col-sm-8">' + data.telephone + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Créé le:</dt><dd class="col-sm-8">' + data.created_at + '</dd>';
-                detailsHtml += '<dt class="col-sm-4">Créé par:</dt><dd class="col-sm-8">' + data.created_by + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-file-text"></i> Avis de recette:</dt><dd class="col-sm-8">' + data.identifiant + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-wrench"></i> Service:</dt><dd class="col-sm-8">' + data.service + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-money"></i> Montant demandé:</dt><dd class="col-sm-8">' + data.montant_fcfa + ' FCFA</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-wallet"></i> Montant payé:</dt><dd class="col-sm-8">' + (data.paid_amount ? data.paid_amount + ' FCFA' : 'N/A') + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-info"></i> Statut:</dt><dd class="col-sm-8">' + data.statut + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-calendar"></i> Date de paiement:</dt><dd class="col-sm-8">' + data.paid_at + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-receipt"></i> Référence de paiement:</dt><dd class="col-sm-8">' + data.tresorpay_receipt_reference + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-phone"></i> Numéro de paiement:</dt><dd class="col-sm-8">' + data.payer_phone + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-buildings"></i> Société:</dt><dd class="col-sm-8">' + (data.company ? data.company : 'N/A') + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-user"></i> Demandeur:</dt><dd class="col-sm-8">' + data.client_nom + ' ' + data.client_prenom + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-phone-call"></i> Téléphone du demandeur:</dt><dd class="col-sm-8">' + data.telephone + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-clock"></i> Créé le:</dt><dd class="col-sm-8">' + data.created_at + '</dd>';
+                detailsHtml += '<dt class="col-sm-4"><i class="ph ph-user-circle"></i> Créé par:</dt><dd class="col-sm-8">' + data.created_by + '</dd>';
                 detailsHtml += '</dl>';
 
                 modalContent.html(detailsHtml);
