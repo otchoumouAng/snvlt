@@ -1,10 +1,4 @@
 $(function() {
-    // Add input footer
-    $('#datatable_admin_suivi tfoot th').each(function () {
-        var title = $(this).text();
-        $(this).html('<input type="text" class="form-control" placeholder="Filtrer par ' + title + '" />');
-    });
-
     var table = $('#datatable_admin_suivi').DataTable({
         "order": [[ 5, "desc" ]],
         "scrollX": true,
@@ -23,20 +17,23 @@ $(function() {
                 "previous": "Précédent"
             }
         },
-        initComplete: function () {
-            // Apply the search
-            this.api()
-                .columns()
-                .every(function () {
-                    var that = this;
+    });
 
-                    $('input', this.footer()).on('keyup change clear', function () {
-                        if (that.search() !== this.value) {
-                            that.search(this.value).draw();
-                        }
-                    });
-                });
-        },
+    // Link external filters
+    $('#filter_avis').on('keyup change', function () {
+        table.column(0).search(this.value).draw();
+    });
+
+    $('#filter_service').on('keyup change', function () {
+        table.column(1).search(this.value).draw();
+    });
+
+    $('#filter_statut').on('change', function () {
+        table.column(6).search(this.value).draw();
+    });
+
+    $('#filter_societe').on('keyup change', function () {
+        table.column(7).search(this.value).draw();
     });
 
     $('#datatable_admin_suivi tbody').on('dblclick', 'tr', function () {

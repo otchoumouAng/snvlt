@@ -6,7 +6,7 @@
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="{{ asset('assets/Js/paiement/admin_suivi.js') }}"></script>
+    <script src="{{ asset('assets/js/suivi/admin_suivi.js') }}"></script>
 {% endblock %}
 
 {% block menu %}
@@ -20,6 +20,29 @@
             <h5 class="card-title fw-bold"><i class="ph-fill ph-credit-card"></i> Suivi des paiements</h5>
         </div>
         <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="filter_avis" class="form-label">Avis de recette</label>
+                    <input type="text" id="filter_avis" class="form-control" placeholder="Filtrer par avis">
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_service" class="form-label">Service</label>
+                    <input type="text" id="filter_service" class="form-control" placeholder="Filtrer par service">
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_statut" class="form-label">Statut</label>
+                    <select id="filter_statut" class="form-select">
+                        <option value="">Tous</option>
+                        <option value="PAYE">Payé</option>
+                        <option value="EN_ATTENTE">En attente</option>
+                        <option value="ECHOUE">Echoué</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="filter_societe" class="form-label">Société</label>
+                    <input type="text" id="filter_societe" class="form-control" placeholder="Filtrer par société">
+                </div>
+            </div>
             <div class="table-responsive">
                 <table id="datatable_admin_suivi" class="table table-hover table-striped">
                     <thead>
@@ -35,19 +58,6 @@
                             <th class="text-end"><i class="ph ph-list-checks"></i> Actions</th>
                         </tr>
                     </thead>
-                    <tfoot>
-                        <tr>
-                            <th>Avis de recette</th>
-                            <th>Service</th>
-                            <th>Montant payé</th>
-                            <th>Numéro de paiement</th>
-                            <th>Reference Paiement</th>
-                            <th>Date de paiement</th>
-                            <th>Statut</th>
-                            <th>Société</th>
-                            <th>Actions</th>
-                        </tr>
-                    </tfoot>
                     <tbody>
                         {% for item in transactions %}
                             {% set transaction = item.transaction %}
