@@ -17,6 +17,7 @@ use App\Repository\MenuRepository;
 use App\Repository\UserRepository;
 use App\Service\Paiement\PdfService;
 use App\Entity\Paiement\Transaction;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 
 class PaiementWorkflowController extends AbstractController
@@ -25,6 +26,30 @@ class PaiementWorkflowController extends AbstractController
         private TransactionRepository $transactionRepository,
         private PdfService $pdfService
     ) {}
+
+    #[Route('/admin/paiements', name: 'admin_paiement_list')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminPaiementList(
+        MenuRepository $menus,
+        NotificationRepository $notification,
+        MenuPermissionRepository $permissions
+    ): Response
+    {
+        $transactions = $this->transactionRepository->findAll();
+        $user = $this->getUser();
+        $code_groupe = $user->getCodeGroupe()->getId();
+
+        return $this->render('paiement/admin_list.html.twig', [
+            'transactions' => $transactions,
+            'liste_menus' => $menus->findOnlyParent(),
+            "all_menus" => $menus->findAll(),
+            'mes_notifs' => $notification->findBy(['to_user' => $this->getUser(), 'lu' => false], [], 5, 0),
+            'menus' => $permissions->findBy(['code_groupe_id' => $code_groupe]),
+            'groupe' => $code_groupe,
+            'titre' => 'Suivi des paiements',
+            'liste_parent' => $permissions
+        ]);
+    }
 
     #[Route('/paiement/transaction/{id}/receipt', name: 'app_paiement_receipt')]
     public function receipt(Transaction $transaction): Response

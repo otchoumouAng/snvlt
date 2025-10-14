@@ -1,0 +1,70 @@
+{% extends 'snvlt_base.html.twig' %}
+
+{% block title %}{{ titre }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('assets/css/lib/datatable/dataTables.bootstrap4.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/lib/datatable/buttons.bootstrap4.min.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <strong class="card-title">Liste des transactions</strong>
+                </div>
+                <div class="card-body">
+                    <table id="transactions-table" class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Identifiant</th>
+                                <th>Service</th>
+                                <th>Montant (FCFA)</th>
+                                <th>Client</th>
+                                <th>Téléphone</th>
+                                <th>Statut</th>
+                                <th>Date de Paiement</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for transaction in transactions %}
+                            <tr>
+                                <td>{{ transaction.id }}</td>
+                                <td>{{ transaction.identifiant }}</td>
+                                <td>{{ transaction.service.libelle }}</td>
+                                <td>{{ transaction.montantFcfa|number_format(0, ',', ' ') }}</td>
+                                <td>{{ transaction.clientNom }} {{ transaction.clientPrenom }}</td>
+                                <td>{{ transaction.telephone }}</td>
+                                <td>{{ transaction.statut }}</td>
+                                <td>{{ transaction.paidAt ? transaction.paidAt|date('d/m/Y H:i:s') : '' }}</td>
+                                <td>
+                                    {# Add actions here, e.g., view details, receipt #}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('assets/js/lib/data-table/datatables.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/dataTables.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/buttons.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/jszip.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/pdfmake.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/vfs_fonts.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/buttons.print.min.js') }}"></script>
+    <script src="{{ asset('assets/js/lib/data-table/buttons.colVis.min.js') }}"></script>
+    <script src="{{ asset('assets/js/paiement/admin_list.js') }}"></script>
+{% endblock %}

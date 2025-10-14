@@ -30,6 +30,22 @@
             {% endif %}
         {% endfor %}
 
+        {% if is_granted('ROLE_ADMIN') %}
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="collapse" href="#ui-paiement">
+                    <span class="icon-bg"><i class="fa fa-credit-card menu-icon"></i></span>
+                    <span class="menu-title">Paiements</span>
+                    <i class="menu-arrow"></i>
+                </a>
+
+                <div class="collapse" id="ui-paiement">
+                    <ul class="nav flex-column sub-menu"  style="margin-left: 30px;">
+                        <li class="nav-item"> <a class="nav-link" href="{{ path('admin_paiement_list') }}">Suivi des paiements</a></li>
+                    </ul>
+                </div>
+            </li>
+        {% endif %}
+
     </ul>
     {#<img class="" src="{{ asset('assets/images/logo_snvlt.png') }}" alt="minefrci" height="128">#}
 </nav>
