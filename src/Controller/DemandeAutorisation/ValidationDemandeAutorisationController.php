@@ -130,6 +130,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'pef' => $demande->getNumeroPef() ? $demande->getNumeroPef() : 'N/A',
                 'produit' => $demande->getProduit() ? $demande->getProduit(): 'N/A',
                 'dateTraitement' => $derniereEtape && $derniereEtape->getDateTraitement() ? $derniereEtape->getDateTraitement()->format('d/m/Y') : 'N/A',
+                'documentSignePath' => $demande->getDocumentSignePath(),
             ];
 
         }
@@ -228,6 +229,8 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
+            'documentSignePath' => $demande->getDocumentSignePath() ? '/uploads/documents/' . $demande->getDocumentSignePath() : null,
+
         ];
 
         return new JsonResponse($data);
@@ -317,7 +320,13 @@ class ValidationDemandeAutorisationController extends AbstractController
         // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-            $uploadedFile->move($this->getParameter('documents_directory'), $newFilename);
+            $documentsDirectory = $this->getParameter('documents_directory');
+
+            if (!is_dir($documentsDirectory)) {
+                mkdir($documentsDirectory, 0777, true);
+            }
+
+            $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
 
             // Also mark the "Signé" step itself as validated
