@@ -330,12 +330,23 @@ getStatusBadge(status) {
                     </div>`;
             }
 
+            let signedDocumentHtml = '';
+            if (isTraitee && details.documentSignePath) {
+                signedDocumentHtml = `
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="${details.documentSignePath}" target="_blank" class="btn btn-success">
+                            <i class="ph-fill ph-file-pdf"></i> Voir le document signé
+                        </a>
+                    </div>`;
+            }
+
             const contentHtml = `
                 <div class="mb-3">
                     <h5 class="fw-bold mb-1">${details.titre}</h5>
                     <p class="text-muted mb-2">Société: ${details.societe}</p>
                     ${this.getStatusBadge(details.statut)}
                 </div>
+                ${signedDocumentHtml}
                 <h6 class="text-muted small fw-bold text-uppercase mb-2">Documents Fournis</h6>
                 <ul class="list-group list-group-flush document-list mb-4">${documentsHtml}</ul>
                 <h6 class="text-muted small fw-bold text-uppercase mt-4 mb-2">Circuit de Validation</h6>

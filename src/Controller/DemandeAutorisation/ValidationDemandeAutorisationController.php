@@ -130,6 +130,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 'pef' => $demande->getNumeroPef() ? $demande->getNumeroPef() : 'N/A',
                 'produit' => $demande->getProduit() ? $demande->getProduit(): 'N/A',
                 'dateTraitement' => $derniereEtape && $derniereEtape->getDateTraitement() ? $derniereEtape->getDateTraitement()->format('d/m/Y') : 'N/A',
+                'documentSignePath' => $demande->getDocumentSignePath(),
             ];
 
         }
@@ -228,6 +229,8 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
+            'documentSignePath' => $demande->getDocumentSignePath() ? '/uploads/documents/' . $demande->getDocumentSignePath() : null,
+
         ];
 
         return new JsonResponse($data);
