@@ -642,14 +642,14 @@ class NouvelleDemandeController extends AbstractController
         $projectDir = $this->getParameter('kernel.project_dir');
 
         // 2. Définir les chemins complets vers vos images
-        $pathLogoEauxForets = $projectDir . '/public/assets/images/logo_eaux_forets_etat_depot.png';
-        $pathLogoSnvlt = $projectDir . '/public/assets/images/SNVLT.png';
+        $pathLogoMinef = $projectDir . '/public/assets/images/minef.png';
+        $pathLogoSnvlt = $projectDir . '/public/assets/images/logo_snvlt.png';
 
         // 3. Lire les données des images et les encoder en Base64
         // On vérifie si le fichier existe pour éviter les erreurs
-        $logoEauxForetsBase64 = null;
-        if (file_exists($pathLogoEauxForets)) {
-            $logoEauxForetsBase64 = base64_encode(file_get_contents($pathLogoEauxForets));
+        $logoMinefBase64 = null;
+        if (file_exists($pathLogoMinef)) {
+            $logoMinefBase64 = base64_encode(file_get_contents($pathLogoMinef));
         }
 
         $logoSnvltBase64 = null;
@@ -683,7 +683,7 @@ class NouvelleDemandeController extends AbstractController
             'demande' => $demande,
             'documents' => $allDocuments,
             // 4. Passer les images encodées au template Twig
-            'logo_eaux_forets_base64' => $logoEauxForetsBase64,
+            'logo_minef_base64' => $logoMinefBase64,
             'logo_snvlt_base64' => $logoSnvltBase64
         ]);
 
