@@ -319,7 +319,13 @@ class ValidationDemandeAutorisationController extends AbstractController
 
         if ($finalStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-            $uploadedFile->move($this->getParameter('documents_directory'), $newFilename);
+            $documentsDirectory = $this->getParameter('documents_directory');
+
+            if (!is_dir($documentsDirectory)) {
+                mkdir($documentsDirectory, 0777, true);
+            }
+
+            $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
 
             // Also mark the "Signé" step itself as validated
