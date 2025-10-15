@@ -51,6 +51,7 @@ class NouvelleDemandeApp {
                     title: 'Statut Demande',
                     render: (data) => NouvelleDemandeApp.getStatusBadge(data)
                 },
+                { data: 'anneeExercice', title: 'Année Exercice' },
                 { data: 'numero_pef', title: 'Nº PEF', className: 'none' },
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'description', title: 'Description', className: 'none' },
@@ -61,7 +62,8 @@ class NouvelleDemandeApp {
                 { responsivePriority: 1, targets: 0 },
                 { responsivePriority: 2, targets: 1 },
                 { responsivePriority: 3, targets: 2 },
-                { responsivePriority: 4, targets: 3 }
+                { responsivePriority: 4, targets: 3 },
+                { responsivePriority: 5, targets: 4 }
             ],
             order: [[0, 'desc']],
             pageLength: 10,
@@ -423,6 +425,7 @@ setupModalWithData(mode, data) {
     form.find('#typePaiement').val(data.typePaiementId); // Updated
     form.find('#description').val(data.description);
     form.find('#typeDemande').val(data.typeDemandeId).trigger('change'); // Corrected from typeDocument
+    form.find('#anneeExercice').val(data.anneeExercice);
 
     // Set mode-specific configurations
     switch(mode) {
@@ -433,6 +436,9 @@ setupModalWithData(mode, data) {
             deleteBtn.hide();
             documentsSection.hide(); // La section est déjà cachée pour 'new'
             form.find('input, select, textarea').prop('disabled', false);
+            // Set the anneeExercice for new demands
+            const currentYear = new Date().getFullYear();
+            form.find('#anneeExercice').val(currentYear + 1);
             break;
 
         case 'edit':
@@ -611,7 +617,8 @@ showDetailsPlaceholder() {
                 description: $('#description').val(),
                 typeDemandeId: $('#typeDemande').val(),
                 numero_pef: $('#numero_pef').val(),
-                produit: $('#produit').val()
+                produit: $('#produit').val(),
+                anneeExercice: $('#anneeExercice').val()
             };
             
             // Validation

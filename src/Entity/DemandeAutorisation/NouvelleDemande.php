@@ -65,6 +65,9 @@ class NouvelleDemande
     #[ORM\Column(name: "document_signe_path", length: 255, nullable: true)]
     private ?string $documentSignePath = null;
 
+    #[ORM\Column(name: "annee_exercice", type: 'integer', nullable: true)]
+    private ?int $anneeExercice = null;
+
     public function __construct()
     {
         $this->etapesValidation = new ArrayCollection();
@@ -228,6 +231,18 @@ class NouvelleDemande
     public function setDocumentSignePath(?string $documentSignePath): static
     {
         $this->documentSignePath = $documentSignePath;
+
+        return $this;
+    }
+
+    public function getAnneeExercice(): ?int
+    {
+        return $this->anneeExercice;
+    }
+
+    public function setAnneeExercice(?int $anneeExercice): static
+    {
+        $this->anneeExercice = $anneeExercice;
 
         return $this;
     }
