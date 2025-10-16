@@ -12,6 +12,7 @@ class NouvelleDemandeApp {
             read: null
         };
     }
+    
 
     init() {
         this.preloadModalTemplates();

@@ -638,8 +638,6 @@ class NouvelleDemandeController extends AbstractController
      */
     public function generateEtatDepotPdf(NouvelleDemande $demande, \App\Service\Paiement\PdfService $pdfService, TypeDemandeDetailRepository $typeDemandeDetailRepository): Response
     {
-        // --- DEBUT DES AJOUTS ---
-
         // 1. Obtenir le répertoire racine du projet pour construire un chemin absolu
         $projectDir = $this->getParameter('kernel.project_dir');
 
@@ -658,8 +656,6 @@ class NouvelleDemandeController extends AbstractController
         if (file_exists($pathLogoSnvlt)) {
             $logoSnvltBase64 = base64_encode(file_get_contents($pathLogoSnvlt));
         }
-
-        // --- FIN DES AJOUTS ---
 
 
         $uploadedDocuments = [];
@@ -684,7 +680,6 @@ class NouvelleDemandeController extends AbstractController
         $html = $this->renderView('DemandeAutorisation/nouvelle_demande/etat_depot.html.twig', [
             'demande' => $demande,
             'documents' => $allDocuments,
-            // 4. Passer les images encodées au template Twig
             'logo_minef_base64' => $logoMinefBase64,
             'logo_snvlt_base64' => $logoSnvltBase64
         ]);

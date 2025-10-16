@@ -7,6 +7,7 @@
     - Cette entité nous permet de CRUD les nouvelles demandes d'autorisation, de suivre l'évolution d'un demande(EtapeValidation), consulter les documents liés à une demande et de gérer le fichier uploadé pour une nouvelle demande créée.
 
 */
+    
 
 namespace App\Entity\DemandeAutorisation;
 use App\Entity\DemandeAutorisation\Traits\AuditTrait;

@@ -365,7 +365,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 $demande->getOperateur(),
                 "Votre demande a été suspendue",
                 "Votre demande N°" . $demande->getCodeSuivie() . " a été suspendue. Motif : " . $justification,
-                'emails/demande_rejetee.html.twig', // Reusing the rejection template for now
+                'emails/rejetee.html.twig', 
                 ['demande' => $demande, 'justification' => $justification]
             );
         }
