@@ -344,7 +344,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             $demande->setAnneeExercice($anneExercice);
 
             if ($demande->getNumeroPef()) {
-                $exercice = $this->entityManager->getRepository(Exercice::class)->findBy(['annee'=>$anneExercice]); #findCurrentExercice();
+                $exercice = $this->entityManager->getRepository(Exercice::class)->findOneBy(['annee'=>$anneExercice]); #findCurrentExercice();
 
                 if (!$exercice) {
                     $this->logger->warning('No current exercice found.');
