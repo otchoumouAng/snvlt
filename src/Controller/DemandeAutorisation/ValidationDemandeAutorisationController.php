@@ -287,6 +287,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         $etapeId = $request->request->get('etapeId');
         $uploadedFile = $request->files->get('signedDocument');
         $numeroAutorisation = $request->request->get('numeroAutorisation');
+        $anneExercice = $request->request->get('anneExercice');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Veuillez selectionner un statut valide'], 400);
@@ -340,9 +341,10 @@ class ValidationDemandeAutorisationController extends AbstractController
 
             $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
+            $demande->setAnneeExercice($anneExercice);
 
             if ($demande->getNumeroPef()) {
-                $exercice = $this->entityManager->getRepository(Exercice::class)->findCurrentExercice();
+                $exercice = $this->entityManager->getRepository(Exercice::class)->findBy(['annee'=>$anneExercice]); #findCurrentExercice();
 
                 if (!$exercice) {
                     $this->logger->warning('No current exercice found.');
