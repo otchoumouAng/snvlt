@@ -9,12 +9,18 @@ use App\Entity\DemandeAutorisation\ValidationAction;
 use App\Entity\References\DetailsModele;
 use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Entity\Admin\Exercice;
+use App\Entity\Autorisation\Reprise;
+use App\Repository\Autorisations\AttributionRepository;
+use App\Repository\Autorisations\RepriseRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
+use App\Repository\References\ForetRepository;
 use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Service\NotificationService;
 use App\Repository\UserRepository;
+use Psr\Log\LoggerInterface;
 use App\Repository\Administration\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -39,9 +45,13 @@ class ValidationDemandeAutorisationController extends AbstractController
         private TypeDemandeDetailRepository $typeDemandeDetailRepository,
         private NotificationService $notificationService,
         private ModeleCommunicationRepository $modeleCommunicationRepository,
+        private AttributionRepository $attributionRepository,
+        private ForetRepository $foretRepository,
+        private RepriseRepository $repriseRepository,
+        private LoggerInterface $logger,
         ServiceMinefRepository $serviceMinefRepository
     ) {
-        $this->serviceMinefRepository = $serviceMinefRepository; 
+        $this->serviceMinefRepository = $serviceMinefRepository;
     }
 
     /**
@@ -322,7 +332,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-            $documentsDirectory = $this->getParameter('documents_directory');
+            $documentsDirectory = $this->getParameter('documents_Signe_directory');
 
             if (!is_dir($documentsDirectory)) {
                 mkdir($documentsDirectory, 0777, true);
@@ -330,6 +340,42 @@ class ValidationDemandeAutorisationController extends AbstractController
 
             $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
+
+            if ($demande->getNumeroPef()) {
+                $exercice = $this->entityManager->getRepository(Exercice::class)->findCurrentExercice();
+
+                if (!$exercice) {
+                    $this->logger->warning('No current exercice found.');
+                } else {
+                    $foret = $this->foretRepository->findOneBy(['numero_foret' => $demande->getNumeroPef()]);
+
+                    if (!$foret) {
+                        $this->logger->warning(sprintf('Foret with PEF number "%s" not found.', $demande->getNumeroPef()));
+                    } else {
+                        $attribution = $this->attributionRepository->findOneBy(['code_foret' => $foret, 'exercice' => $exercice]);
+
+                        if (!$attribution) {
+                            $this->logger->warning(sprintf('Attribution for PEF number "%s" and exercice "%s" not found.', $demande->getNumeroPef(), $exercice->getAnnee()));
+                        } else {
+                            $reprise = $this->repriseRepository->findOneBy(['code_attribution' => $attribution, 'exercice' => $exercice]);
+
+                            if (!$reprise) {
+                                $reprise = new Reprise();
+                                $reprise->setCreatedBy($this->getUser()->getUserIdentifier());
+                                $reprise->setCreatedAt(new \DateTimeImmutable());
+                            }
+
+                            $reprise->setNumeroAutorisation($numeroAutorisation);
+                            $reprise->setDateAutorisation(new \DateTime());
+                            $reprise->setCodeAttribution($attribution);
+                            $reprise->setExercice($exercice);
+                            $reprise->setUpdatedBy($this->getUser()->getUserIdentifier());
+                            $reprise->setUpdatedAt(new \DateTime());
+                            $this->entityManager->persist($reprise);
+                        }
+                    }
+                }
+            }
 
             // Also mark the "Signé" step itself as validated
             $etapeSigne = $this->etapeValidationRepository->findOneBy(['nom' => 'Signé', 'demande' => $demande]);
