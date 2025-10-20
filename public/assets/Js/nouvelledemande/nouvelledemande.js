@@ -45,7 +45,16 @@ class NouvelleDemandeApp {
                 },
                 // 2. Le reste des colonnes, dans le bon ordre
                 { data: 'id', title: 'ID' },
-                { data: 'typeDemande', title: 'Type de Demande' }, // ou 'titre' selon ce que vous voulez afficher
+
+                { 
+                    data: 'typeDemande', 
+                    title: 'Type de Demande',
+                    render: function(data, type, row) {
+                        let date = row.dateCreation || ''; 
+                        return `${data}<br><small class="text-muted">${date}</small>`;
+                    }
+                },
+
                 { data: 'societe', title: 'Société' }, // La colonne "Société" ajoutée
                 {
                     data: 'statut',

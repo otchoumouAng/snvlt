@@ -28,6 +28,8 @@ class ValidationDemandeApp {
             },
             { data: 'id', title: 'ID' },
             { data: 'typeDemande', title: 'Type de Demande' },
+            { data: 'pef', title: 'Nº PEF', className: 'none' },
+            { data: 'produit', title: 'Produit', className: 'none' },
             { data: 'societe', title: 'Société' },
             {
                 data: 'statut',

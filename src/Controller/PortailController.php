@@ -266,7 +266,7 @@ class PortailController extends AbstractController
 
         $totalVolumeExercice = round($sumResult ?? 0, 3);
 
-        
+    
 
 
         $nbTotalReprises = $registry->getRepository(Reprise::class)->count([]);

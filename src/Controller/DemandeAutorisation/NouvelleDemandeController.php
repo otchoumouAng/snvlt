@@ -72,13 +72,39 @@ class NouvelleDemandeController extends AbstractController
         }
 
         $conn = $em->getConnection();
-        $sql = '
+        /*$sql = '
             SELECT DISTINCT f.numero_foret as libelle, f.id as id
             FROM metier.foret f
             JOIN metier.attribution a ON f.id = a.code_foret_id
             WHERE a.code_exploitant_id = :code_exploitant_id
             AND (a.retire IS NULL OR a.retire = false)
             AND (a.abandonne IS NULL OR a.abandonne = false)
+        ';*/
+
+
+        $sql = '
+
+            WITH RECURSIVE societes_et_filiales AS (
+            -- 1. Point de départ : la société mère
+            SELECT id
+            FROM metier.exploitant
+            WHERE id = :code_exploitant_id
+
+            UNION ALL
+
+            -- 2. Partie récursive : trouver toutes les filiales
+            SELECT e.id
+            FROM metier.exploitant e
+            JOIN societes_et_filiales sef ON e.filiale_id = sef.id
+        )
+        -- 3. Requête principale : utiliser la liste complète des sociétés
+        SELECT DISTINCT f.numero_foret as libelle, f.id as id
+        FROM metier.foret f
+        JOIN metier.attribution a ON f.id = a.code_foret_id
+        WHERE a.code_exploitant_id IN (SELECT id FROM societes_et_filiales)
+          AND (a.retire IS NULL OR a.retire = false)
+          AND (a.abandonne IS NULL OR a.abandonne = false)
+
         ';
 
         $stmt = $conn->prepare($sql);

@@ -101,6 +101,8 @@ class ValidationDemandeAutorisationController extends AbstractController
                     'statut' => $demande->getStatut(),
                     'dateCreation' => $demande->getCreatedAt()->format('d/m/Y'),
                     'typeDemande' => $demande->getTypeDemande() ? $demande->getTypeDemande()->getDesignation() : 'N/A',
+                    'pef' => $demande->getNumeroPef() ? $demande->getNumeroPef() : 'N/A',
+                    'produit' => $demande->getProduit() ? $demande->getProduit(): 'N/A',
                     'societe' => $societe
                 ];
         }
@@ -316,7 +318,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                 }
             }
         }
-
+ 
         // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
