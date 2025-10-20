@@ -45,4 +45,15 @@ class ExerciceRepository extends ServiceEntityRepository
             ->getSingleScalarResult()
         ;
     }
+
+    public function findCurrentExercice(): ?Exercice
+    {
+        $now = new \DateTime();
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.date_debut <= :now')
+            ->andWhere('e.datefin >= :now')
+            ->setParameter('now', $now)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
