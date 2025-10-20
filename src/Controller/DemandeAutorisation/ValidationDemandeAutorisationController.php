@@ -9,6 +9,9 @@ use App\Entity\DemandeAutorisation\ValidationAction;
 use App\Entity\References\DetailsModele;
 use App\Repository\DemandeAutorisation\EtapeValidationRepository;
 use App\Repository\DemandeAutorisation\NouvelleDemandeRepository;
+use App\Entity\Admin\Exercice;
+use App\Entity\Autorisation\Reprise;
+use App\Repository\Autorisations\AttributionRepository;
 use App\Repository\DemandeAutorisation\TypeDemandeDetailRepository;
 use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
@@ -39,9 +42,10 @@ class ValidationDemandeAutorisationController extends AbstractController
         private TypeDemandeDetailRepository $typeDemandeDetailRepository,
         private NotificationService $notificationService,
         private ModeleCommunicationRepository $modeleCommunicationRepository,
+        private AttributionRepository $attributionRepository,
         ServiceMinefRepository $serviceMinefRepository
     ) {
-        $this->serviceMinefRepository = $serviceMinefRepository; 
+        $this->serviceMinefRepository = $serviceMinefRepository;
     }
 
     /**
@@ -328,6 +332,21 @@ class ValidationDemandeAutorisationController extends AbstractController
 
             $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
+
+            if($demande->getNumeroPef()){
+
+                $exercice = $this->entityManager->getRepository(Exercice::class)->findOneBy([],['id'=>'DESC']);
+                $attribution = $this->attributionRepository->findOneBy(['code_pef'=>$demande->getNumeroPef()]);
+
+                $reprise = new Reprise();
+                $reprise->setNumeroAutorisation($numeroAutorisation);
+                $reprise->setDateAutorisation(new \DateTime());
+                $reprise->setCodeAttribution($attribution);
+                $reprise->setExercice($exercice);
+                $reprise->setCreatedBy($this->getUser()->getUserIdentifier());
+                $reprise->setCreatedAt(new \DateTimeImmutable());
+                $this->entityManager->persist($reprise);
+            }
 
             // Also mark the "Signé" step itself as validated
             $etapeSigne = $this->etapeValidationRepository->findOneBy(['nom' => 'Signé', 'demande' => $demande]);
