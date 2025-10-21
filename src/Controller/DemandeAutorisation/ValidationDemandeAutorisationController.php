@@ -19,6 +19,7 @@ use App\Repository\References\ModeleCommunicationRepository;
 use App\Repository\MenuPermissionRepository;
 use App\Repository\MenuRepository;
 use App\Service\NotificationService;
+use App\Service\PdfWatermarkService;
 use App\Repository\UserRepository;
 use Psr\Log\LoggerInterface;
 use App\Repository\Administration\NotificationRepository;
@@ -49,6 +50,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         private ForetRepository $foretRepository,
         private RepriseRepository $repriseRepository,
         private LoggerInterface $logger,
+        private PdfWatermarkService $pdfWatermarkService,
         ServiceMinefRepository $serviceMinefRepository
     ) {
         $this->serviceMinefRepository = $serviceMinefRepository;
@@ -340,6 +342,10 @@ class ValidationDemandeAutorisationController extends AbstractController
 
             $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
+
+            // Add watermark to the PDF
+            $filePath = $documentsDirectory . '/' . $newFilename;
+            $this->pdfWatermarkService->addWatermark($filePath, 'NON OFFICIEL');
 
 
 
