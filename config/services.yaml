@@ -17,7 +17,7 @@ parameters:
     mediatech_directory: 'uploads/helper/medias'
     oi_tickets_directory: 'uploads/oi/tickets'
     documents_directory: '%kernel.project_dir%/public/uploads/documents'
-    documents_Signe_directory: '%kernel.project_dir%/public/uploads/documents_signes'
+    documents_signe_directory: '%kernel.project_dir%/public/uploads/documents_signes'
     signatures_directory: '%kernel.project_dir%/public/uploads/signatures'
     app.locales: [fr, en]
 services:
@@ -39,6 +39,10 @@ services:
         bind:
             $whatsappApiToken: '%env(WHATSAPP_API_TOKEN)%'
             $whatsappPhoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
+
+    App\Service\PdfWatermarkService:
+        arguments:
+            $documents_signe_directory: '%documents_signe_directory%'
 
 
     # add more service definitions when explicit configuration is needed

@@ -332,7 +332,7 @@ class ValidationDemandeAutorisationController extends AbstractController
         // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
             $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
-            $documentsDirectory = $this->getParameter('documents_Signe_directory');
+            $documentsDirectory = $this->getParameter('documents_signe_directory');
 
             if (!is_dir($documentsDirectory)) {
                 mkdir($documentsDirectory, 0777, true);
