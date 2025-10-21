@@ -287,7 +287,6 @@ class ValidationDemandeAutorisationController extends AbstractController
         $etapeId = $request->request->get('etapeId');
         $uploadedFile = $request->files->get('signedDocument');
         $numeroAutorisation = $request->request->get('numeroAutorisation');
-        $anneExercice = $request->request->get('anneExercice');
 
         if (empty($newStatus)) {
             return new JsonResponse(['error' => 'Veuillez selectionner un statut valide'], 400);
@@ -341,20 +340,26 @@ class ValidationDemandeAutorisationController extends AbstractController
 
             $uploadedFile->move($documentsDirectory, $newFilename);
             $demande->setDocumentSignePath($newFilename);
-            $demande->setAnneeExercice($anneExercice);
+
+
 
             if ($demande->getNumeroPef()) {
-                $exercice = $this->entityManager->getRepository(Exercice::class)->findBy(['annee'=>$anneExercice]); #findCurrentExercice();
+                $exercice = $this->entityManager->getRepository(Exercice::class)->findOneBy(['annee'=>$demande->getAnneeExercice()]); 
+                //dd($exercice);
 
                 if (!$exercice) {
                     $this->logger->warning('No current exercice found.');
                 } else {
                     $foret = $this->foretRepository->findOneBy(['numero_foret' => $demande->getNumeroPef()]);
+                    //dd($foret);
 
                     if (!$foret) {
                         $this->logger->warning(sprintf('Foret with PEF number "%s" not found.', $demande->getNumeroPef()));
                     } else {
-                        $attribution = $this->attributionRepository->findOneBy(['code_foret' => $foret, 'exercice' => $exercice]);
+                        //$attribution = $this->attributionRepository->findOneBy(['code_foret' => $foret, 'exercice' => $exercice]);
+                        
+                        $attribution = $this->attributionRepository->findOneBy(['code_foret' => $foret]);
+                        //dd($attribution);
 
                         if (!$attribution) {
                             $this->logger->warning(sprintf('Attribution for PEF number "%s" and exercice "%s" not found.', $demande->getNumeroPef(), $exercice->getAnnee()));
@@ -373,6 +378,7 @@ class ValidationDemandeAutorisationController extends AbstractController
                             $reprise->setExercice($exercice);
                             $reprise->setUpdatedBy($this->getUser()->getUserIdentifier());
                             $reprise->setUpdatedAt(new \DateTime());
+                            //dd($reprise);
                             $this->entityManager->persist($reprise);
                         }
                     }
