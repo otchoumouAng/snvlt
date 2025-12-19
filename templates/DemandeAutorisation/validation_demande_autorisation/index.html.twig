@@ -53,7 +53,7 @@
         border-radius: var(--border-radius);
         display: inline-flex;
         gap: 0.5rem;
-        flex-shrink: 0; /* Empêche les onglets de se réduire */
+        flex-shrink: 0;
     }
 
     .nav-tabs .nav-item { margin: 0; }
@@ -86,12 +86,8 @@
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
         box-shadow: var(--shadow-md);
-        
-        /* ✅ CORRECTION (Hauteur) */
-        /* On force la carte à être un conteneur flex sur toute sa hauteur */
         display: flex;
         flex-direction: column;
-        /* Hauteur fixe et responsive. Vous pouvez ajuster cette valeur (ex: 70vh, 85vh) */
         height: 75vh; 
     }
 
@@ -101,16 +97,14 @@
         display: flex;
         align-items: center;
         gap: 1rem;
-        flex-shrink: 0; /* Empêche l'en-tête de se réduire */
+        flex-shrink: 0;
     }
     
     .pro-card .card-body {
-        flex-grow: 1; /* Le corps de la carte prend toute la place verticale restante */
-        overflow-y: auto; /* Affiche une barre de défilement verticale si nécessaire */
-        min-height: 0; /* Astuce Flexbox cruciale pour que l'overflow fonctionne */
+        flex-grow: 1;
+        overflow-y: auto;
+        min-height: 0;
         padding: 1rem;
-        
-        /* On transforme aussi le corps en conteneur flex pour mieux contrôler le contenu */
         display: flex;
         flex-direction: column;
     }
@@ -127,6 +121,30 @@
         font-size: 1.5rem;
         color: var(--color-primary);
     }
+    
+    /* ✅ NOUVEAUX STYLES POUR LE BOUTON D'ACTUALISATION */
+    .btn-refresh {
+        background-color: transparent;
+        border: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-text-secondary);
+        transition: all 0.3s ease;
+        flex-shrink: 0; /* Empêche le bouton de se réduire */
+    }
+    .btn-refresh:hover {
+        background-color: var(--color-primary-lighter);
+        color: var(--color-primary-dark);
+        transform: rotate(90deg);
+    }
+    .btn-refresh i {
+        font-size: 1.4rem;
+    }
+
 
     /* --- GESTION DU CONTENU AVEC ONGLET --- */
     .tab-content {
@@ -142,15 +160,12 @@
         flex-direction: column;
     }
     
-    /* ✅ CORRECTION (Le "Train") */
-    /* C'est ce conteneur qui gère maintenant les deux barres de défilement */
     .table-container {
        flex-grow: 1;
-       overflow: auto; /* Gère le défilement vertical ET horizontal */
+       overflow: auto;
        min-height: 0;
     }
 
-    /* On nettoie les anciens styles qui ne sont plus nécessaires */
     .custumiz { height: auto; overflow: visible; }
 
     /* --- DATATABLE AMÉLIORÉE --- */
@@ -304,7 +319,7 @@
     .doc-status-default { color: var(--color-text-secondary); background-color: var(--color-border); }
 
     #validation-actions {
-        margin-top: auto; /* Pousse les actions en bas */
+        margin-top: auto;
         padding-top: 1.5rem;
         border-top: 1px solid var(--color-border);
     }
@@ -315,10 +330,19 @@
         <div class="col-lg-7">
             <div class="card pro-card wow-fadeIn">
                 <div class="pro-card-header">
-                    <div class="pro-card-title">
+                    
+                    <!-- ✅ MODIFICATION : Le titre prend maintenant toute la place disponible -->
+                    <div class="pro-card-title flex-grow-1">
                         <i class="ph-fill ph-files"></i>
                         <span>Demandes d'Autorisations à Valider</span>
                     </div>
+
+                    <!-- ✅ MODIFICATION : Bouton redessiné et mieux positionné -->
+                    <button id="refresh-demandes-btn" class="btn-refresh" 
+                            data-bs-toggle="tooltip" data-bs-placement="top" title="Actualiser la liste">
+                        <i class="ph ph-arrow-clockwise"></i>
+                    </button>
+
                 </div>
                 <div class="card-body p-0 d-flex flex-column">
                     <ul class="nav nav-tabs" id="demandeTabs" role="tablist">
@@ -429,6 +453,12 @@ $(document).ready(function() {
     const validationDemandeApp = new ValidationDemandeApp();
     validationDemandeApp.init();
     
+    // ✅ AJOUT : Initialisation des infobulles (tooltips) de Bootstrap
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
     // Ajouter un effet de pulse à la sélection
     $(document).on('click', '#demandesTable tbody tr', function() {
         $(this).addClass('wow-pulse');

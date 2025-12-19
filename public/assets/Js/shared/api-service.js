@@ -114,11 +114,24 @@ class ApiService {
                 options.headers['Content-Type'] = 'application/json';
             }
 
-            const response = fetch(endpoint, options);
-            return this.handleResponse(response);
+            // 1. On attend la réponse de la requête directement ici
+            const response = await fetch(this.baseUrl + endpoint, options);
+
+            // 2. On vérifie si la réponse est OK (status 200-299)
+            if (!response.ok) {
+                // Si le serveur renvoie une erreur (4xx, 5xx), on la capture
+                const errorData = await response.json().catch(() => null);
+                const errorMessage = errorData?.message || `Erreur HTTP: ${response.status}`;
+                throw new Error(errorMessage);
+            }
+            
+            // 3. On parse le JSON et on le retourne
+            // C'est ce qui sera reçu par la variable 'result' dans votre submitDemande()
+            return response.json();
+
         } catch (error) {
             console.error('API POST Error:', error);
-            throw error;
+            throw error; // On propage l'erreur pour que le code appelant puisse la gérer
         }
     }
 
@@ -170,6 +183,16 @@ class ApiService {
         // Cette route retourne le HTML des détails pour une étape spécifique
         return this.get(`/admin/nouvelle_demande/suivi/${demandeId}/etape/${stepId}`);
     }
+
+
+    invalidate(endpoint) {
+        const url = `${this.baseUrl}${endpoint}`;
+        const cacheKey = `GET:${url}`;
+        if (this.cache.has(cacheKey)) {
+            this.cache.delete(cacheKey);
+        }
+    }
+
 
     // Méthodes spécifiques pour Validation Demande
     getDemandesForValidation() {

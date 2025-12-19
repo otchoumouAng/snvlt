@@ -72,16 +72,7 @@ class NouvelleDemandeController extends AbstractController
         }
 
         $conn = $em->getConnection();
-        /*$sql = '
-            SELECT DISTINCT f.numero_foret as libelle, f.id as id
-            FROM metier.foret f
-            JOIN metier.attribution a ON f.id = a.code_foret_id
-            WHERE a.code_exploitant_id = :code_exploitant_id
-            AND (a.retire IS NULL OR a.retire = false)
-            AND (a.abandonne IS NULL OR a.abandonne = false)
-        ';*/
-
-
+        
         $sql = '
 
             WITH RECURSIVE societes_et_filiales AS (
@@ -150,7 +141,6 @@ class NouvelleDemandeController extends AbstractController
     {
         $user = $userRepository->find($this->getUser());
 
-        //dd($user->getId());
         
      
         $demandes = $nouvelleDemandeRepository->findBy(['operateur' => $user->getId()]);
@@ -510,11 +500,12 @@ class NouvelleDemandeController extends AbstractController
 
             if ($etapes->isEmpty()) {
                 // First submission
-                $this->createValidationCircuit($demande);
                 /*echo "Première condition";
                 dd($etapes);*/
+                $this->createValidationCircuit($demande);
             } else {
-                
+                /*echo "Deuxieme condition";
+                dd($etapes)*/;
                 // Re-submission
                 foreach ($etapes as $etape) {
                     $etape->setStatut('En cours');

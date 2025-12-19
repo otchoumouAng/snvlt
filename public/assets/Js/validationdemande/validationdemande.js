@@ -5,6 +5,7 @@ class ValidationDemandeApp {
         this.selectedDemandeId = null;
         this.dataTable = null;
         this.dataTableTraitees = null;
+        this.refusedDocuments = {};
     }
 
     init() {
@@ -15,72 +16,80 @@ class ValidationDemandeApp {
     }
 
     initDataTable() {
-    this.dataTable = new DataTable('#demandesTable', {
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
-        },
-        columns: [
-            {
-                data: null,
-                defaultContent: '',
-                className: 'dtr-control',
-                orderable: false
+        this.dataTable = new DataTable('#demandesTable', {
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/fr-FR.json'
             },
-            { data: 'id', title: 'ID' },
-            { data: 'typeDemande', title: 'Type de Demande' },
-            { data: 'pef', title: 'Nº PEF', className: 'none' },
-            { data: 'produit', title: 'Produit', className: 'none' },
-            { data: 'societe', title: 'Société' },
-            {
-                data: 'statut',
-                title: 'Statut',
-                render: (data, type, row) => {
-                    return this.getStatusBadge(data);
+            columns: [
+                {
+                    data: null,
+                    defaultContent: '',
+                    className: 'dtr-control',
+                    orderable: false
+                },
+                { data: 'id', title: 'ID' },
+                { data: 'typeDemande', title: 'Type de Demande' },
+                { data: 'pef', title: 'Nº PEF', className: 'none' },
+                { data: 'produit', title: 'Produit', className: 'none' },
+                { data: 'societe', title: 'Société' },
+                {
+                    data: 'statut',
+                    title: 'Statut',
+                    render: (data, type, row) => this.getStatusBadge(data)
+                },
+                { data: 'description', title: 'Étape Actuelle', className: 'none' },
+                
+                // ✅ CORRECTION : Ajout d'un renderer pour le tri de la date
+                { 
+                    data: 'dateCreation', 
+                    title: 'Date Demande', 
+                    className: 'none',
+                    render: function(data, type, row) {
+                        if (type === 'sort') {
+                            // Pour le tri, on retourne AAAA/MM/JJ
+                            const parts = data.split('/');
+                            return parts[2] + parts[1] + parts[0];
+                        }
+                        // Pour l'affichage, on garde JJ/MM/AAAA
+                        return data;
+                    }
                 }
+            ],
+            responsive: true,
+            columnDefs: [
+                { responsivePriority: 1, targets: 1 },
+                { responsivePriority: 2, targets: 3 }
+            ],
+            select: {
+                style: 'single',
+                info: false
             },
-            { data: 'description', title: 'Étape Actuelle', className: 'none' },
-            { data: 'dateCreation', title: 'Date Demande', className: 'none' }
-        ],
-        responsive: true,
-        columnDefs: [
-            {
-                responsivePriority: 1,
-                targets: 1
-            },
-            {
-                responsivePriority: 2,
-                targets: 3
-            }
-        ],
-        select: {
-            style: 'single',
-            info: false
-        },
-        // ✅ CORRECTION : Tri par la colonne 'dateCreation' (index 6)
-        order: [[6, 'desc']],
-        pageLength: 10,
-        lengthMenu: [5, 10, 25, 50]
-    });
-}
-
-getStatusBadge(status) {
-    switch (status) {
-        case 'Signé':
-            return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i><span>Signée & Disponible</span></span>';
-        case 'En cours':
-            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
-        case 'Soumis':
-            return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>Soumis</span></span>';
-        case 'Suspendu':
-            return '<span class="status-badge status-suspended"><i class="ph-fill ph-pause-circle"></i><span>Suspendue</span></span>';
-        case 'refuser':
-        case 'Rejetée':
-            return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
-        default:
-            return `<span class="status-badge">${status}</span>`;
+            order: [[8, 'desc']], // Tri initial par date de création (colonne 8)
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50]
+        });
     }
-}
+
+    getStatusBadge(status) {
+        switch (status) {
+            case 'Signé':
+                return '<span class="status-badge status-approved"><i class="ph-fill ph-check-circle"></i><span>Signée & Disponible</span></span>';
+            case 'En cours':
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>En cours</span></span>';
+            case 'Soumis':
+                return '<span class="status-badge status-pending"><i class="ph-fill ph-hourglass"></i><span>Soumis</span></span>';
+            case 'Suspendu':
+                return '<span class="status-badge status-suspended"><i class="ph-fill ph-pause-circle"></i><span>Suspendue</span></span>';
+            case 'refuser':
+            case 'Rejetée':
+                return '<span class="status-badge status-rejected"><i class="ph-fill ph-x-circle"></i><span>Rejetée</span></span>';
+            default:
+                return `<span class="status-badge">${status}</span>`;
+        }
+    }
+
     bindEvents() {
+        // Clic sur une ligne de la table "en cours"
         this.dataTable.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
                 const data = this.dataTable.row(indexes).data();
@@ -91,8 +100,14 @@ getStatusBadge(status) {
             }
         });
 
-        // ❌ SUPPRESSION des écouteurs pour les boutons 'Actualiser'
-        
+        // Clic sur le bouton d'actualisation
+        $(document).on('click', '#refresh-demandes-btn', () => {
+            this.notification.info('Actualisation de la liste en cours...');
+            this.apiService.invalidate('/admin/validation_demande_autorisation/liste');
+            this.loadDemandes();
+        });
+
+        // Clic sur une ligne de la table "traitées"
         this.dataTableTraitees.on('select', (e, dt, type, indexes) => {
             if (type === 'row') {
                 const data = this.dataTableTraitees.row(indexes).data();
@@ -102,18 +117,24 @@ getStatusBadge(status) {
                 }
             }
         });
-
+        
+        // Changement d'onglet
         $('button[data-bs-toggle="tab"]').on('shown.bs.tab', (event) => {
             const tabId = event.target.id;
-            const titleElement = $('.pro-card-title span');
+            const titleElement = $('.pro-card-title span').first();
+            const refreshButton = $('#refresh-demandes-btn');
+
             if (tabId === 'traitees-tab') {
                 this.loadDemandesTraitees();
                 titleElement.text("Demandes d'Autorisations Traitées");
+                refreshButton.hide();
             } else if (tabId === 'en-cours-tab') {
                 titleElement.text("Demandes d'Autorisations à Valider");
+                refreshButton.show();
             }
         });
 
+        // Désélection d'une ligne
         this.dataTable.on('deselect', (e, dt, type, indexes) => {
             if (type === 'row') {
                 this.selectedDemandeId = null;
@@ -121,6 +142,7 @@ getStatusBadge(status) {
             }
         });
 
+        // Clic sur le bouton de refus d'un document
         $(document).on('click', '.refuse-doc-btn', (e) => {
             const docId = $(e.currentTarget).data('doc-id');
             if (confirm('Êtes-vous sûr de vouloir refuser ce document ?')) {
@@ -129,20 +151,17 @@ getStatusBadge(status) {
                 this.notification.info('Document marqué comme refusé.');
             }
         });
-
+        
+        // Changement du statut de la demande dans le panneau de détails
         $(document).on('change', '#demande-status', function() {
             const selectedStatus = $(this).val();
 
-            // Handle "Signé" status fields
             if (selectedStatus === 'Signé') {
-                $('#file-upload-container').slideDown();
-                $('#numero-autorisation-container').slideDown();
+                $('#file-upload-container, #numero-autorisation-container').slideDown();
             } else {
-                $('#file-upload-container').slideUp();
-                $('#numero-autorisation-container').slideUp();
+                $('#file-upload-container, #numero-autorisation-container').slideUp();
             }
 
-            // Handle "Suspendu" status justification
             if (selectedStatus === 'Suspendu') {
                 $('#justification-form').slideDown();
             } else {
@@ -150,6 +169,7 @@ getStatusBadge(status) {
             }
         });
 
+        // Clic sur le bouton de validation de la demande
         $(document).on('click', '#validate-demande-btn', (e) => {
             const demandeId = $(e.currentTarget).data('demande-id');
             const etapeId = $(e.currentTarget).data('etape-id');
@@ -162,12 +182,13 @@ getStatusBadge(status) {
                 return;
             }
             if (!newStatus) {
-                this.notification.warning('Veuillez selectionner un statut valide');
+                this.notification.warning('Veuillez sélectionner un statut valide');
                 return;
             }
             this.validateDemande(demandeId, etapeId, newStatus, this.refusedDocuments, justification, numeroAutorisation);
         });
-
+        
+        // Clic pour voir les documents rejetés
         $(document).on('click', '.view-rejected-docs', (e) => {
             e.preventDefault();
             const demandeId = $(e.currentTarget).data('id');
@@ -207,7 +228,13 @@ getStatusBadge(status) {
     async loadDemandes() {
         try {
             const demandes = await this.apiService.getDemandesForValidation();
-            this.dataTable.clear().rows.add(demandes).draw();
+            
+            this.dataTable
+                .clear()
+                .rows.add(demandes)
+                .order([8, 'desc']) 
+                .draw();
+
             this.selectedDemandeId = null;
             this.showDetailsPlaceholder();
         } catch (error) {
@@ -219,7 +246,11 @@ getStatusBadge(status) {
     async loadDemandesTraitees() {
         try {
             const demandes = await this.apiService.get('/admin/validation_demande_autorisation/liste-traitees');
-            this.dataTableTraitees.clear().rows.add(demandes).draw();
+            this.dataTableTraitees
+                .clear()
+                .rows.add(demandes)
+                .order([8, 'desc'])
+                .draw();
         } catch (error) {
             this.notification.error('Erreur lors du chargement des demandes traitées');
             console.error(error);
@@ -244,15 +275,27 @@ getStatusBadge(status) {
                 { data: 'pef', title: 'Nº PEF', className: 'none' },
                 { data: 'produit', title: 'Produit', className: 'none' },
                 { data: 'typeDemande', title: 'Nature', className: 'none' },
-                { data: 'dateTraitement', title: 'Date Traitement', className: 'none' }
+                
+                // ✅ CORRECTION : Ajout d'un renderer pour le tri de la date
+                { 
+                    data: 'dateTraitement', 
+                    title: 'Date Traitement', 
+                    className: 'none',
+                    render: function(data, type, row) {
+                        if (type === 'sort' && data) {
+                            const parts = data.split('/');
+                            return parts[2] + parts[1] + parts[0];
+                        }
+                        return data;
+                    }
+                }
             ],
             responsive: true,
             select: {
                 style: 'single',
                 info: false
             },
-            // ✅ CORRECTION : Tri par la colonne 'dateTraitement' (index 8)
-            order: [[8, 'desc']],
+            order: [[8, 'desc']], // Tri initial par date de traitement (colonne 8)
             pageLength: 10,
             lengthMenu: [5, 10, 25, 50]
         });
@@ -278,22 +321,18 @@ getStatusBadge(status) {
             const placeholder = $('#details-placeholder');
             placeholder.hide();
 
-            let documentsHtml = '';
             this.refusedDocuments = {};
             let hasRejectedDocuments = false;
 
-            if (details.documents && details.documents.length > 0) {
-                documentsHtml = details.documents.map(doc => {
-                    if (doc.statut === 'Rejeté') {
-                        hasRejectedDocuments = true;
-                    }
-                    let actionButtons = '';
-                    if (doc.path) {
-                        actionButtons = `<a href="${doc.path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>`;
-                    }
+            const documentsHtml = details.documents && details.documents.length > 0 ?
+                details.documents.map(doc => {
+                    if (doc.statut === 'Rejeté') hasRejectedDocuments = true;
+                    
+                    let actionButtons = doc.path ? `<a href="${doc.path}" target="_blank" class="btn btn-sm btn-outline-primary view-doc-btn"><i class="ph ph-eye"></i></a>` : '';
                     if (!isTraitee && doc.statut === 'Chargé') {
                         actionButtons += ` <button class="btn btn-sm btn-outline-danger refuse-doc-btn" data-doc-id="${doc.document_id}"><i class="ph ph-x"></i></button>`;
                     }
+
                     return `
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span class="text-truncate" style="max-width: 70%;">${doc.nom}</span>
@@ -302,74 +341,60 @@ getStatusBadge(status) {
                                 ${actionButtons}
                             </div>
                         </li>`;
-                }).join('');
-            } else {
-                documentsHtml = '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
-            }
+                }).join('') : '<li class="list-group-item text-muted text-center">Aucun document pour cette demande</li>';
 
-            let etapesHtml = '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
-            if (details.etapes_validation && details.etapes_validation.length > 0) {
-                etapesHtml = details.etapes_validation.map(etape => `
+            const etapesHtml = details.etapes_validation && details.etapes_validation.length > 0 ?
+                details.etapes_validation.map(etape => `
                     <li class="list-group-item d-flex justify-content-between align-items-center ${etape.id === etapeId ? 'active' : ''}">
                         <span>${etape.ordre}. ${etape.nom}</span>
                         <span class="badge bg-info">${etape.statut}</span>
-                    </li>`).join('');
-            }
+                    </li>`).join('') : '<li class="list-group-item text-muted text-center">Aucun circuit de validation trouvé</li>';
 
-            let rejectedLinkHtml = '';
-            if (hasRejectedDocuments) {
-                rejectedLinkHtml = `
-                    <div class="d-grid gap-2 mb-3">
-                        <button class="btn btn-sm btn-outline-danger view-rejected-docs" data-id="${demandeId}">
-                            <i class="ph-fill ph-warning-circle"></i> Voir les documents rejetés
+            const rejectedLinkHtml = hasRejectedDocuments ? `
+                <div class="d-grid gap-2 mb-3">
+                    <button class="btn btn-sm btn-outline-danger view-rejected-docs" data-id="${demandeId}">
+                        <i class="ph-fill ph-warning-circle"></i> Voir les documents rejetés
+                    </button>
+                </div>` : '';
+
+            const validationSectionHtml = !isTraitee ? `
+                ${rejectedLinkHtml}
+                <div class="mb-3">
+                    <label for="demande-status" class="form-label">Changer le statut de la demande</label>
+                    <select id="demande-status" class="form-select">
+                        <option value="">--Changer--</option>
+                        <option value="Soumis">Soumis</option>
+                        <option value="Suspendu">Suspendre la demande</option>
+                        <option value="En cours">En cours de traitement</option>
+                        <option value="Signé">Demande signée et disponible</option>
+                    </select>
+                </div>
+                <div id="numero-autorisation-container" class="mb-3" style="display: none;">
+                    <label for="numero-autorisation" class="form-label">Nº Autorisation</label>
+                    <input type="text" id="numero-autorisation" class="form-control">
+                </div>
+                <div id="file-upload-container" class="mb-3" style="display: none;">
+                    <label for="signed-document" class="form-label">Charger le document signé</label>
+                    <input type="file" id="signed-document" class="form-control">
+                </div>
+                <div id="justification-form" class="mt-3" style="display: none;">
+                    <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification</h6>
+                    <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification pour la suspension..."></textarea>
+                </div>
+                <div id="validation-actions" class="mt-3">
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}" data-etape-id="${etapeId}">
+                            <i class="ph ph-check-circle"></i> Valider
                         </button>
-                    </div>`;
-            }
+                    </div>
+                </div>` : '';
 
-            let validationSectionHtml = '';
-            if (!isTraitee) {
-                validationSectionHtml = `
-                    ${rejectedLinkHtml}
-                    <div class="mb-3">
-                        <label for="demande-status" class="form-label">Changer le statut de la demande</label>
-                        <select id="demande-status" class="form-select">
-                            <option value="">--Changer--</option>
-                            <option value="Soumis">Soumis</option>
-                            <option value="Suspendu">Suspendre la demande</option>
-                            <option value="En cours">En cours de traitement</option>
-                            <option value="Signé">Demande signée et disponible</option>
-                        </select>
-                    </div>
-                    <div id="numero-autorisation-container" class="mb-3" style="display: none;">
-                        <label for="numero-autorisation" class="form-label">Nº Autorisation</label>
-                        <input type="text" id="numero-autorisation" class="form-control">
-                    </div>
-                    <div id="file-upload-container" class="mb-3" style="display: none;">
-                        <label for="signed-document" class="form-label">Charger le document signé</label>
-                        <input type="file" id="signed-document" class="form-control">
-                    </div>
-                    <div id="justification-form" class="mt-3" style="display: none;">
-                        <h6 class="text-muted small fw-bold text-uppercase mb-2">Justification</h6>
-                        <textarea id="justification-comment" class="form-control" rows="3" placeholder="Veuillez fournir une justification pour la suspension..."></textarea>
-                    </div>
-                    <div id="validation-actions" class="mt-3">
-                        <div class="d-flex justify-content-end">
-                            <button class="btn btn-primary" id="validate-demande-btn" data-demande-id="${demandeId}" data-etape-id="${etapeId}">
-                                <i class="ph ph-check-circle"></i> Valider
-                            </button>
-                        </div>
-                    </div>`;
-            }
-
-            let signedDocumentHtml = '';
-            if (isTraitee && details.documentSignePath) {
-                signedDocumentHtml = `
-                    <div class="d-grid gap-2 mb-3">
-                        <a href="${details.documentSignePath}" target="_blank" class="btn btn-success">
-                            <i class="ph-fill ph-file-pdf"></i> Voir le document signé
-                        </a>
-                    </div>`;
-            }
+            const signedDocumentHtml = isTraitee && details.documentSignePath ? `
+                <div class="d-grid gap-2 mb-3">
+                    <a href="${details.documentSignePath}" target="_blank" class="btn btn-success">
+                        <i class="ph-fill ph-file-pdf"></i> Voir le document signé
+                    </a>
+                </div>` : '';
 
             const contentHtml = `
                 <div class="mb-3">
@@ -385,8 +410,6 @@ getStatusBadge(status) {
                 ${validationSectionHtml}`;
 
             detailsContent.html(contentHtml).addClass('visible');
-
-            // The change event is now handled by a delegated listener in bindEvents.
         } catch (error) {
             this.notification.error("Erreur lors de l'affichage des détails.");
             console.error(error);
@@ -421,15 +444,13 @@ getStatusBadge(status) {
 
         try {
             await this.apiService.validateDemande(demandeId, formData);
-            
             this.notification.success('Demande validée avec succès.');
-            
             this.loadDemandes();
             this.loadDemandesTraitees();
-
         } catch (error) {
             this.notification.error(error.message || "Erreur lors de la validation de la demande.");
             console.error(error);
         }
     }
 }
+

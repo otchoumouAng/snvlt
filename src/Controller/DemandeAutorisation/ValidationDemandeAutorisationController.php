@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\References\ServiceMinefRepository; 
+use App\Service\PdfWatermarkService;
 
 
 /**
@@ -49,9 +50,11 @@ class ValidationDemandeAutorisationController extends AbstractController
         private ForetRepository $foretRepository,
         private RepriseRepository $repriseRepository,
         private LoggerInterface $logger,
+        private PdfWatermarkService $pdfWatermarkService,
         ServiceMinefRepository $serviceMinefRepository
     ) {
         $this->serviceMinefRepository = $serviceMinefRepository;
+        $this->pdfWatermarkService = $pdfWatermarkService;
     }
 
     /**
@@ -101,8 +104,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             $demande = $etape->getDemande();
             $operateur = $demande->getOperateur();
             $societe = $operateur ? ($operateur->getCodeexploitant() ? $operateur->getCodeexploitant()->getRaisonSocialeExploitant() : $operateur->getNomUtilisateur() . ' ' . $operateur->getPrenomsUtilisateur()) : 'N/A';
-            /*if ($demande->getStatut() != "Signé") {
-            }*/
+            
                 $data[] = [
                     'id' => $demande->getId(),
                     'etape_id' => $etape->getId(),
@@ -168,7 +170,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             $uploadedDocuments[$doc->getTypeDocument()->getId()] = [
                 'id' => $doc->getId(),
                 'nom' => $doc->getNom(),
-                'path' => '/uploads/documents/' . $doc->getPath(),
+                'path' => '/uploads/documents/' . $doc->getPath(), // C'est ici que je dois changer
                 'statut' => $doc->getStatut(),
                 'dateAjout' => $doc->getCreatedAt()->format('d/m/Y H:i')
             ];
@@ -241,7 +243,7 @@ class ValidationDemandeAutorisationController extends AbstractController
             'societe' => $societe,
             'documents' => $requiredDocuments,
             'etapes_validation' => $etapesData,
-            'documentSignePath' => $demande->getDocumentSignePath() ? '/uploads/documents/' . $demande->getDocumentSignePath() : null,
+            'documentSignePath' => $demande->getDocumentSignePath() ? '/uploads/documents_signes/' . $demande->getDocumentSignePath() : null,
 
         ];
 
@@ -328,18 +330,29 @@ class ValidationDemandeAutorisationController extends AbstractController
                 }
             }
         }
+
  
         // 4. Handle 'Signé' specific actions
         if ($newStatus === 'Signé' && $uploadedFile) {
-            $newFilename = uniqid().'.'.$uploadedFile->guessExtension();
+            $originalFilename = uniqid().'.'.$uploadedFile->guessExtension();
             $documentsDirectory = $this->getParameter('documents_signe_directory');
 
             if (!is_dir($documentsDirectory)) {
                 mkdir($documentsDirectory, 0777, true);
             }
 
-            $uploadedFile->move($documentsDirectory, $newFilename);
-            $demande->setDocumentSignePath($newFilename);
+            $uploadedFile->move($documentsDirectory, $originalFilename);
+            //$demande->setDocumentSignePath($newFilename);
+
+            try {
+                $watermarkedFilename = $this->pdfWatermarkService->addWatermark($originalFilename);
+
+                $demande->setDocumentSignePath($watermarkedFilename);
+
+            } catch (\Exception $e) {
+                $this->logger->error("Erreur lors de l'ajout du filigrane : " . $e->getMessage());
+                return new JsonResponse(['error' => "Le traitement du PDF a échoué. Veuillez vérifier le fichier." . $e->getMessage()], 500);
+            }
 
 
 

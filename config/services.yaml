@@ -35,6 +35,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+    
     App\Service\WhatsappService:
         bind:
             $whatsappApiToken: '%env(WHATSAPP_API_TOKEN)%'

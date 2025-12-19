@@ -39,13 +39,6 @@ class DemandeAutorisationController extends AbstractController
         $code_groupe = $user->getCodeGroupe()->getId();
         $titre ="Add an attribution PV";
 
-
-        //dd($menus->findOnlyParent());
-        //dd($permissions->findBy(['code_groupe_id'=>$code_groupe]));
-        //dd($menus->findAll());
-        //dd($code_groupe);
-      
-
         return $this->render('DemandeAutorisation/index.html.twig', [
                     'liste_menus'=>$menus->findOnlyParent(),
                     "all_menus"=>$menus->findAll(),
