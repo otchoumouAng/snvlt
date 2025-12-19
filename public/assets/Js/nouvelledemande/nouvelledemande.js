@@ -199,6 +199,18 @@ class NouvelleDemandeApp {
             }
         });
 
+        // Événement pour la suppression d'un document
+        $('#details-panel').on('click', '.delete-doc', (e) => {
+            e.preventDefault();
+            e.stopPropagation(); // Éviter d'autres déclenchements
+            const docId = $(e.currentTarget).closest('.document-item-new').data('doc-id');
+            if (docId) {
+                this.removeDocument(docId);
+            } else {
+                this.notification.error('Identifiant du document introuvable.');
+            }
+        });
+
 
         // Use document for delegated event since the button is in the header, outside the panel
         $(document).on('click', '#refresh-demande-btn', (e) => {
@@ -573,6 +585,14 @@ buildDocumentsHtml(details) {
             actionsHtml = `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
                            </button>`;
+
+            // AJOUT: Bouton de suppression si la demande est modifiable (Créé ou Rejeté)
+            if (doc.statut === 'Chargé' && (details.statut === 'Créé' || details.statut === 'Rejeté')) {
+                actionsHtml += `<button class="action-btn delete-doc text-danger" title="Retirer le document">
+                                    <i class="ph-fill ph-trash"></i>
+                                </button>`;
+            }
+
         } else { // "Non chargé" ou "rejeté"
             actionsHtml = `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
@@ -748,10 +768,9 @@ showDetailsPlaceholder() {
             this.notification.success('Document retiré avec succès');
 
             // Reload the data
-            if (this.currentMode) {
-                this.loadDemandeData(demandeId);
-            } else {
-                this.selectDemande(demandeId);
+            const rowData = this.dataTable.row({ selected: true }).data();
+            if (rowData) {
+                this.displayDocumentPanel(rowData);
             }
         } catch (error) {
             this.notification.error('Erreur lors du retrait du document');
