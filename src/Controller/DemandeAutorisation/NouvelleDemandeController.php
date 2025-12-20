@@ -392,17 +392,14 @@ class NouvelleDemandeController extends AbstractController
         }
         // -----------------------------------------
 
-        $document = $this->entityManager->getRepository(Document::class)->find($documentId);
-
-        if (!$document) {
-            return new JsonResponse(['error' => 'Document non trouvé'], 404);
-        }
-
-        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $document]);
+        // Query directly on DemandeDocument using IDs to avoid potential proxy/state issues
+        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $documentId]);
 
         if (!$demandeDocument) {
-            return new JsonResponse(['error' => 'Liaison document-demande non trouvée'], 404);
+             return new JsonResponse(['error' => 'Liaison document-demande non trouvée ou document déjà supprimé'], 404);
         }
+
+        $document = $demandeDocument->getDocument();
 
         // Optional: remove the file from storage
         // $filePath = $this->getParameter('documents_directory').'/'.$document->getPath();
