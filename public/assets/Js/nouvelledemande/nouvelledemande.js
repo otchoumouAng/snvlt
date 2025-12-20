@@ -510,6 +510,10 @@ async displayDocumentPanel(demandeData) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
+    } else if (s === 'soumis') {
+         buttonHtml = `<button class="btn btn-sm btn-secondary" disabled>
+                        <i class="ph-fill ph-check-circle"></i> Déjà Soumis
+                      </button>`;
     } else {
         // For 'Soumis' and others, no button is displayed.
         buttonHtml = ``;
