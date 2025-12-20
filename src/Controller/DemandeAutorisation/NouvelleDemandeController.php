@@ -313,6 +313,14 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
+        // --- BACKEND ENFORCEMENT: Check Status ---
+        // Allow upload only if status is Créé, Suspendu, or Rejeté
+        $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+        if (!in_array($demande->getStatut(), $allowedStatuses)) {
+            return new JsonResponse(['error' => 'Ajout de document non autorisé pour ce statut.'], 403);
+        }
+        // -----------------------------------------
+
         $file = $request->files->get('document');
         $typeDocumentId = $request->request->get('type_document_id');
 
@@ -375,6 +383,14 @@ class NouvelleDemandeController extends AbstractController
         if (!$demande) {
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
+
+        // --- BACKEND ENFORCEMENT: Check Status ---
+        // Allow removal only if status is Créé, Suspendu, or Rejeté
+        $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+        if (!in_array($demande->getStatut(), $allowedStatuses)) {
+            return new JsonResponse(['error' => 'Suppression de document non autorisée pour ce statut.'], 403);
+        }
+        // -----------------------------------------
 
         $document = $this->entityManager->getRepository(Document::class)->find($documentId);
 
@@ -493,6 +509,14 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
+            // --- BACKEND ENFORCEMENT: Check Status ---
+            // Allow submission only if status is Créé, Suspendu, or Rejeté
+            $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+            if (!in_array($demande->getStatut(), $allowedStatuses)) {
+                return new JsonResponse(['error' => 'Soumission non autorisée pour ce statut.'], 403);
+            }
+            // -----------------------------------------
+
             //$demande->setStatut('En cours');
             $demande->setStatut('Soumis');
 
