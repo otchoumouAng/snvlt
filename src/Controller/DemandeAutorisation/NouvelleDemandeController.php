@@ -377,7 +377,17 @@ class NouvelleDemandeController extends AbstractController
      */
     public function removeDocument(int $id, Request $request, DemandeDocumentRepository $demandeDocumentRepository): JsonResponse
     {
+        // 1. Retrieve the document ID, handling both form-data and JSON payloads
         $documentId = $request->request->get('document_id');
+        if (!$documentId) {
+            $data = json_decode($request->getContent(), true);
+            $documentId = $data['document_id'] ?? null;
+        }
+
+        if (!$documentId) {
+            return new JsonResponse(['error' => 'ID du document manquant'], 400);
+        }
+
         $demande = $this->entityManager->getRepository(NouvelleDemande::class)->find($id);
 
         if (!$demande) {
