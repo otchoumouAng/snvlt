@@ -393,7 +393,9 @@ class NouvelleDemandeController extends AbstractController
         // -----------------------------------------
 
         // Query directly on DemandeDocument using IDs to avoid potential proxy/state issues
-        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $documentId]);
+        // Use reference for Document to avoid loading the entity and hitting "missing id" issue
+        $documentRef = $this->entityManager->getReference(Document::class, $documentId);
+        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $documentRef]);
 
         if (!$demandeDocument) {
              return new JsonResponse(['error' => 'Liaison document-demande non trouvée ou document déjà supprimé'], 404);
