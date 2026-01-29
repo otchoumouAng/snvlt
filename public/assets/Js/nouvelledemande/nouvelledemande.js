@@ -199,6 +199,16 @@ class NouvelleDemandeApp {
             }
         });
 
+        // Event for deleting a document
+        $('#details-panel').on('click', '.delete', (e) => {
+            const docId = $(e.currentTarget).closest('.document-item-new').data('doc-id');
+            if (docId) {
+                this.removeDocument(docId);
+            } else {
+                this.notification.error('ID du document introuvable.');
+            }
+        });
+
 
         // Use document for delegated event since the button is in the header, outside the panel
         $(document).on('click', '#refresh-demande-btn', (e) => {
@@ -485,20 +495,28 @@ async displayDocumentPanel(demandeData) {
     const status = demandeData.statut;
     let buttonHtml = '';
 
-    if (status === 'Créé' || status === 'rejeté') {
+    // Status checking (case-insensitive for safety, though backend uses Capitalized)
+    const s = status.toLowerCase();
+
+    if (['créé', 'rejeté', 'suspendu'].includes(s)) {
         buttonHtml = `<button class="btn btn-sm btn-success" id="refresh-demande-btn" data-action="submit">
                         <i class="ph-fill ph-paper-plane-tilt"></i> Soumettre
                       </button>`;
-    } else if (status === 'En cours'|| status === 'Soumis') {
+    } else if (s === 'en cours') {
         buttonHtml = `<button class="btn btn-sm btn-outline-primary" id="refresh-demande-btn" data-action="refresh">
                         <i class="ph-fill ph-arrows-clockwise"></i> Actualiser
                       </button>`;
-    } else if (status === 'Signé') {
+    } else if (s === 'signé') {
         buttonHtml = `<button class="btn btn-sm btn-success" id="view-signed-doc-portal-btn">
                         <i class="ph-fill ph-file-arrow-down"></i> Document signé et disponible
                       </button>`;
+    } else if (s === 'soumis') {
+         buttonHtml = `<button class="btn btn-sm btn-secondary" disabled>
+                        <i class="ph-fill ph-check-circle"></i> Déjà Soumis
+                      </button>`;
     } else {
-        buttonHtml = ``; // No button for other statuses
+        // For 'Soumis' and others, no button is displayed.
+        buttonHtml = ``;
     }
 
     const titleHtml = `
@@ -537,6 +555,11 @@ buildDocumentsHtml(details) {
         return `<div class="text-center p-5"><i class="ph-light ph-folder-simple-dashed" style="font-size: 3rem; color: #ced4da;"></i><h6 class="mt-3">Aucun document requis</h6><p class="text-muted small">Ce type de demande ne nécessite aucun document à fournir.</p></div>`;
     }
 
+    // Determine permissions based on demand status
+    const status = details.statut || '';
+    const s = status.toLowerCase();
+    const canEdit = ['créé', 'rejeté', 'suspendu'].includes(s);
+
     // Trier les documents pour que le fichier spécial soit toujours en premier
     details.documents.sort((a, b) => {
         if (a.fichierSpecial && !b.fichierSpecial) return -1;
@@ -568,21 +591,35 @@ buildDocumentsHtml(details) {
                 statutHtml = '<span class="status-badge-sm status-non-fourni">Non chargé</span>';
         }
 
-        // Définir les BOUTONS D'ACTION
-        if (doc.statut === 'Chargé' || doc.statut === 'Accepté') {
-            actionsHtml = `<button class="action-btn view" title="Visualiser le document">
+        // --- Définir les BOUTONS D'ACTION ---
+        const isPresent = (doc.statut === 'Chargé' || doc.statut === 'Accepté');
+
+        // 1. View Button (Always if present)
+        if (isPresent) {
+            actionsHtml += `<button class="action-btn view" title="Visualiser le document">
                                <i class="ph-fill ph-eye"></i>
                            </button>`;
-        } else { // "Non chargé" ou "rejeté"
-            actionsHtml = `<button class="action-btn upload" title="Charger le document">
+        }
+
+        // 2. Delete Button (If present and editable)
+        if (doc.statut === 'Chargé' && canEdit) {
+            actionsHtml += `<button class="action-btn delete text-danger" title="Retirer le document">
+                               <i class="ph-fill ph-trash"></i>
+                           </button>`;
+        }
+
+        // 3. Upload Button (If NOT present/rejected and editable)
+        if ((!isPresent || doc.statut === 'Rejeté') && canEdit) {
+            actionsHtml += `<button class="action-btn upload" title="Charger le document">
                                <i class="ph-fill ph-upload-simple"></i>
                            </button>`;
         }
 
-        // Interdiction de charger un document dans une demande SIGNÉ
-        if (details.statut === 'Signé' && doc.statut === 'Non chargé' || details.statut === 'Signé' && doc.statut === 'Rejeté' ) {
-            actionsHtml = `<span class="action-btn"><i class="ph ph-lock-key"></i></span>`;
+        // 4. Fallback/Lock
+        if (actionsHtml === '') {
+            actionsHtml = `<span class="action-btn"><i class="ph ph-lock-key" style="color: #ccc;"></i></span>`;
         }
+        // ------------------------------------
 
         // Assembler le HTML final pour cet item
         return `
@@ -748,11 +785,16 @@ showDetailsPlaceholder() {
             this.notification.success('Document retiré avec succès');
 
             // Reload the data
-            if (this.currentMode) {
-                this.loadDemandeData(demandeId);
-            } else {
-                this.selectDemande(demandeId);
+            // If in document panel (view mode)
+            const rowData = this.dataTable.row({ selected: true }).data();
+            if (rowData) {
+                this.displayDocumentPanel(rowData);
+            } else if (this.currentMode) {
+                 // Fallback if in a modal (though we are mostly using the panel now)
+                 // this.loadDemandeData(demandeId); // Assuming this method exists or we use something else
+                 // We don't really use currentMode 'edit' for documents anymore based on new UI
             }
+
         } catch (error) {
             this.notification.error('Erreur lors du retrait du document');
             console.error(error);

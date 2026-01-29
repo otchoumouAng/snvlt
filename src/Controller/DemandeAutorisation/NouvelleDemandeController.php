@@ -313,6 +313,14 @@ class NouvelleDemandeController extends AbstractController
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
+        // --- BACKEND ENFORCEMENT: Check Status ---
+        // Allow upload only if status is Créé, Suspendu, or Rejeté
+        $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+        if (!in_array($demande->getStatut(), $allowedStatuses)) {
+            return new JsonResponse(['error' => 'Ajout de document non autorisé pour ce statut.'], 403);
+        }
+        // -----------------------------------------
+
         $file = $request->files->get('document');
         $typeDocumentId = $request->request->get('type_document_id');
 
@@ -369,24 +377,45 @@ class NouvelleDemandeController extends AbstractController
      */
     public function removeDocument(int $id, Request $request, DemandeDocumentRepository $demandeDocumentRepository): JsonResponse
     {
+        // 1. Retrieve the document ID, handling both form-data and JSON payloads
         $documentId = $request->request->get('document_id');
+        if (!$documentId) {
+            $data = json_decode($request->getContent(), true);
+            $documentId = $data['document_id'] ?? null;
+        }
+
+        if (!$documentId) {
+            return new JsonResponse(['error' => 'ID du document manquant'], 400);
+        }
+
         $demande = $this->entityManager->getRepository(NouvelleDemande::class)->find($id);
 
         if (!$demande) {
             return new JsonResponse(['error' => 'Demande non trouvée'], 404);
         }
 
-        $document = $this->entityManager->getRepository(Document::class)->find($documentId);
-
-        if (!$document) {
-            return new JsonResponse(['error' => 'Document non trouvé'], 404);
+        // --- BACKEND ENFORCEMENT: Check Status ---
+        // Allow removal only if status is Créé, Suspendu, or Rejeté
+        $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+        if (!in_array($demande->getStatut(), $allowedStatuses)) {
+            return new JsonResponse(['error' => 'Suppression de document non autorisée pour ce statut.'], 403);
         }
+        // -----------------------------------------
 
-        $demandeDocument = $demandeDocumentRepository->findOneBy(['demande' => $demande, 'document' => $document]);
+        // Query using QueryBuilder to handle IDs and avoid entity loading issues
+        $demandeDocument = $demandeDocumentRepository->createQueryBuilder('dd')
+            ->where('dd.demande = :demande')
+            ->andWhere('dd.document = :documentId')
+            ->setParameter('demande', $demande)
+            ->setParameter('documentId', $documentId)
+            ->getQuery()
+            ->getOneOrNullResult();
 
         if (!$demandeDocument) {
-            return new JsonResponse(['error' => 'Liaison document-demande non trouvée'], 404);
+             return new JsonResponse(['error' => 'Liaison document-demande non trouvée ou document déjà supprimé'], 404);
         }
+
+        $document = $demandeDocument->getDocument();
 
         // Optional: remove the file from storage
         // $filePath = $this->getParameter('documents_directory').'/'.$document->getPath();
@@ -493,6 +522,14 @@ class NouvelleDemandeController extends AbstractController
     public function submitForValidation(NouvelleDemande $demande): JsonResponse
     {
         try {
+            // --- BACKEND ENFORCEMENT: Check Status ---
+            // Allow submission only if status is Créé, Suspendu, or Rejeté
+            $allowedStatuses = ['Créé', 'Suspendu', 'Rejeté'];
+            if (!in_array($demande->getStatut(), $allowedStatuses)) {
+                return new JsonResponse(['error' => 'Soumission non autorisée pour ce statut.'], 403);
+            }
+            // -----------------------------------------
+
             //$demande->setStatut('En cours');
             $demande->setStatut('Soumis');
 
@@ -509,7 +546,7 @@ class NouvelleDemandeController extends AbstractController
                 // Re-submission
                 foreach ($etapes as $etape) {
                     $etape->setStatut('En cours');
-                    $etape->setDateTraitement();
+                    $etape->setDateTraitement(null);
                     $etape->setDetails(null);
                     $this->entityManager->persist($etape);
 
